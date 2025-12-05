@@ -25,7 +25,10 @@ st.set_page_config(
 
 # Theme detection: Use st.get_option to detect the active Streamlit theme (light/dark)
 # so that the decision breakdown metric cards adapt their styling accordingly.
-theme_base = st.get_option("theme.base") or "light"
+try:
+    theme_base = st.get_option("theme.base") or "light"
+except Exception:
+    theme_base = "light"
 
 # Define theme-aware CSS variables for metric cards
 if theme_base == "dark":
