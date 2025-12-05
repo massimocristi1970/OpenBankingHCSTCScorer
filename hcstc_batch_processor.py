@@ -27,6 +27,11 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+class InvalidJsonStructureError(Exception):
+    """Raised when JSON structure cannot be normalized to expected format."""
+    pass
+
+
 @dataclass
 class ProcessingError:
     """Details of a processing error."""
@@ -224,6 +229,18 @@ class HCSTCBatchProcessor:
                 error_types["DATA_VALIDATION_ERROR"] = error_types.get("DATA_VALIDATION_ERROR", 0) + 1
                 logger.error(f"Data validation error in {filename}: {e}")
                 
+            except InvalidJsonStructureError as e:
+                error = ProcessingError(
+                    file_name=filename,
+                    error_type="INVALID_JSON_STRUCTURE",
+                    error_message=str(e)
+                )
+                errors.append(error)
+                stats.failed += 1
+                stats.processed += 1
+                error_types["INVALID_JSON_STRUCTURE"] = error_types.get("INVALID_JSON_STRUCTURE", 0) + 1
+                logger.error(f"Invalid JSON structure in {filename}: {e}")
+                
             except Exception as e:
                 error = ProcessingError(
                     file_name=filename,
@@ -265,9 +282,8 @@ class HCSTCBatchProcessor:
         # Parse JSON
         data = json.loads(content.decode("utf-8"))
         
-        # Extract data
-        accounts = data.get("accounts", [])
-        transactions = data.get("transactions", [])
+        # Normalize JSON structure to handle different Plaid formats
+        accounts, transactions = self._normalize_json_structure(data, filename)
         
         if not transactions:
             raise ValueError("No transactions found in file")
@@ -317,6 +333,198 @@ class HCSTCBatchProcessor:
                 float(txn["amount"])
             except (ValueError, TypeError):
                 raise ValueError(f"Transaction {idx} has invalid amount: {txn['amount']}")
+    
+    def _normalize_json_structure(
+        self,
+        data,
+        filename: str
+    ) -> Tuple[List[Dict], List[Dict]]:
+        """
+        Normalize different Plaid JSON structures to expected format.
+        
+        Handles:
+        - Dictionary with 'accounts' and 'transactions' keys (standard format)
+        - Root-level list of transactions
+        - Root-level list of account objects with nested 'transactions'
+        - Dictionary with only 'transactions' key
+        
+        Args:
+            data: Parsed JSON data (dict or list)
+            filename: Filename for logging purposes
+        
+        Returns:
+            Tuple of (accounts, transactions) lists
+        
+        Raises:
+            InvalidJsonStructureError: If structure cannot be normalized
+        """
+        accounts = []
+        transactions = []
+        
+        if isinstance(data, dict):
+            # Standard format: dictionary with accounts and/or transactions
+            accounts = data.get("accounts", [])
+            transactions = data.get("transactions", [])
+            
+            # Check for alternative key names that Plaid might use
+            if not transactions:
+                # Try 'transaction' (singular) as alternative
+                transactions = data.get("transaction", [])
+            
+            if not transactions and not accounts:
+                # Check if the dict itself looks like it contains transaction data at root
+                # Some Plaid responses have data nested under other keys
+                for key, value in data.items():
+                    if isinstance(value, list) and len(value) > 0:
+                        if self._looks_like_transactions(value):
+                            transactions = value
+                            logger.info(
+                                f"{filename}: Found transactions under key '{key}'"
+                            )
+                            break
+                        elif self._looks_like_accounts(value):
+                            accounts = value
+                            # Check if accounts have nested transactions
+                            nested_txns = self._extract_transactions_from_accounts(value)
+                            if nested_txns:
+                                transactions = nested_txns
+                                logger.info(
+                                    f"{filename}: Found {len(nested_txns)} transactions "
+                                    f"nested within {len(value)} accounts"
+                                )
+            
+            logger.debug(
+                f"{filename}: Dictionary format - "
+                f"found {len(accounts)} accounts, {len(transactions)} transactions"
+            )
+            
+        elif isinstance(data, list):
+            # Root-level list - could be transactions or accounts
+            if len(data) == 0:
+                raise InvalidJsonStructureError(
+                    f"Empty array in JSON file: {filename}"
+                )
+            
+            if self._looks_like_transactions(data):
+                # List of transactions
+                transactions = data
+                logger.info(
+                    f"{filename}: Root-level array detected as transactions list "
+                    f"({len(data)} items)"
+                )
+                
+            elif self._looks_like_accounts(data):
+                # List of account objects - extract nested transactions
+                accounts = data
+                transactions = self._extract_transactions_from_accounts(data)
+                logger.info(
+                    f"{filename}: Root-level array detected as accounts list "
+                    f"({len(data)} accounts, {len(transactions)} transactions)"
+                )
+                
+            else:
+                # Try to detect if this is a mixed or unknown structure
+                logger.warning(
+                    f"{filename}: Root-level array with unrecognized structure. "
+                    f"First item keys: {list(data[0].keys()) if isinstance(data[0], dict) else 'N/A'}"
+                )
+                raise InvalidJsonStructureError(
+                    f"Unrecognized JSON array structure in {filename}. "
+                    f"Expected transaction objects (with 'amount', 'date') or "
+                    f"account objects (with 'account_id' or 'transactions')."
+                )
+        else:
+            raise InvalidJsonStructureError(
+                f"Unexpected JSON root type in {filename}: {type(data).__name__}. "
+                f"Expected dict or list."
+            )
+        
+        return accounts, transactions
+    
+    def _looks_like_transactions(self, items: List) -> bool:
+        """
+        Check if a list appears to contain transaction objects.
+        
+        A transaction typically has 'amount' and 'date' fields.
+        """
+        if not items or not isinstance(items[0], dict):
+            return False
+        
+        # Check first few items for transaction-like fields
+        sample_size = min(3, len(items))
+        transaction_indicators = 0
+        
+        for item in items[:sample_size]:
+            if not isinstance(item, dict):
+                continue
+            # Check for common transaction fields
+            has_amount = "amount" in item
+            has_date = "date" in item or "datetime" in item or "transaction_date" in item
+            has_name = "name" in item or "description" in item or "merchant_name" in item
+            
+            if has_amount and (has_date or has_name):
+                transaction_indicators += 1
+        
+        # Consider it transactions if majority of samples look like transactions
+        return transaction_indicators >= (sample_size / 2)
+    
+    def _looks_like_accounts(self, items: List) -> bool:
+        """
+        Check if a list appears to contain account objects.
+        
+        An account typically has 'account_id' or contains nested 'transactions'.
+        """
+        if not items or not isinstance(items[0], dict):
+            return False
+        
+        # Check first few items for account-like fields
+        sample_size = min(3, len(items))
+        account_indicators = 0
+        
+        for item in items[:sample_size]:
+            if not isinstance(item, dict):
+                continue
+            # Check for common account fields
+            has_account_id = "account_id" in item or "id" in item
+            has_balances = "balances" in item or "balance" in item
+            has_transactions = "transactions" in item
+            has_type = "type" in item or "subtype" in item
+            
+            if has_account_id or has_transactions or (has_balances and has_type):
+                account_indicators += 1
+        
+        return account_indicators >= (sample_size / 2)
+    
+    def _extract_transactions_from_accounts(self, accounts: List[Dict]) -> List[Dict]:
+        """
+        Extract transactions from account objects that have nested transactions.
+        
+        Args:
+            accounts: List of account objects
+        
+        Returns:
+            Flattened list of all transactions from all accounts
+        """
+        all_transactions = []
+        
+        for account in accounts:
+            if not isinstance(account, dict):
+                continue
+            
+            # Get transactions from this account
+            account_transactions = account.get("transactions", [])
+            
+            if isinstance(account_transactions, list):
+                # Optionally add account_id to each transaction for traceability
+                account_id = account.get("account_id") or account.get("id")
+                for txn in account_transactions:
+                    if isinstance(txn, dict):
+                        # Add account_id if transaction doesn't have one
+                        if account_id and "account_id" not in txn:
+                            txn["account_id"] = account_id
+                        all_transactions.append(txn)
+        
+        return all_transactions
     
     def load_files_from_uploads(
         self,
