@@ -1,0 +1,9 @@
+@echo off
+echo Starting HCSTC Loan Scorer...
+echo.
+echo Installing dependencies if needed...
+pip install -r requirements.txt --quiet
+echo.
+echo Starting Streamlit application...
+streamlit run app.py
+pause
