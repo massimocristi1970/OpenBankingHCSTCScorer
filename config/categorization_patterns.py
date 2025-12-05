@@ -104,51 +104,43 @@ TRANSFER_PATTERNS = {
 }
 
 # Existing Debt Categories (CRITICAL for HCSTC)
+# Updated late 2025 with verified active lenders only
 DEBT_PATTERNS = {
     "hcstc_payday": {
+        # Active & Trading HCSTC / Payday / Short-Term lenders as of late 2025
         "keywords": [
-            "QUICKQUID", "WONGA", "SUNNY", "LENDING STREAM", "SATSUMA",
-            "MONEY SHOP", "CASH CONVERTERS", "PROVIDENT", "GREENWOOD",
-            "MORSES CLUB", "SHOPACHECK", "OAKAM", "118 MONEY", "PEACHY",
-            "MR LENDER", "QUIDIE", "EARNIN", "DAVE", "BRIGIT", "EMPOWER",
-            "MONEY LION", "FLOATME", "CLEO", "DRAFTY", "MONEY ME",
-            "CASH GENIE", "SPEEDY CASH", "POUNDS TO POCKET", "MYJAR",
-            "UNCLE BUCK", "FERRATUM", "NDFC", "SIMPLE PAYDAY"
+            "LENDING STREAM", "DRAFTY", "MR LENDER", "MONEYBOAT",
+            "CREDITSPRING", "CASHFLOAT", "QUIDMARKET", "LOANS 2 GO",
+            "CASHASAP", "POLAR CREDIT", "118 118 MONEY", "THE MONEY PLATFORM",
+            "FAST LOAN UK", "CONDUIT", "SALAD MONEY", "FAIR FINANCE"
         ],
         "regex_patterns": [
-            r"(?i)quickquid",
-            r"(?i)wonga",
-            r"(?i)sunny\s*(loans?)?",
             r"(?i)lending\s*stream",
-            r"(?i)satsuma",
-            r"(?i)money\s*shop",
-            r"(?i)cash\s*converters",
-            r"(?i)provident",
-            r"(?i)greenwood",
-            r"(?i)morses?\s*club",
-            r"(?i)shopacheck",
-            r"(?i)oakam",
-            r"(?i)118\s*money",
-            r"(?i)peachy",
-            r"(?i)mr\s*lender",
-            r"(?i)quidie",
-            r"(?i)earnin",
-            r"(?i)\bdave\b",
-            r"(?i)brigit",
-            r"(?i)empower",
-            r"(?i)money\s*lion",
-            r"(?i)floatme",
-            r"(?i)\bcleo\b",
             r"(?i)drafty",
+            r"(?i)mr\s*lender",
+            r"(?i)moneyboat",
+            r"(?i)creditspring",
+            r"(?i)cashfloat",
+            r"(?i)quidmarket",
+            r"(?i)loans\s*2\s*go",
+            r"(?i)cashasap",
+            r"(?i)polar\s*credit",
+            r"(?i)118\s*118\s*money",
+            r"(?i)the\s*money\s*platform",
+            r"(?i)fast\s*loan\s*uk",
+            r"(?i)conduit",
+            r"(?i)salad\s*money",
+            r"(?i)fair\s*finance",
         ],
         "risk_level": "very_high",
         "description": "HCSTC/Payday Lenders"
     },
     "other_loans": {
+        # Personal, Guarantor & Sub-Prime loans (active lenders)
         "keywords": [
-            "LOAN", "FINANCE", "HP", "CAR FINANCE", "ZOPA", "RATESETTER",
-            "NOVUNA", "HITACHI", "SHAWBROOK", "1PLUS1", "BAMBOO", "LENDABLE",
-            "PERSONAL LOAN", "AUTO FINANCE", "VEHICLE FINANCE"
+            "LOAN", "FINANCE", "HP", "CAR FINANCE", "ZOPA", "NOVUNA",
+            "FINIO LOANS", "EVLO", "EVERYDAY LOANS", "BAMBOO", "LIVELEND",
+            "FLA", "PERSONAL LOAN", "AUTO FINANCE", "VEHICLE FINANCE"
         ],
         "regex_patterns": [
             r"(?i)\bloan\s*(repayment|payment)?\b",
@@ -156,29 +148,39 @@ DEBT_PATTERNS = {
             r"(?i)\bhp\s*(payment|repayment)?\b",
             r"(?i)car\s*finance",
             r"(?i)\bzopa\b",
-            r"(?i)ratesetter",
             r"(?i)novuna",
-            r"(?i)hitachi",
+            r"(?i)finio\s*loans?",
+            r"(?i)\bevlo\b",
+            r"(?i)everyday\s*loans?",
+            r"(?i)bamboo",
+            r"(?i)livelend",
         ],
         "risk_level": "medium",
         "description": "Other Loans"
     },
     "credit_cards": {
+        # Credit Builder & Bad Credit cards (active providers)
         "keywords": [
-            "BARCLAYCARD", "CAPITAL ONE", "AMEX", "MBNA", "AQUA", 
-            "VANQUIS", "MARBLES", "NEWDAY", "VIRGIN MONEY", "SAINSBURYS BANK",
-            "TESCO BANK", "M&S BANK", "HALIFAX", "LLOYDS", "HSBC",
-            "NATIONWIDE", "NATWEST", "MONZO", "STARLING"
+            "VANQUIS", "AQUA", "CAPITAL ONE", "MARBLES", "ZABLE",
+            "TYMIT", "118 118 MONEY CARD", "FLUID CARD", "CHROME CARD",
+            "BARCLAYCARD", "AMEX", "MBNA", "NEWDAY", "VIRGIN MONEY",
+            "SAINSBURYS BANK", "TESCO BANK", "M&S BANK", "HALIFAX",
+            "LLOYDS", "HSBC", "NATIONWIDE", "NATWEST", "MONZO", "STARLING"
         ],
         "regex_patterns": [
-            r"(?i)barclaycard",
+            r"(?i)vanquis",
+            r"(?i)\baqua\b",
             r"(?i)capital\s*one",
+            r"(?i)marbles",
+            r"(?i)zable",
+            r"(?i)tymit",
+            r"(?i)118\s*118\s*money\s*card",
+            r"(?i)fluid\s*(card|credit|payment)",
+            r"(?i)chrome\s*(card|credit|payment)",
+            r"(?i)barclaycard",
             r"(?i)\bamex\b",
             r"(?i)american\s*express",
             r"(?i)\bmbna\b",
-            r"(?i)\baqua\b",
-            r"(?i)vanquis",
-            r"(?i)marbles",
             r"(?i)newday",
             r"(?i)credit\s*card\s*(payment|minimum|balance)",
         ],
@@ -186,21 +188,19 @@ DEBT_PATTERNS = {
         "description": "Credit Cards"
     },
     "bnpl": {
+        # Buy Now Pay Later (active UK providers)
         "keywords": [
-            "KLARNA", "CLEARPAY", "LAYBUY", "AFTERPAY", "ZILCH", 
-            "MONZO FLEX", "OPENPAY", "PAYL8R", "PAYPAL CREDIT",
-            "SPLITIT", "DIVIDO", "HUMM"
+            "KLARNA", "CLEARPAY", "ZILCH", "MONZO FLEX",
+            "PAYPAL PAY IN 3", "RIVERTY", "PAYL8R"
         ],
         "regex_patterns": [
             r"(?i)klarna",
             r"(?i)clearpay",
-            r"(?i)laybuy",
-            r"(?i)afterpay",
             r"(?i)zilch",
             r"(?i)monzo\s*flex",
-            r"(?i)openpay",
+            r"(?i)paypal\s*pay\s*in\s*3",
+            r"(?i)riverty",
             r"(?i)payl8r",
-            r"(?i)paypal\s*credit",
         ],
         "risk_level": "medium",
         "description": "Buy Now Pay Later"
