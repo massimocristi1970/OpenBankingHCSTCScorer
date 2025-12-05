@@ -80,7 +80,7 @@ INCOME_PATTERNS = {
             r"(?i)vinted",
             r"(?i)depop",
         ],
-        "weight": 0.7,  # Weighted at 70%
+        "weight": 0.7,  # Multiplier for effective income calculation (70% of actual value)
         "is_stable": False,
         "description": "Gig Economy Income"
     },

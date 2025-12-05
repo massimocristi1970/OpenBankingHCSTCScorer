@@ -590,7 +590,12 @@ class MetricsCalculator:
                 continue
             
             daily_balances[date_str] = current_balance
-            # Reverse the transaction to get previous balance
+            # Reverse the transaction to get previous balance.
+            # In PLAID: negative = credit (money in), positive = debit (money out).
+            # To reverse: subtract the effect, so add the amount back.
+            # Credit (negative): subtracting a negative adds money.
+            # Debit (positive): subtracting a positive removes money.
+            # Since we're working backwards from current, we add the amount.
             current_balance = current_balance + amount
         
         return list(daily_balances.values()) if daily_balances else [starting_balance]

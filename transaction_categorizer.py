@@ -76,8 +76,11 @@ class TransactionCategorizer:
         merchant_text = self._normalize_text(merchant_name) if merchant_name else ""
         combined_text = f"{text} {merchant_text}".strip()
         
-        # Determine if income or expense based on amount
-        is_credit = amount < 0  # Negative = money in
+        # Determine if income or expense based on PLAID amount convention.
+        # In PLAID format: Negative amounts = credits (money IN to account),
+        # Positive amounts = debits (money OUT of account).
+        # This is the opposite of typical accounting where negative = outflow.
+        is_credit = amount < 0
         
         if is_credit:
             return self._categorize_income(combined_text, text, plaid_category)

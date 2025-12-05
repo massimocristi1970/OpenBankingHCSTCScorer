@@ -391,23 +391,35 @@ class HCSTCBatchProcessor:
         import pandas as pd
         
         rows = []
+        # Default values for when no loan offer is available
+        default_offer = {
+            "approved_amount": 0,
+            "approved_term": 0,
+            "monthly_repayment": 0,
+            "total_repayable": 0
+        }
+        
         for result in results:
-            loan_offer = result.loan_offer or type("LoanOffer", (), {
-                "approved_amount": 0,
-                "approved_term": 0,
-                "monthly_repayment": 0,
-                "total_repayable": 0
-            })()
+            # Use loan offer if available, otherwise use defaults
+            if result.loan_offer:
+                offer_data = {
+                    "approved_amount": result.loan_offer.approved_amount,
+                    "approved_term": result.loan_offer.approved_term,
+                    "monthly_repayment": result.loan_offer.monthly_repayment,
+                    "total_repayable": result.loan_offer.total_repayable
+                }
+            else:
+                offer_data = default_offer
             
             row = {
                 "Application Ref": result.application_ref,
                 "Decision": result.decision.value,
                 "Score": result.score,
                 "Risk Level": result.risk_level.value,
-                "Approved Amount": loan_offer.approved_amount,
-                "Approved Term": loan_offer.approved_term,
-                "Monthly Repayment": loan_offer.monthly_repayment,
-                "Total Repayable": loan_offer.total_repayable,
+                "Approved Amount": offer_data["approved_amount"],
+                "Approved Term": offer_data["approved_term"],
+                "Monthly Repayment": offer_data["monthly_repayment"],
+                "Total Repayable": offer_data["total_repayable"],
                 "Monthly Income": round(result.monthly_income, 2),
                 "Monthly Expenses": round(result.monthly_expenses, 2),
                 "Monthly Disposable": round(result.monthly_disposable, 2),

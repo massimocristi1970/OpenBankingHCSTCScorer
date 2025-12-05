@@ -526,7 +526,12 @@ class ScoringEngine:
         monthly_payment = self._calculate_monthly_payment(approved_amount, approved_term)
         total_repayable = monthly_payment * approved_term
         
-        # Calculate APR (simplified - actual APR calculation is complex)
+        # Calculate simplified APR for display purposes only.
+        # NOTE: For production use, this should implement the proper APR calculation
+        # methodology required by UK Consumer Credit Act and FCA regulations.
+        # The actual APR calculation involves solving for the internal rate of return
+        # of the cash flows and annualizing it according to specific regulatory rules.
+        # This simplified version is for indicative purposes only.
         if approved_amount > 0:
             interest = total_repayable - approved_amount
             apr = (interest / approved_amount) * (12 / approved_term) * 100
