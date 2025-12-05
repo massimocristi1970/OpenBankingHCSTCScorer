@@ -141,13 +141,63 @@ Applications are automatically declined if:
 - **Pension**: State and private pension income
 - **Gig Economy** (weighted at 70%): Uber, Deliveroo, freelance platforms
 
-### Debt Categories
+### Debt Categories (Updated Late 2025)
 
-- **HCSTC/Payday**: High-cost short-term credit lenders
-- **Other Loans**: Personal loans, car finance
-- **Credit Cards**: Card payments and minimum payments
-- **BNPL**: Buy Now Pay Later (Klarna, Clearpay, etc.)
-- **Catalogue Credit**: Catalogue shopping credit
+The following debt categories contain verified active UK lenders only. Defunct lenders (Wonga, QuickQuid, Sunny, etc.) have been removed.
+
+#### 1. HCSTC / Payday / Short-Term (Active & Trading)
+
+| Lender | Type |
+|--------|------|
+| Lending Stream | Loans 6–12 months |
+| Drafty | Line of Credit |
+| Mr Lender | Installment loans |
+| Moneyboat | Installment loans |
+| CreditSpring | Subscription finance (monthly fee for 0% loans) |
+| Cashfloat | Short-term loans |
+| QuidMarket | Short-term installment loans |
+| Loans 2 Go | Unsecured personal loans |
+| CashASAP | Short-term payday style |
+| Polar Credit | Line of Credit |
+| 118 118 Money | Personal loans & Credit cards |
+| The Money Platform | Peer-to-Peer short-term lending |
+| Fast Loan UK | Short-term loans |
+| Conduit | CDFI – Non-profit alternative |
+| Salad Money | Open Banking lender (NHS/Public sector) |
+| Fair Finance | Ethical/Non-profit lender |
+
+#### 2. Other Loans (Personal & Sub-Prime)
+
+| Lender | Type |
+|--------|------|
+| Finio Loans | Formerly Likely Loans – Bad credit specialist |
+| Evlo | Formerly Everyday Loans – Branch-based |
+| Bamboo | Unsecured loans |
+| Novuna | Prime/Good credit (formerly Hitachi) |
+| Zopa | Prime/Good credit |
+| Livelend | Reward loan – rate drops if paid on time |
+
+#### 3. Credit Cards (Credit Builder & Bad Credit)
+
+- Vanquis
+- Aqua
+- Capital One
+- Marbles
+- Zable (App-based, formerly Lendable/Level)
+- Tymit (Installment-based credit card)
+- 118 118 Money Card
+- Fluid
+- Chrome (Administered by Vanquis)
+
+#### 4. Buy Now Pay Later (BNPL)
+
+- Klarna
+- Clearpay
+- Zilch
+- Monzo Flex
+- PayPal Pay in 3
+- Riverty (Formerly AfterPay in EU)
+- Payl8r
 
 ### Essential Living Costs
 
