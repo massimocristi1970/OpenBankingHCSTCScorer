@@ -23,41 +23,58 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Theme detection: Use st.get_option to detect the active Streamlit theme (light/dark)
+# so that the decision breakdown metric cards adapt their styling accordingly.
+try:
+    theme_base = st.get_option("theme.base") or "light"
+except Exception:
+    theme_base = "light"
+
+# Define theme-aware CSS variables for metric cards
+if theme_base == "dark":
+    card_bg = "#2d2d2d"
+    card_text = "#ffffff"
+    card_border = "#444444"
+else:
+    card_bg = "#f0f2f6"
+    card_text = "#1f1f1f"
+    card_border = "#d0d0d0"
+
 # Custom CSS
-st.markdown("""
+st.markdown(f"""
 <style>
-    .main-header {
+    .main-header {{
         font-size: 2.5rem;
         font-weight: bold;
         color: #1f77b4;
         margin-bottom: 1rem;
-    }
-    .metric-card {
-        background-color: #2d2d2d;
+    }}
+    .metric-card {{
+        background-color: {card_bg};
         border-radius: 10px;
         padding: 1rem;
         text-align: center;
-        border: 1px solid #444444;
-    }
-    .metric-card h2 {
-        color: #ffffff;
-    }
-    .decision-approve {
+        border: 1px solid {card_border};
+    }}
+    .metric-card h2 {{
+        color: {card_text};
+    }}
+    .decision-approve {{
         color: #5cb85c;
         font-weight: bold;
-    }
-    .decision-conditional {
+    }}
+    .decision-conditional {{
         color: #f0ad4e;
         font-weight: bold;
-    }
-    .decision-refer {
+    }}
+    .decision-refer {{
         color: #5bc0de;
         font-weight: bold;
-    }
-    .decision-decline {
+    }}
+    .decision-decline {{
         color: #d9534f;
         font-weight: bold;
-    }
+    }}
 </style>
 """, unsafe_allow_html=True)
 
