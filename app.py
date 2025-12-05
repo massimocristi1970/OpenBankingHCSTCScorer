@@ -33,25 +33,29 @@ st.markdown("""
         margin-bottom: 1rem;
     }
     .metric-card {
-        background-color: #f0f2f6;
+        background-color: #2d2d2d;
         border-radius: 10px;
         padding: 1rem;
         text-align: center;
+        border: 1px solid #444444;
+    }
+    .metric-card h2 {
+        color: #ffffff;
     }
     .decision-approve {
-        color: #28a745;
+        color: #5cb85c;
         font-weight: bold;
     }
     .decision-conditional {
-        color: #ffc107;
+        color: #f0ad4e;
         font-weight: bold;
     }
     .decision-refer {
-        color: #17a2b8;
+        color: #5bc0de;
         font-weight: bold;
     }
     .decision-decline {
-        color: #dc3545;
+        color: #d9534f;
         font-weight: bold;
     }
 </style>
