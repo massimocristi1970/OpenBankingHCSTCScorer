@@ -466,7 +466,7 @@ class HCSTCBatchProcessor:
                 transaction_indicators += 1
         
         # Consider it transactions if majority of samples look like transactions
-        return transaction_indicators >= (sample_size / 2)
+        return transaction_indicators >= sample_size // 2 + 1
     
     def _looks_like_accounts(self, items: List) -> bool:
         """
@@ -485,15 +485,17 @@ class HCSTCBatchProcessor:
             if not isinstance(item, dict):
                 continue
             # Check for common account fields
-            has_account_id = "account_id" in item or "id" in item
+            # Require 'account_id' specifically, or 'id' with other account-like fields
+            has_account_id = "account_id" in item
+            has_id_with_context = "id" in item and ("balances" in item or "transactions" in item)
             has_balances = "balances" in item or "balance" in item
             has_transactions = "transactions" in item
             has_type = "type" in item or "subtype" in item
             
-            if has_account_id or has_transactions or (has_balances and has_type):
+            if has_account_id or has_id_with_context or has_transactions or (has_balances and has_type):
                 account_indicators += 1
         
-        return account_indicators >= (sample_size / 2)
+        return account_indicators >= sample_size // 2 + 1
     
     def _extract_transactions_from_accounts(self, accounts: List[Dict]) -> List[Dict]:
         """
@@ -519,10 +521,12 @@ class HCSTCBatchProcessor:
                 account_id = account.get("account_id") or account.get("id")
                 for txn in account_transactions:
                     if isinstance(txn, dict):
+                        # Create a copy to avoid modifying the original data
+                        txn_copy = txn.copy()
                         # Add account_id if transaction doesn't have one
-                        if account_id and "account_id" not in txn:
-                            txn["account_id"] = account_id
-                        all_transactions.append(txn)
+                        if account_id and "account_id" not in txn_copy:
+                            txn_copy["account_id"] = account_id
+                        all_transactions.append(txn_copy)
         
         return all_transactions
     
