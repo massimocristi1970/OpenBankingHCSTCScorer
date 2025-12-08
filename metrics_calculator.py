@@ -402,9 +402,9 @@ class MetricsCalculator:
     ) -> AffordabilityMetrics:
         """Calculate affordability metrics."""
         
-        effective_income = income_metrics.effective_monthly_income
-        essential_costs = expense_metrics.monthly_essential_total
-        debt_payments = debt_metrics.monthly_debt_payments
+        effective_income = income_metrics.effective_monthly_income or 0.0
+        essential_costs = expense_metrics.monthly_essential_total or 0.0
+        debt_payments = debt_metrics.monthly_debt_payments or 0.0
         
         # Debt-to-Income Ratio
         if effective_income > 0:
@@ -487,6 +487,7 @@ class MetricsCalculator:
     ) -> float:
         """Calculate maximum affordable loan amount."""
         # Max monthly payment = disposable - buffer
+        monthly_disposable = monthly_disposable or 0.0
         max_monthly_payment = monthly_disposable - min_buffer
         
         if max_monthly_payment <= 0:
@@ -522,8 +523,8 @@ class MetricsCalculator:
         balances = []
         for account in accounts:
             account_balances = account.get("balances", {})
-            current = account_balances.get("current", 0)
-            available = account_balances.get("available", 0)
+            current = account_balances.get("current", 0) or 0.0
+            available = account_balances.get("available", 0) or 0.0
             balances.append(max(current, available))
         
         # Calculate daily balances from transactions
@@ -566,7 +567,7 @@ class MetricsCalculator:
         starting_balance = 0
         for account in accounts:
             balances = account.get("balances", {})
-            starting_balance += balances.get("current", 0)
+            starting_balance += balances.get("current", 0) or 0.0
         
         # Sort transactions by date
         sorted_txns = sorted(
@@ -613,7 +614,7 @@ class MetricsCalculator:
         gambling_total = risk_data.get("gambling", {}).get("total", 0)
         gambling_count = risk_data.get("gambling", {}).get("count", 0)
         
-        total_income = income_metrics.total_income
+        total_income = income_metrics.total_income or 0.0
         if total_income > 0:
             gambling_pct = (gambling_total / total_income) * 100
         else:
