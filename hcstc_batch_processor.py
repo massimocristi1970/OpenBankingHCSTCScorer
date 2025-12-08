@@ -353,8 +353,16 @@ class HCSTCBatchProcessor:
         loan_term: int
     ) -> ScoringResult:
         """Process a single application file."""
-        # Parse JSON
-        data = json.loads(content.decode("utf-8"))
+        # Parse JSON with fallback encoding handling
+        try:
+            data = json.loads(content.decode("utf-8"))
+        except UnicodeDecodeError:
+            # Fallback to cp1252 for Windows-encoded characters (e.g., byte 0x9c)
+            try:
+                data = json.loads(content.decode("cp1252"))
+            except UnicodeDecodeError:
+                # Final fallback to latin-1 which accepts all byte values
+                data = json.loads(content.decode("latin-1"))
         
         # Normalize JSON structure to handle different Plaid formats
         accounts, transactions = self._normalize_json_structure(data, filename)

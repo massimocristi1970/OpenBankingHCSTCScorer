@@ -214,46 +214,46 @@ class ScoringEngine:
         rules = self.hard_decline_rules
         
         # Rule 1: Monthly income < £500
-        if income.effective_monthly_income < rules["min_monthly_income"]:
+        if income.effective_monthly_income is not None and income.effective_monthly_income < rules["min_monthly_income"]:
             reasons.append(
                 f"Monthly income (£{income.effective_monthly_income:.2f}) "
                 f"below minimum (£{rules['min_monthly_income']})"
             )
         
         # Rule 2: No identifiable income source
-        if not income.has_verifiable_income and income.effective_monthly_income < 300:
+        if not income.has_verifiable_income and income.effective_monthly_income is not None and income.effective_monthly_income < 300:
             reasons.append("No verifiable income source identified")
         
         # Rule 3: Active HCSTC with 3+ lenders
-        if debt.active_hcstc_count > rules["max_active_hcstc_lenders"]:
+        if debt.active_hcstc_count is not None and debt.active_hcstc_count > rules["max_active_hcstc_lenders"]:
             reasons.append(
                 f"Active HCSTC with {debt.active_hcstc_count} lenders "
                 f"(maximum {rules['max_active_hcstc_lenders']})"
             )
         
         # Rule 4: Gambling > 15% of income
-        if risk.gambling_percentage > rules["max_gambling_percentage"]:
+        if risk.gambling_percentage is not None and risk.gambling_percentage > rules["max_gambling_percentage"]:
             reasons.append(
                 f"Gambling ({risk.gambling_percentage:.1f}%) exceeds "
                 f"maximum ({rules['max_gambling_percentage']}%)"
             )
         
         # Rule 5: Post-loan disposable < £30
-        if affordability.post_loan_disposable < rules["min_post_loan_disposable"]:
+        if affordability.post_loan_disposable is not None and affordability.post_loan_disposable < rules["min_post_loan_disposable"]:
             reasons.append(
                 f"Post-loan disposable (£{affordability.post_loan_disposable:.2f}) "
                 f"below minimum (£{rules['min_post_loan_disposable']})"
             )
         
         # Rule 6: 5+ failed payments
-        if risk.failed_payments_count > rules["max_failed_payments"]:
+        if risk.failed_payments_count is not None and risk.failed_payments_count > rules["max_failed_payments"]:
             reasons.append(
                 f"Failed payments ({risk.failed_payments_count}) exceed "
                 f"maximum ({rules['max_failed_payments']})"
             )
         
         # Rule 7: Active debt collection (3+ DCAs)
-        if risk.debt_collection_distinct > rules["max_dca_count"]:
+        if risk.debt_collection_distinct is not None and risk.debt_collection_distinct > rules["max_dca_count"]:
             reasons.append(
                 f"Active debt collection with {risk.debt_collection_distinct} agencies "
                 f"(maximum {rules['max_dca_count']})"
@@ -306,7 +306,10 @@ class ScoringEngine:
         )
         
         # Post-loan Affordability (12 points)
-        post_loan_points = min(12, max(0, affordability.post_loan_disposable / 50 * 12))
+        if affordability.post_loan_disposable is not None:
+            post_loan_points = min(12, max(0, affordability.post_loan_disposable / 50 * 12))
+        else:
+            post_loan_points = 0
         
         affordability_score = dti_points + disp_points + post_loan_points
         breakdown.affordability_score = min(affordability_score, aff_weights["total"])
@@ -327,7 +330,10 @@ class ScoringEngine:
         )
         
         # Income Regularity (8 points)
-        regularity_points = min(8, income.income_regularity_score / 100 * 8)
+        if income.income_regularity_score is not None:
+            regularity_points = min(8, income.income_regularity_score / 100 * 8)
+        else:
+            regularity_points = 0
         
         # Income Verification (5 points)
         verification_points = 5 if income.has_verifiable_income else 2
@@ -344,25 +350,34 @@ class ScoringEngine:
         conduct_weights = self.weights["account_conduct"]
         
         # Failed Payments (8 points)
-        failed_points = max(0, 8 - risk.failed_payments_count * 2)
+        if risk.failed_payments_count is not None:
+            failed_points = max(0, 8 - risk.failed_payments_count * 2)
+        else:
+            failed_points = 0
         
         # Overdraft Usage (7 points)
-        if balance.days_in_overdraft == 0:
-            overdraft_points = 7
-        elif balance.days_in_overdraft <= 5:
-            overdraft_points = 5
-        elif balance.days_in_overdraft <= 15:
-            overdraft_points = 3
+        if balance.days_in_overdraft is not None:
+            if balance.days_in_overdraft == 0:
+                overdraft_points = 7
+            elif balance.days_in_overdraft <= 5:
+                overdraft_points = 5
+            elif balance.days_in_overdraft <= 15:
+                overdraft_points = 3
+            else:
+                overdraft_points = 0
         else:
             overdraft_points = 0
         
         # Balance Management (5 points)
-        if balance.average_balance >= 500:
-            balance_points = 5
-        elif balance.average_balance >= 200:
-            balance_points = 3
-        elif balance.average_balance >= 0:
-            balance_points = 1
+        if balance.average_balance is not None:
+            if balance.average_balance >= 500:
+                balance_points = 5
+            elif balance.average_balance >= 200:
+                balance_points = 3
+            elif balance.average_balance >= 0:
+                balance_points = 1
+            else:
+                balance_points = 0
         else:
             balance_points = 0
         
@@ -385,13 +400,16 @@ class ScoringEngine:
         )
         
         # HCSTC History (5 points)
-        if debt.active_hcstc_count == 0:
-            hcstc_points = 5
-        elif debt.active_hcstc_count == 1:
-            hcstc_points = 2
+        if debt.active_hcstc_count is not None:
+            if debt.active_hcstc_count == 0:
+                hcstc_points = 5
+            elif debt.active_hcstc_count == 1:
+                hcstc_points = 2
+            else:
+                hcstc_points = 0
+                penalties.append(f"Multiple HCSTC lenders ({debt.active_hcstc_count})")
         else:
             hcstc_points = 0
-            penalties.append(f"Multiple HCSTC lenders ({debt.active_hcstc_count})")
         
         risk_score = gambling_points + hcstc_points
         breakdown.risk_indicators_score = risk_score
@@ -401,12 +419,12 @@ class ScoringEngine:
         }
         
         # Apply penalties
-        if risk.gambling_percentage > 5:
+        if risk.gambling_percentage is not None and risk.gambling_percentage > 5:
             penalty = -5
             penalties.append(f"Gambling penalty: {penalty}")
             risk_score += penalty
         
-        if debt.active_hcstc_count >= 2:
+        if debt.active_hcstc_count is not None and debt.active_hcstc_count >= 2:
             penalty = -10
             penalties.append(f"Multiple HCSTC penalty: {penalty}")
             risk_score += penalty
@@ -430,6 +448,10 @@ class ScoringEngine:
         is_lower_better: bool
     ) -> float:
         """Score a value against threshold table."""
+        # Handle None values - return lowest score (0 points)
+        if value is None:
+            return 0
+        
         for threshold in thresholds:
             if is_lower_better:
                 if "max" in threshold and value <= threshold["max"]:
@@ -464,22 +486,22 @@ class ScoringEngine:
         """Collect risk flags for the application."""
         flags = []
         
-        if risk.gambling_percentage > 0:
+        if risk.gambling_percentage is not None and risk.gambling_percentage > 0:
             flags.append(f"Gambling: {risk.gambling_percentage:.1f}% of income")
         
-        if debt.active_hcstc_count > 0:
+        if debt.active_hcstc_count is not None and debt.active_hcstc_count > 0:
             flags.append(f"Active HCSTC: {debt.active_hcstc_count} lenders")
         
-        if risk.failed_payments_count > 0:
+        if risk.failed_payments_count is not None and risk.failed_payments_count > 0:
             flags.append(f"Failed payments: {risk.failed_payments_count}")
         
-        if risk.debt_collection_distinct > 0:
+        if risk.debt_collection_distinct is not None and risk.debt_collection_distinct > 0:
             flags.append(f"Debt collection: {risk.debt_collection_distinct} agencies")
         
-        if balance.days_in_overdraft > 10:
+        if balance.days_in_overdraft is not None and balance.days_in_overdraft > 10:
             flags.append(f"Overdraft: {balance.days_in_overdraft} days")
         
-        if affordability.debt_to_income_ratio > 40:
+        if affordability.debt_to_income_ratio is not None and affordability.debt_to_income_ratio > 40:
             flags.append(f"High DTI: {affordability.debt_to_income_ratio:.1f}%")
         
         return flags
@@ -503,7 +525,7 @@ class ScoringEngine:
                 break
         
         # Calculate affordability-based maximum
-        aff_max = affordability.max_affordable_amount
+        aff_max = affordability.max_affordable_amount if affordability.max_affordable_amount is not None else 0
         
         # Final approved amount is minimum of all limits
         approved_amount = min(
