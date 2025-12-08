@@ -263,7 +263,7 @@ class ScoringEngine:
         new_loan_payment = self._calculate_monthly_payment(
             requested_amount, requested_term
         )
-        if income.effective_monthly_income > 0:
+        if income.effective_monthly_income is not None and income.effective_monthly_income > 0:
             projected_dti = (
                 (debt.monthly_debt_payments + new_loan_payment) / 
                 income.effective_monthly_income * 100
