@@ -262,11 +262,15 @@ def process_applications(
         duplicates = filenames_to_process & processed_filenames
         
         if duplicates:
+            # Show first 5 duplicates for readability
+            duplicates_sorted = sorted(duplicates)
+            duplicates_preview = ', '.join(duplicates_sorted[:5])
+            duplicates_suffix = f" and {len(duplicates) - 5} more..." if len(duplicates) > 5 else ""
+            
             st.warning(
                 f"⚠️ **Duplicate Files Detected**: {len(duplicates)} file(s) have already been processed:\n\n"
-                f"{', '.join(list(duplicates)[:5])}" + 
-                (f" and {len(duplicates) - 5} more..." if len(duplicates) > 5 else "") +
-                f"\n\nYou can proceed to reprocess them or clear all results to start fresh."
+                f"{duplicates_preview}{duplicates_suffix}\n\n"
+                f"You can proceed to reprocess them or clear all results to start fresh."
             )
     
     # Determine batch number
