@@ -567,7 +567,7 @@ class MetricsCalculator:
         starting_balance = 0
         for account in accounts:
             balances = account.get("balances", {})
-            starting_balance += balances.get("current", 0) or 0
+            starting_balance += balances.get("current", 0) or 0.0
         
         # Sort transactions by date
         sorted_txns = sorted(
