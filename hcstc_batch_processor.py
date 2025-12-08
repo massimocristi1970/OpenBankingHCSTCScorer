@@ -93,6 +93,80 @@ class BatchResult:
     results: List[ScoringResult]
     errors: List[ProcessingError]
     error_summary: Dict[str, int] = field(default_factory=dict)
+    
+    @staticmethod
+    def merge_results(result1: 'BatchResult', result2: 'BatchResult') -> 'BatchResult':
+        """
+        Merge two BatchResult objects into a single combined result.
+        
+        This is used for cumulative batch processing where results from
+        multiple uploads need to be combined.
+        
+        Args:
+            result1: First batch result (typically the existing cumulative result)
+            result2: Second batch result (typically the new batch to add)
+        
+        Returns:
+            New BatchResult with merged data
+        """
+        # Create merged stats
+        merged_stats = BatchStats()
+        
+        # Sum all count fields
+        merged_stats.total_files = result1.stats.total_files + result2.stats.total_files
+        merged_stats.processed = result1.stats.processed + result2.stats.processed
+        merged_stats.successful = result1.stats.successful + result2.stats.successful
+        merged_stats.failed = result1.stats.failed + result2.stats.failed
+        merged_stats.approved = result1.stats.approved + result2.stats.approved
+        merged_stats.conditional = result1.stats.conditional + result2.stats.conditional
+        merged_stats.referred = result1.stats.referred + result2.stats.referred
+        merged_stats.declined = result1.stats.declined + result2.stats.declined
+        merged_stats.total_score = result1.stats.total_score + result2.stats.total_score
+        
+        # Recalculate min and max scores
+        # Handle case where one result might have no successful files
+        if result1.stats.successful > 0 and result2.stats.successful > 0:
+            merged_stats.min_score = min(result1.stats.min_score, result2.stats.min_score)
+            merged_stats.max_score = max(result1.stats.max_score, result2.stats.max_score)
+        elif result1.stats.successful > 0:
+            merged_stats.min_score = result1.stats.min_score
+            merged_stats.max_score = result1.stats.max_score
+        elif result2.stats.successful > 0:
+            merged_stats.min_score = result2.stats.min_score
+            merged_stats.max_score = result2.stats.max_score
+        else:
+            # No successful files in either batch
+            merged_stats.min_score = 0.0
+            merged_stats.max_score = 0.0
+        
+        # Use earliest start time and latest end time
+        if result1.stats.start_time and result2.stats.start_time:
+            merged_stats.start_time = min(result1.stats.start_time, result2.stats.start_time)
+        else:
+            merged_stats.start_time = result1.stats.start_time or result2.stats.start_time
+        
+        if result1.stats.end_time and result2.stats.end_time:
+            merged_stats.end_time = max(result1.stats.end_time, result2.stats.end_time)
+        else:
+            merged_stats.end_time = result1.stats.end_time or result2.stats.end_time
+        
+        # Concatenate results and errors
+        merged_results = result1.results + result2.results
+        merged_errors = result1.errors + result2.errors
+        
+        # Merge error summaries
+        merged_error_summary = {}
+        for error_type, count in result1.error_summary.items():
+            merged_error_summary[error_type] = count
+        for error_type, count in result2.error_summary.items():
+            merged_error_summary[error_type] = merged_error_summary.get(error_type, 0) + count
+        
+        return BatchResult(
+            stats=merged_stats,
+            results=merged_results,
+            errors=merged_errors,
+            error_summary=merged_error_summary
+        )
 
 
 class HCSTCBatchProcessor:

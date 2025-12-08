@@ -39,6 +39,14 @@ st.markdown("""
 def main():
     """Main application entry point."""
     
+    # Initialize session state for cumulative batch processing
+    if "cumulative_mode" not in st.session_state:
+        st.session_state["cumulative_mode"] = False
+    if "batch_count" not in st.session_state:
+        st.session_state["batch_count"] = 0
+    if "processed_filenames" not in st.session_state:
+        st.session_state["processed_filenames"] = set()
+    
     # Header
     st.markdown('<p class="main-header">💷 HCSTC Loan Scoring System</p>', unsafe_allow_html=True)
     st.markdown("**High-Cost Short-Term Credit** batch processing application for Open Banking data")
@@ -124,6 +132,70 @@ def render_upload_tab(loan_amount: float, loan_term: int, months_of_data: int):
     - ZIP archives containing multiple JSON files
     """)
     
+    # Cumulative batch processing controls
+    st.divider()
+    
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        st.subheader("🔄 Batch Processing Mode")
+        cumulative_mode = st.checkbox(
+            "**Add to Results** (Cumulative Mode)",
+            value=st.session_state.get("cumulative_mode", False),
+            help="When enabled, new results are added to existing results instead of replacing them. "
+                 "Useful for processing large datasets in smaller batches."
+        )
+        st.session_state["cumulative_mode"] = cumulative_mode
+        
+        if cumulative_mode:
+            st.info(
+                "🔄 **Cumulative Mode Active** - New uploads will be added to existing results. "
+                "Use 'Clear All Results' to start fresh."
+            )
+        else:
+            st.info(
+                "🔁 **Replace Mode Active** - New uploads will replace existing results."
+            )
+    
+    with col2:
+        st.subheader("🗑️ Clear Data")
+        if st.button(
+            "Clear All Results",
+            type="secondary",
+            use_container_width=True,
+            help="Remove all accumulated results and start fresh"
+        ):
+            # Clear all session state data
+            st.session_state["batch_result"] = None
+            st.session_state["results_df"] = None
+            st.session_state["errors_df"] = None
+            st.session_state["batch_count"] = 0
+            st.session_state["processed_filenames"] = set()
+            st.success("✅ All results cleared!")
+            st.rerun()
+    
+    # Show cumulative progress summary if in cumulative mode and results exist
+    if cumulative_mode and "batch_result" in st.session_state and st.session_state["batch_result"] is not None:
+        result = st.session_state["batch_result"]
+        batch_count = st.session_state.get("batch_count", 0)
+        
+        st.subheader("📊 Cumulative Progress")
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            st.metric("Batches Processed", batch_count)
+        
+        with col2:
+            st.metric("Total Files", result.stats.total_files)
+        
+        with col3:
+            st.metric("Total Successful", result.stats.successful)
+        
+        with col4:
+            st.metric("Total Errors", result.stats.failed)
+    
+    st.divider()
+    
     uploaded_files = st.file_uploader(
         "Choose files",
         type=["json", "zip"],
@@ -181,7 +253,33 @@ def process_applications(
         st.error("No valid JSON files found in uploads")
         return
     
-    st.info(f"📂 Found {len(files)} application file(s) to process")
+    # Check for duplicate filenames if in cumulative mode
+    cumulative_mode = st.session_state.get("cumulative_mode", False)
+    processed_filenames = st.session_state.get("processed_filenames", set())
+    
+    if cumulative_mode and processed_filenames:
+        filenames_to_process = {filename for filename, _ in files}
+        duplicates = filenames_to_process & processed_filenames
+        
+        if duplicates:
+            # Show first 5 duplicates for readability
+            duplicates_sorted = sorted(duplicates)
+            duplicates_preview = ', '.join(duplicates_sorted[:5])
+            duplicates_suffix = f" and {len(duplicates) - 5} more..." if len(duplicates) > 5 else ""
+            
+            st.warning(
+                f"⚠️ **Duplicate Files Detected**: {len(duplicates)} file(s) have already been processed:\n\n"
+                f"{duplicates_preview}{duplicates_suffix}\n\n"
+                f"You can proceed to reprocess them or clear all results to start fresh."
+            )
+    
+    # Determine batch number
+    current_batch = st.session_state.get("batch_count", 0) + 1
+    
+    if cumulative_mode:
+        st.info(f"📂 Processing Batch {current_batch}: {len(files)} application file(s)")
+    else:
+        st.info(f"📂 Found {len(files)} application file(s) to process")
     
     # Progress bar
     progress_bar = st.progress(0)
@@ -190,11 +288,14 @@ def process_applications(
     def update_progress(current: int, total: int, message: str):
         progress = current / total
         progress_bar.progress(progress)
-        status_text.text(f"[{current}/{total}] {message}")
+        if cumulative_mode:
+            status_text.text(f"Batch {current_batch} [{current}/{total}] {message}")
+        else:
+            status_text.text(f"[{current}/{total}] {message}")
     
     # Process batch
     with st.spinner("Processing applications..."):
-        result = processor.process_batch(
+        new_result = processor.process_batch(
             files=files,
             loan_amount=loan_amount,
             loan_term=loan_term,
@@ -202,15 +303,49 @@ def process_applications(
         )
     
     progress_bar.progress(1.0)
-    status_text.text(f"✅ Processing complete: {result.stats.successful}/{result.stats.total_files} successful")
+    status_text.text(f"✅ Processing complete: {new_result.stats.successful}/{new_result.stats.total_files} successful")
     
-    # Store results in session state
-    st.session_state["batch_result"] = result
-    st.session_state["results_df"] = processor.results_to_dataframe(result.results)
-    st.session_state["errors_df"] = processor.errors_to_dataframe(result.errors)
-    
-    # Show summary
-    display_processing_summary(result)
+    # Handle cumulative mode
+    if cumulative_mode and "batch_result" in st.session_state and st.session_state["batch_result"] is not None:
+        # Merge with existing results
+        existing_result = st.session_state["batch_result"]
+        combined_result = BatchResult.merge_results(existing_result, new_result)
+        
+        # Update session state with merged results
+        st.session_state["batch_result"] = combined_result
+        st.session_state["results_df"] = processor.results_to_dataframe(combined_result.results)
+        st.session_state["errors_df"] = processor.errors_to_dataframe(combined_result.errors)
+        st.session_state["batch_count"] = current_batch
+        
+        # Update processed filenames
+        for filename, _ in files:
+            processed_filenames.add(filename)
+        st.session_state["processed_filenames"] = processed_filenames
+        
+        # Show summary for both new batch and combined results
+        st.subheader(f"📈 Batch {current_batch} Results")
+        display_processing_summary(new_result)
+        
+        st.divider()
+        
+        st.subheader("📊 Combined Results (All Batches)")
+        display_processing_summary(combined_result)
+        
+    else:
+        # Not in cumulative mode or first batch - just store new results
+        st.session_state["batch_result"] = new_result
+        st.session_state["results_df"] = processor.results_to_dataframe(new_result.results)
+        st.session_state["errors_df"] = processor.errors_to_dataframe(new_result.errors)
+        st.session_state["batch_count"] = 1
+        
+        # Update processed filenames
+        processed_filenames = set()
+        for filename, _ in files:
+            processed_filenames.add(filename)
+        st.session_state["processed_filenames"] = processed_filenames
+        
+        # Show summary
+        display_processing_summary(new_result)
     
     st.success("📊 View detailed results in the **Results Dashboard** tab")
 
@@ -269,15 +404,22 @@ def render_results_tab():
     
     st.header("📊 Results Dashboard")
     
-    if "batch_result" not in st.session_state:
+    if "batch_result" not in st.session_state or st.session_state["batch_result"] is None:
         st.info("👆 Upload and process files in the **Upload & Process** tab first")
         return
     
     result = st.session_state["batch_result"]
-    results_df = st.session_state["results_df"]
-    errors_df = st.session_state["errors_df"]
+    results_df = st.session_state.get("results_df")
+    errors_df = st.session_state.get("errors_df")
     
-    if results_df.empty:
+    # Show cumulative mode indicator
+    cumulative_mode = st.session_state.get("cumulative_mode", False)
+    batch_count = st.session_state.get("batch_count", 0)
+    
+    if cumulative_mode and batch_count > 1:
+        st.info(f"🔄 **Cumulative Mode**: Showing combined results from {batch_count} batches")
+    
+    if results_df is None or results_df.empty:
         st.warning("No successful results to display")
         return
     
