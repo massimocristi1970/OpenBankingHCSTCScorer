@@ -608,10 +608,10 @@ class ScoringEngine:
                 f"(requested £{requested_amount:.2f})"
             )
         
-        if debt.active_hcstc_count > 0:
+        if debt.active_hcstc_count is not None and debt.active_hcstc_count > 0:
             conditions.append("Clear existing HCSTC debt before drawdown")
         
-        if risk.gambling_percentage > 2:
+        if risk.gambling_percentage is not None and risk.gambling_percentage > 2:
             conditions.append("Review gambling activity before approval")
         
         if score < 60:
