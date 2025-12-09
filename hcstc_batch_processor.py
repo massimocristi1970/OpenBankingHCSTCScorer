@@ -716,7 +716,6 @@ class HCSTCBatchProcessor:
                 "Post-Loan Disposable": round(result.post_loan_disposable, 2),
                 "Risk Flags": "; ".join(result.risk_flags) if result.risk_flags else "",
                 "Decline Reasons": "; ".join(result.decline_reasons) if result.decline_reasons else "",
-                "Conditions": "; ".join(result.conditions) if result.conditions else "",
             }
             
             # Add score breakdown if available
