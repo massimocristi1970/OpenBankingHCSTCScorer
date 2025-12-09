@@ -51,7 +51,6 @@ class BatchStats:
     
     # Decision counts
     approved: int = 0
-    conditional: int = 0
     referred: int = 0
     declined: int = 0
     
@@ -118,7 +117,6 @@ class BatchResult:
         merged_stats.successful = result1.stats.successful + result2.stats.successful
         merged_stats.failed = result1.stats.failed + result2.stats.failed
         merged_stats.approved = result1.stats.approved + result2.stats.approved
-        merged_stats.conditional = result1.stats.conditional + result2.stats.conditional
         merged_stats.referred = result1.stats.referred + result2.stats.referred
         merged_stats.declined = result1.stats.declined + result2.stats.declined
         merged_stats.total_score = result1.stats.total_score + result2.stats.total_score
@@ -260,8 +258,6 @@ class HCSTCBatchProcessor:
                 # Update decision counts
                 if result.decision == Decision.APPROVE:
                     stats.approved += 1
-                elif result.decision == Decision.CONDITIONAL:
-                    stats.conditional += 1
                 elif result.decision == Decision.REFER:
                     stats.referred += 1
                 elif result.decision == Decision.DECLINE:

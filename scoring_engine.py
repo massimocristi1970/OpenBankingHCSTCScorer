@@ -21,7 +21,6 @@ from metrics_calculator import (
 class Decision(Enum):
     """Loan decision outcomes."""
     APPROVE = "APPROVE"
-    CONDITIONAL = "APPROVE WITH CONDITIONS"
     REFER = "REFER"
     DECLINE = "DECLINE"
 
@@ -154,25 +153,6 @@ class ScoringEngine:
             result.risk_level = RiskLevel.VERY_HIGH
             return result
         
-        # Check mandatory referral rules (before scoring)
-        referral_reasons = self._check_mandatory_referral_rules(risk)
-        if referral_reasons:
-            result.decision = Decision.REFER
-            result.processing_notes = referral_reasons
-            result.risk_level = RiskLevel.HIGH
-            # Still calculate score for information
-            score_breakdown = self._calculate_scores(
-                income=income,
-                affordability=affordability,
-                balance=balance,
-                risk=risk,
-                debt=debt
-            )
-            result.score_breakdown = score_breakdown
-            result.score = score_breakdown.total_score
-            result.risk_flags = self._collect_risk_flags(risk, debt, affordability, balance)
-            return result
-        
         # Calculate score breakdown
         score_breakdown = self._calculate_scores(
             income=income,
@@ -193,8 +173,8 @@ class ScoringEngine:
         # Collect risk flags
         result.risk_flags = self._collect_risk_flags(risk, debt, affordability, balance)
         
-        # Determine loan offer if approved/conditional
-        if decision in [Decision.APPROVE, Decision.CONDITIONAL]:
+        # Determine loan offer if approved
+        if decision == Decision.APPROVE:
             loan_offer = self._determine_loan_offer(
                 score=score_breakdown.total_score,
                 affordability=affordability,
@@ -205,15 +185,6 @@ class ScoringEngine:
             result.post_loan_disposable = (
                 affordability.monthly_disposable - loan_offer.monthly_repayment
             )
-            
-            if decision == Decision.CONDITIONAL:
-                result.conditions = self._determine_conditions(
-                    score=score_breakdown.total_score,
-                    risk=risk,
-                    debt=debt,
-                    loan_offer=loan_offer,
-                    requested_amount=requested_amount
-                )
         elif decision == Decision.REFER:
             result.processing_notes = ["Manual review required"]
         
@@ -292,33 +263,6 @@ class ScoringEngine:
                     f"Projected DTI ({projected_dti:.1f}%) would exceed "
                     f"maximum ({rules['max_dti_with_new_loan']}%)"
                 )
-        
-        return reasons
-    
-    def _check_mandatory_referral_rules(
-        self,
-        risk: RiskMetrics
-    ) -> List[str]:
-        """Check mandatory referral rules and return reasons if any apply."""
-        reasons = []
-        referral_rules = self.scoring_config.get("mandatory_referral_rules", {})
-        
-        # Rule 1: Bank charges for unpaid items in lookback period
-        if risk.has_bank_charges_concern:
-            lookback_days = referral_rules.get("bank_charges_lookback_days", 90)
-            reasons.append(
-                f"Mandatory referral: Bank charges for unpaid items detected in last {lookback_days} days "
-                f"({risk.bank_charges_count_90d} charges)"
-            )
-        
-        # Rule 2: Multiple new credit providers in lookback period
-        if risk.has_new_credit_burst:
-            lookback_days = referral_rules.get("new_credit_lookback_days", 90)
-            threshold = referral_rules.get("new_credit_threshold", 3)
-            reasons.append(
-                f"Mandatory referral: {risk.new_credit_providers_90d} new credit providers detected in last {lookback_days} days "
-                f"(threshold: {threshold})"
-            )
         
         return reasons
     
@@ -515,8 +459,6 @@ class ScoringEngine:
         
         if score >= ranges["approve"]["min"]:
             return Decision.APPROVE, RiskLevel.LOW
-        elif score >= ranges["conditional"]["min"]:
-            return Decision.CONDITIONAL, RiskLevel.MEDIUM
         elif score >= ranges["refer"]["min"]:
             return Decision.REFER, RiskLevel.HIGH
         else:

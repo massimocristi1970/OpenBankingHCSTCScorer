@@ -522,8 +522,7 @@ POSITIVE_PATTERNS = {
 SCORING_CONFIG = {
     # Score ranges and decisions
     "score_ranges": {
-        "approve": {"min": 65, "max": 100, "decision": "APPROVE"},
-        "conditional": {"min": 45, "max": 64, "decision": "APPROVE WITH CONDITIONS"},
+        "approve": {"min": 45, "max": 100, "decision": "APPROVE"},
         "refer": {"min": 30, "max": 44, "decision": "REFER"},
         "decline": {"min": 0, "max": 29, "decision": "DECLINE"},
     },
