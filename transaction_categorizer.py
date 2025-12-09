@@ -417,6 +417,7 @@ class TransactionCategorizer:
             Dictionary with category totals and counts
         """
         # Get most recent transaction date to calculate lookback periods
+        # This determines the reference point for time-based filtering
         recent_date = None
         for txn, _ in categorized_transactions:
             txn_date_str = txn.get("date", "")
@@ -428,7 +429,9 @@ class TransactionCategorizer:
                 except ValueError:
                     continue
         
-        # If no valid dates found, use today's date
+        # If no valid dates found, use current date as fallback
+        # This ensures the function works even with malformed data,
+        # though in production all transactions should have valid dates
         if recent_date is None:
             recent_date = datetime.now()
         

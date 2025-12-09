@@ -416,6 +416,9 @@ class MetricsCalculator:
         debt_payments = debt_metrics.monthly_debt_payments or 0.0
         
         # Apply expense shock buffer for income/expenses resilience assessment
+        # This buffer (default 10%) accounts for potential increases in expenses
+        # or temporary reductions in income, improving the robustness of 
+        # affordability calculations and reducing default risk.
         expense_buffer = self.product_config.get("expense_shock_buffer", 1.1)
         buffered_expenses = essential_costs * expense_buffer
         

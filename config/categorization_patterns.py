@@ -591,7 +591,7 @@ SCORING_CONFIG = {
         "min_monthly_income": 1500,
         "max_active_hcstc_lenders": 2,  # 3+ triggers decline (in last 90 days)
         "max_gambling_percentage": 15,
-        "min_post_loan_disposable": 0,
+        "min_post_loan_disposable": 0,  # Changed from £30 - allows tighter affordability with expense buffer
         "max_failed_payments": 2,  # 3+ triggers decline (in last 45 days)
         "max_dca_count": 2,  # 3+ triggers decline
         "max_dti_with_new_loan": 60,
