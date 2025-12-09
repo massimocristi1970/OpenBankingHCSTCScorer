@@ -100,9 +100,8 @@ def main():
         
         st.markdown("### 📊 Score Ranges")
         st.markdown("""
-        - **70-100**: APPROVE ✅
-        - **50-69**: CONDITIONAL ⚠️
-        - **30-49**: REFER 📋
+        - **45-100**: APPROVE ✅
+        - **30-44**: REFER 📋
         - **0-29**: DECLINE ❌
         """)
     
@@ -378,18 +377,15 @@ def display_processing_summary(result: BatchResult):
     # Decision breakdown
     st.subheader("📊 Decision Breakdown")
     
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3 = st.columns(3)
     
     with col1:
         st.metric("✅ APPROVED", stats.approved)
     
     with col2:
-        st.metric("⚠️ CONDITIONAL", stats.conditional)
-    
-    with col3:
         st.metric("📋 REFER", stats.referred)
     
-    with col4:
+    with col3:
         st.metric("❌ DECLINED", stats.declined)
     
     # Error summary
@@ -452,7 +448,6 @@ def render_results_tab():
             color=decision_counts.index,
             color_discrete_map={
                 "APPROVE": "#28a745",
-                "APPROVE WITH CONDITIONS": "#ffc107",
                 "REFER": "#17a2b8",
                 "DECLINE": "#dc3545"
             }
@@ -474,7 +469,6 @@ def render_results_tab():
             title="Income vs Disposable Income",
             color_discrete_map={
                 "APPROVE": "#28a745",
-                "APPROVE WITH CONDITIONS": "#ffc107",
                 "REFER": "#17a2b8",
                 "DECLINE": "#dc3545"
             }
