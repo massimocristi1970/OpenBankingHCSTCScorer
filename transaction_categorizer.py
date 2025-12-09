@@ -6,6 +6,7 @@ Categorizes UK consumer banking transactions for affordability assessment.
 import re
 from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 
 try:
     from rapidfuzz import fuzz
@@ -415,6 +416,31 @@ class TransactionCategorizer:
         Returns:
             Dictionary with category totals and counts
         """
+        # Get most recent transaction date to calculate lookback periods
+        # This determines the reference point for time-based filtering
+        recent_date = None
+        for txn, _ in categorized_transactions:
+            txn_date_str = txn.get("date", "")
+            if txn_date_str:
+                try:
+                    txn_date = datetime.strptime(txn_date_str, "%Y-%m-%d")
+                    if recent_date is None or txn_date > recent_date:
+                        recent_date = txn_date
+                except ValueError:
+                    continue
+        
+        # If no valid dates found, use current date as fallback
+        # This ensures the function works even with malformed data,
+        # though in production all transactions should have valid dates
+        if recent_date is None:
+            recent_date = datetime.now()
+        
+        # Calculate lookback dates for time-based filtering
+        hcstc_cutoff = recent_date - timedelta(days=90)  # 90 days for HCSTC
+        failed_payment_cutoff = recent_date - timedelta(days=45)  # 45 days for failed payments
+        bank_charges_cutoff = recent_date - timedelta(days=90)  # 90 days for bank charges
+        new_credit_cutoff = recent_date - timedelta(days=90)  # 90 days for new credit
+        
         summary = {
             "income": {
                 "salary": {"total": 0.0, "count": 0},
@@ -424,11 +450,33 @@ class TransactionCategorizer:
                 "other": {"total": 0.0, "count": 0},
             },
             "debt": {
-                "hcstc_payday": {"total": 0.0, "count": 0, "lenders": set()},
-                "other_loans": {"total": 0.0, "count": 0},
-                "credit_cards": {"total": 0.0, "count": 0},
-                "bnpl": {"total": 0.0, "count": 0},
-                "catalogue": {"total": 0.0, "count": 0},
+                "hcstc_payday": {
+                    "total": 0.0, 
+                    "count": 0, 
+                    "lenders": set(),
+                    "lenders_90d": set(),  # Track lenders in last 90 days
+                    "credit_providers_90d": set(),  # All credit providers in last 90 days
+                },
+                "other_loans": {
+                    "total": 0.0, 
+                    "count": 0,
+                    "providers_90d": set(),
+                },
+                "credit_cards": {
+                    "total": 0.0, 
+                    "count": 0,
+                    "providers_90d": set(),
+                },
+                "bnpl": {
+                    "total": 0.0, 
+                    "count": 0,
+                    "providers_90d": set(),
+                },
+                "catalogue": {
+                    "total": 0.0, 
+                    "count": 0,
+                    "providers_90d": set(),
+                },
             },
             "essential": {
                 "rent": {"total": 0.0, "count": 0},
@@ -443,8 +491,17 @@ class TransactionCategorizer:
             },
             "risk": {
                 "gambling": {"total": 0.0, "count": 0},
-                "failed_payments": {"total": 0.0, "count": 0},
+                "failed_payments": {
+                    "total": 0.0, 
+                    "count": 0,
+                    "count_45d": 0,  # Count in last 45 days
+                },
                 "debt_collection": {"total": 0.0, "count": 0, "dcas": set()},
+                "bank_charges": {
+                    "total": 0.0, 
+                    "count": 0,
+                    "count_90d": 0,  # Count in last 90 days
+                },
             },
             "positive": {
                 "savings": {"total": 0.0, "count": 0},
@@ -458,16 +515,37 @@ class TransactionCategorizer:
             category = match.category
             subcategory = match.subcategory
             
+            # Parse transaction date
+            txn_date = None
+            txn_date_str = txn.get("date", "")
+            if txn_date_str:
+                try:
+                    txn_date = datetime.strptime(txn_date_str, "%Y-%m-%d")
+                except ValueError:
+                    pass
+            
             if category in summary and subcategory in summary.get(category, {}):
                 summary[category][subcategory]["total"] += amount
                 summary[category][subcategory]["count"] += 1
                 
-                # Track distinct HCSTC lenders
+                # Track distinct HCSTC lenders (all time and 90 days)
                 if category == "debt" and subcategory == "hcstc_payday":
                     merchant = txn.get("merchant_name") or txn.get("name", "")
-                    summary[category][subcategory]["lenders"].add(
-                        merchant.upper()[:20]  # First 20 chars for deduplication
-                    )
+                    merchant_key = merchant.upper()[:20]
+                    summary[category][subcategory]["lenders"].add(merchant_key)
+                    
+                    # Track 90-day HCSTC lenders
+                    if txn_date and txn_date >= hcstc_cutoff:
+                        summary[category][subcategory]["lenders_90d"].add(merchant_key)
+                        summary[category][subcategory]["credit_providers_90d"].add(merchant_key)
+                
+                # Track credit providers in last 90 days for new credit burst detection
+                if category == "debt" and txn_date and txn_date >= new_credit_cutoff:
+                    merchant = txn.get("merchant_name") or txn.get("name", "")
+                    merchant_key = merchant.upper()[:20]
+                    if subcategory in ["other_loans", "credit_cards", "bnpl", "catalogue"]:
+                        summary[category][subcategory]["providers_90d"].add(merchant_key)
+                        summary["debt"]["hcstc_payday"]["credit_providers_90d"].add(merchant_key)
                 
                 # Track distinct DCAs
                 if category == "risk" and subcategory == "debt_collection":
@@ -475,6 +553,16 @@ class TransactionCategorizer:
                     summary[category][subcategory]["dcas"].add(
                         merchant.upper()[:20]
                     )
+                
+                # Track failed payments in last 45 days
+                if category == "risk" and subcategory == "failed_payments":
+                    if txn_date and txn_date >= failed_payment_cutoff:
+                        summary[category][subcategory]["count_45d"] += 1
+                
+                # Track bank charges in last 90 days
+                if category == "risk" and subcategory == "bank_charges":
+                    if txn_date and txn_date >= bank_charges_cutoff:
+                        summary[category][subcategory]["count_90d"] += 1
             
             elif category == "transfer":
                 summary["transfer"]["total"] += amount
@@ -483,12 +571,29 @@ class TransactionCategorizer:
                 summary["other"]["total"] += amount
                 summary["other"]["count"] += 1
         
-        # Convert sets to counts
+        # Convert sets to counts and consolidate new credit providers
         if "lenders" in summary["debt"]["hcstc_payday"]:
             summary["debt"]["hcstc_payday"]["distinct_lenders"] = len(
                 summary["debt"]["hcstc_payday"]["lenders"]
             )
             del summary["debt"]["hcstc_payday"]["lenders"]
+        
+        if "lenders_90d" in summary["debt"]["hcstc_payday"]:
+            summary["debt"]["hcstc_payday"]["distinct_lenders_90d"] = len(
+                summary["debt"]["hcstc_payday"]["lenders_90d"]
+            )
+            del summary["debt"]["hcstc_payday"]["lenders_90d"]
+        
+        # Calculate total distinct credit providers in last 90 days
+        all_credit_providers_90d = summary["debt"]["hcstc_payday"]["credit_providers_90d"].copy()
+        for subcategory in ["other_loans", "credit_cards", "bnpl", "catalogue"]:
+            all_credit_providers_90d.update(summary["debt"][subcategory].get("providers_90d", set()))
+            # Clean up the individual sets
+            if "providers_90d" in summary["debt"][subcategory]:
+                del summary["debt"][subcategory]["providers_90d"]
+        
+        summary["debt"]["hcstc_payday"]["new_credit_providers_90d"] = len(all_credit_providers_90d)
+        del summary["debt"]["hcstc_payday"]["credit_providers_90d"]
         
         if "dcas" in summary["risk"]["debt_collection"]:
             summary["risk"]["debt_collection"]["distinct_dcas"] = len(

@@ -421,6 +421,27 @@ RISK_PATTERNS = {
         "risk_level": "critical",
         "description": "Gambling"
     },
+    "bank_charges": {
+        "keywords": [
+            "UNPAID ITEM CHARGE", "UNPAID TRANSACTION FEE", "RETURNED ITEM FEE",
+            "RETURNED DD FEE", "UNPAID DD CHARGE", "UNPAID SO CHARGE",
+            "ITEM CHARGE", "TRANSACTION FEE", "BOUNCE FEE", "RETURNED PAYMENT FEE",
+            "INSUFFICIENT FUNDS FEE", "NSF FEE", "OVERDRAFT FEE", "PENALTY CHARGE",
+            "UNPAID CHARGE", "RETURNED FEE", "ITEM FEE", "TRANSACTION CHARGE"
+        ],
+        "regex_patterns": [
+            r"(?i)unpaid\s*(item|transaction|dd|direct\s*debit|so|standing\s*order)?\s*(charge|fee)",
+            r"(?i)returned\s*(item|dd|direct\s*debit|payment)?\s*(charge|fee)",
+            r"(?i)bounce\s*(charge|fee)",
+            r"(?i)insufficient\s*funds\s*(charge|fee)",
+            r"(?i)nsf\s*(charge|fee)",
+            r"(?i)penalty\s*charge",
+            r"(?i)overdraft\s*(charge|fee)",
+            r"(?i)(item|transaction)\s*(charge|fee)",
+        ],
+        "risk_level": "high",
+        "description": "Bank Charges for Unpaid Items"
+    },
     "failed_payments": {
         "keywords": [
             "UNPAID", "RETURNED", "BOUNCED", "INSUFFICIENT", "NSF",
@@ -567,13 +588,15 @@ SCORING_CONFIG = {
     
     # Hard decline rules
     "hard_decline_rules": {
-        "min_monthly_income": 500,
-        "max_active_hcstc_lenders": 2,  # 3+ triggers decline
+        "min_monthly_income": 1500,
+        "max_active_hcstc_lenders": 2,  # 3+ triggers decline (in last 90 days)
         "max_gambling_percentage": 15,
-        "min_post_loan_disposable": 30,
-        "max_failed_payments": 4,  # 5+ triggers decline
+        "min_post_loan_disposable": 0,  # Changed from £30 - allows tighter affordability with expense buffer
+        "max_failed_payments": 2,  # 3+ triggers decline (in last 45 days)
         "max_dca_count": 2,  # 3+ triggers decline
         "max_dti_with_new_loan": 60,
+        "hcstc_lookback_days": 90,  # Days to look back for HCSTC lenders
+        "failed_payment_lookback_days": 45,  # Days to look back for failed payments
     },
     
     # Loan amount determination by score
@@ -585,6 +608,13 @@ SCORING_CONFIG = {
         {"min_score": 40, "max_amount": 300, "max_term": 3},
         {"min_score": 0, "max_amount": 0, "max_term": 0},
     ],
+    
+    # Mandatory referral rules (not automatic declines)
+    "mandatory_referral_rules": {
+        "bank_charges_lookback_days": 90,  # Check for bank charges in last 3 months
+        "new_credit_lookback_days": 90,  # Check for new credit providers in last 3 months
+        "new_credit_threshold": 3,  # 3+ new credit providers triggers referral
+    },
 }
 
 # Product Parameters
@@ -596,4 +626,5 @@ PRODUCT_CONFIG = {
     "total_cost_cap": 1.0,  # 100% total cost cap
     "min_disposable_buffer": 50,  # Minimum £50 post-loan disposable
     "max_repayment_to_disposable": 0.70,  # Max 70% of disposable
+    "expense_shock_buffer": 1.1,  # 10% buffer on expenses for resilience assessment
 }
