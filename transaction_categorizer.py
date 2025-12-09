@@ -96,7 +96,8 @@ class TransactionCategorizer:
         description: str, 
         amount: float,
         merchant_name: Optional[str] = None,
-        plaid_category: Optional[str] = None
+        plaid_category: Optional[str] = None,
+        plaid_category_primary: Optional[str] = None
     ) -> CategoryMatch:
         """
         Categorize a single transaction.
@@ -106,6 +107,7 @@ class TransactionCategorizer:
             amount: Transaction amount (negative = credit, positive = debit)
             merchant_name: Optional merchant name from PLAID
             plaid_category: Optional PLAID category (personal_finance_category.detailed)
+            plaid_category_primary: Optional PLAID primary category (personal_finance_category.primary)
         
         Returns:
             CategoryMatch with categorization result
@@ -122,7 +124,7 @@ class TransactionCategorizer:
         is_credit = amount < 0
         
         if is_credit:
-            return self._categorize_income(combined_text, text, plaid_category)
+            return self._categorize_income(combined_text, text, plaid_category, plaid_category_primary)
         else:
             return self._categorize_expense(combined_text, text, plaid_category)
     
@@ -160,11 +162,24 @@ class TransactionCategorizer:
         self, 
         combined_text: str, 
         description: str,
-        plaid_category: Optional[str]
+        plaid_category: Optional[str],
+        plaid_category_primary: Optional[str] = None
     ) -> CategoryMatch:
         """Categorize an income transaction (credit)."""
         
-        # Check if it's a transfer (not real income)
+        # Check Plaid category for transfers FIRST (most reliable)
+        if self._is_plaid_transfer(plaid_category_primary, plaid_category):
+            return CategoryMatch(
+                category="transfer",
+                subcategory="internal",
+                confidence=0.95,
+                description="Internal Transfer",
+                match_method="plaid",
+                weight=0.0,  # Not counted as income
+                is_stable=False
+            )
+        
+        # Check if it's a transfer based on keywords (fallback)
         if self._is_transfer(combined_text):
             return CategoryMatch(
                 category="transfer",
@@ -293,6 +308,39 @@ class TransactionCategorizer:
         # Check regex patterns
         for pattern in patterns.get("regex_patterns", []):
             if re.search(pattern, text):
+                return True
+        
+        return False
+    
+    def _is_plaid_transfer(
+        self, 
+        plaid_category_primary: Optional[str], 
+        plaid_category_detailed: Optional[str]
+    ) -> bool:
+        """
+        Check if transaction is a transfer based on Plaid categories.
+        
+        Args:
+            plaid_category_primary: The primary Plaid category (e.g., "TRANSFER_IN")
+            plaid_category_detailed: The detailed Plaid category (e.g., "TRANSFER_IN_ACCOUNT_TRANSFER")
+        
+        Returns:
+            True if the transaction is identified as a transfer, False otherwise
+        """
+        if not plaid_category_primary and not plaid_category_detailed:
+            return False
+        
+        # Check primary category for transfer indicators
+        if plaid_category_primary:
+            primary_upper = plaid_category_primary.upper()
+            if "TRANSFER_IN" in primary_upper or "TRANSFER_OUT" in primary_upper:
+                return True
+        
+        # Check detailed category for transfer indicators
+        if plaid_category_detailed:
+            detailed_upper = plaid_category_detailed.upper()
+            # Look for transfer-related keywords in detailed category
+            if "TRANSFER" in detailed_upper:
                 return True
         
         return False
@@ -449,18 +497,23 @@ class TransactionCategorizer:
             amount = txn.get("amount", 0)
             merchant_name = txn.get("merchant_name")
             plaid_category = txn.get("personal_finance_category.detailed")
+            plaid_category_primary = txn.get("personal_finance_category.primary")
             
             # Handle nested PLAID category if present
-            if not plaid_category and "personal_finance_category" in txn:
+            if "personal_finance_category" in txn:
                 pfc = txn.get("personal_finance_category", {})
                 if isinstance(pfc, dict):
-                    plaid_category = pfc.get("detailed")
+                    if not plaid_category:
+                        plaid_category = pfc.get("detailed")
+                    if not plaid_category_primary:
+                        plaid_category_primary = pfc.get("primary")
             
             category_match = self.categorize_transaction(
                 description=description,
                 amount=amount,
                 merchant_name=merchant_name,
-                plaid_category=plaid_category
+                plaid_category=plaid_category,
+                plaid_category_primary=plaid_category_primary
             )
             
             results.append((txn, category_match))
