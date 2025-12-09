@@ -626,4 +626,5 @@ PRODUCT_CONFIG = {
     "total_cost_cap": 1.0,  # 100% total cost cap
     "min_disposable_buffer": 50,  # Minimum £50 post-loan disposable
     "max_repayment_to_disposable": 0.70,  # Max 70% of disposable
+    "expense_shock_buffer": 1.1,  # 10% buffer on expenses for resilience assessment
 }

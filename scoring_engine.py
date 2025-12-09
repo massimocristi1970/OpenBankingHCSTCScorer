@@ -301,19 +301,23 @@ class ScoringEngine:
     ) -> List[str]:
         """Check mandatory referral rules and return reasons if any apply."""
         reasons = []
+        referral_rules = self.scoring_config.get("mandatory_referral_rules", {})
         
-        # Rule 1: Bank charges for unpaid items in last 3 months (90 days)
+        # Rule 1: Bank charges for unpaid items in lookback period
         if risk.has_bank_charges_concern:
+            lookback_days = referral_rules.get("bank_charges_lookback_days", 90)
             reasons.append(
-                f"Mandatory referral: Bank charges for unpaid items detected in last 3 months "
+                f"Mandatory referral: Bank charges for unpaid items detected in last {lookback_days} days "
                 f"({risk.bank_charges_count_90d} charges)"
             )
         
-        # Rule 2: Multiple new credit providers in last 3 months (90 days)
+        # Rule 2: Multiple new credit providers in lookback period
         if risk.has_new_credit_burst:
+            lookback_days = referral_rules.get("new_credit_lookback_days", 90)
+            threshold = referral_rules.get("new_credit_threshold", 3)
             reasons.append(
-                f"Mandatory referral: Multiple new credit providers detected in last 3 months "
-                f"({risk.new_credit_providers_90d} providers)"
+                f"Mandatory referral: {risk.new_credit_providers_90d} new credit providers detected in last {lookback_days} days "
+                f"(threshold: {threshold})"
             )
         
         return reasons

@@ -415,8 +415,9 @@ class MetricsCalculator:
         essential_costs = expense_metrics.monthly_essential_total or 0.0
         debt_payments = debt_metrics.monthly_debt_payments or 0.0
         
-        # Apply 10% buffer to expenses for income/expenses shock assessment
-        buffered_expenses = essential_costs * 1.1
+        # Apply expense shock buffer for income/expenses resilience assessment
+        expense_buffer = self.product_config.get("expense_shock_buffer", 1.1)
+        buffered_expenses = essential_costs * expense_buffer
         
         # Debt-to-Income Ratio
         if effective_income > 0:
