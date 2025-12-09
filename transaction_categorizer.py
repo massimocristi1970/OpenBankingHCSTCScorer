@@ -53,6 +53,14 @@ HCSTC_LENDER_CANONICAL_NAMES = {
     "FAIR FINANCE": "FAIR_FINANCE",
 }
 
+# Pre-computed sorted patterns (longest first) for efficient matching
+# This avoids sorting on every call to _normalize_hcstc_lender
+HCSTC_LENDER_PATTERNS_SORTED = sorted(
+    HCSTC_LENDER_CANONICAL_NAMES.items(),
+    key=lambda x: len(x[0]),
+    reverse=True
+)
+
 
 @dataclass
 class CategoryMatch:
@@ -140,16 +148,9 @@ class TransactionCategorizer:
             
         upper_name = merchant_name.upper()
         
-        # Sort patterns by length (longest first) to ensure most specific match
+        # Use pre-sorted patterns (longest first) to ensure most specific match
         # This prevents "LENDING" from matching "MR LENDER" before "LENDING STREAM"
-        sorted_patterns = sorted(
-            HCSTC_LENDER_CANONICAL_NAMES.items(),
-            key=lambda x: len(x[0]),
-            reverse=True
-        )
-        
-        # Check for exact or partial matches with known HCSTC lenders
-        for pattern, canonical in sorted_patterns:
+        for pattern, canonical in HCSTC_LENDER_PATTERNS_SORTED:
             if pattern in upper_name:
                 return canonical
         
