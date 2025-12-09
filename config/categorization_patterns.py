@@ -459,8 +459,8 @@ RISK_PATTERNS = {
             "DD RETURN", "DIRECT DEBIT RETURN", "RETURNED PAYMENT"
         ],
         "regex_patterns": [
-            r"(?i)(unpaid|returned|bounced|failed|dishon(ou)?red)\s+(direct\s*debit|dd|payment)",
-            r"(?i)(direct\s*debit|dd|payment)\s+(unpaid|returned|bounced|failed|dishon(ou)?red)",
+            r"(?i)(unpaid|returned|bounced|failed|dishono(u)?red)\s+(direct\s*debit|dd|payment)",
+            r"(?i)(direct\s*debit|dd|payment)\s+(unpaid|returned|bounced|failed|dishono(u)?red)",
             r"(?i)insufficient\s*funds?\s+(direct\s*debit|dd)\b",
             r"(?i)\bdd\s+(return(ed)?|unpaid|bounced|failed)",
         ],

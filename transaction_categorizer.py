@@ -140,8 +140,16 @@ class TransactionCategorizer:
             
         upper_name = merchant_name.upper()
         
+        # Sort patterns by length (longest first) to ensure most specific match
+        # This prevents "LENDING" from matching "MR LENDER" before "LENDING STREAM"
+        sorted_patterns = sorted(
+            HCSTC_LENDER_CANONICAL_NAMES.items(),
+            key=lambda x: len(x[0]),
+            reverse=True
+        )
+        
         # Check for exact or partial matches with known HCSTC lenders
-        for pattern, canonical in HCSTC_LENDER_CANONICAL_NAMES.items():
+        for pattern, canonical in sorted_patterns:
             if pattern in upper_name:
                 return canonical
         
