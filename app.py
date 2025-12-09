@@ -256,29 +256,42 @@ def process_applications(
     cumulative_mode = st.session_state.get("cumulative_mode", False)
     processed_filenames = st.session_state.get("processed_filenames", set())
     
+    # Filter out duplicates if in cumulative mode
+    files_to_process = files
+    duplicates = set()
+    
     if cumulative_mode and processed_filenames:
         filenames_to_process = {filename for filename, _ in files}
         duplicates = filenames_to_process & processed_filenames
         
         if duplicates:
-            # Show first 5 duplicates for readability
+            # Filter out duplicate files
+            files_to_process = [(filename, content) for filename, content in files 
+                               if filename not in duplicates]
+            
+            # Show summary of what was skipped
             duplicates_sorted = sorted(duplicates)
             duplicates_preview = ', '.join(duplicates_sorted[:5])
             duplicates_suffix = f" and {len(duplicates) - 5} more..." if len(duplicates) > 5 else ""
             
-            st.warning(
-                f"⚠️ **Duplicate Files Detected**: {len(duplicates)} file(s) have already been processed:\n\n"
+            st.info(
+                f"⏭️ **Skipping Duplicate Files**: {len(duplicates)} file(s) already processed:\n\n"
                 f"{duplicates_preview}{duplicates_suffix}\n\n"
-                f"You can proceed to reprocess them or clear all results to start fresh."
+                f"**Processing {len(files_to_process)} new file(s)** from this upload."
             )
+    
+    # Handle edge case: all files are duplicates
+    if not files_to_process:
+        st.warning("⚠️ All uploaded files have already been processed. No new files to process.")
+        return
     
     # Determine batch number
     current_batch = st.session_state.get("batch_count", 0) + 1
     
     if cumulative_mode:
-        st.info(f"📂 Processing Batch {current_batch}: {len(files)} application file(s)")
+        st.info(f"📂 Processing Batch {current_batch}: {len(files_to_process)} application file(s)")
     else:
-        st.info(f"📂 Found {len(files)} application file(s) to process")
+        st.info(f"📂 Found {len(files_to_process)} application file(s) to process")
     
     # Progress bar
     progress_bar = st.progress(0)
@@ -295,7 +308,7 @@ def process_applications(
     # Process batch
     with st.spinner("Processing applications..."):
         new_result = processor.process_batch(
-            files=files,
+            files=files_to_process,
             loan_amount=loan_amount,
             loan_term=loan_term,
             progress_callback=update_progress
@@ -316,8 +329,8 @@ def process_applications(
         st.session_state["errors_df"] = processor.errors_to_dataframe(combined_result.errors)
         st.session_state["batch_count"] = current_batch
         
-        # Update processed filenames
-        for filename, _ in files:
+        # Update processed filenames (only add newly processed files)
+        for filename, _ in files_to_process:
             processed_filenames.add(filename)
         st.session_state["processed_filenames"] = processed_filenames
         
@@ -337,9 +350,9 @@ def process_applications(
         st.session_state["errors_df"] = processor.errors_to_dataframe(new_result.errors)
         st.session_state["batch_count"] = 1
         
-        # Update processed filenames
+        # Update processed filenames (only add newly processed files)
         processed_filenames = set()
-        for filename, _ in files:
+        for filename, _ in files_to_process:
             processed_filenames.add(filename)
         st.session_state["processed_filenames"] = processed_filenames
         
