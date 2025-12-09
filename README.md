@@ -93,9 +93,9 @@ Files must follow the PLAID Open Banking format:
 
 | Score Range | Decision |
 |-------------|----------|
-| 70-100 | APPROVE |
-| 50-69 | APPROVE WITH CONDITIONS |
-| 30-49 | REFER (manual review) |
+| 65-100 | APPROVE |
+| 45-64 | APPROVE WITH CONDITIONS |
+| 30-44 | REFER (manual review) |
 | 0-29 | DECLINE |
 
 ### Scoring Components (100 points total)

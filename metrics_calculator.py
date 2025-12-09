@@ -659,8 +659,8 @@ class MetricsCalculator:
         has_gambling_concern = gambling_pct > 5 or gambling_count > 5
         has_failed_payment_concern = failed_count >= 3
         has_dca_concern = dca_distinct >= 2
-        has_bank_charges_concern = bank_charges_count_90d > 0  # Any bank charges in 90 days triggers referral
-        has_new_credit_burst = new_credit_providers_90d >= 3  # 3+ new credit providers triggers referral
+        has_bank_charges_concern = bank_charges_count_90d > 2  # Allow 1-2 bank charges without referral
+        has_new_credit_burst = new_credit_providers_90d >= 5  # Allow up to 4 new credit providers without referral
         
         return RiskMetrics(
             gambling_total=round(gambling_total, 2),

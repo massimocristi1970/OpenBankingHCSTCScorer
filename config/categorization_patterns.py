@@ -522,9 +522,9 @@ POSITIVE_PATTERNS = {
 SCORING_CONFIG = {
     # Score ranges and decisions
     "score_ranges": {
-        "approve": {"min": 70, "max": 100, "decision": "APPROVE"},
-        "conditional": {"min": 50, "max": 69, "decision": "APPROVE WITH CONDITIONS"},
-        "refer": {"min": 30, "max": 49, "decision": "REFER"},
+        "approve": {"min": 65, "max": 100, "decision": "APPROVE"},
+        "conditional": {"min": 45, "max": 64, "decision": "APPROVE WITH CONDITIONS"},
+        "refer": {"min": 30, "max": 44, "decision": "REFER"},
         "decline": {"min": 0, "max": 29, "decision": "DECLINE"},
     },
     
@@ -615,8 +615,9 @@ SCORING_CONFIG = {
     # Mandatory referral rules (not automatic declines)
     "mandatory_referral_rules": {
         "bank_charges_lookback_days": 90,  # Check for bank charges in last 3 months
+        "bank_charges_threshold": 2,  # 3+ bank charges triggers referral
         "new_credit_lookback_days": 90,  # Check for new credit providers in last 3 months
-        "new_credit_threshold": 3,  # 3+ new credit providers triggers referral
+        "new_credit_threshold": 5,  # 5+ new credit providers triggers referral
     },
 }
 
