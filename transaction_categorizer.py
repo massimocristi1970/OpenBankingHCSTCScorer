@@ -340,7 +340,7 @@ class TransactionCategorizer:
         if plaid_category_detailed:
             detailed_upper = plaid_category_detailed.upper()
             # Look for transfer-related keywords in detailed category
-            if "TRANSFER" in detailed_upper or "ACCOUNT_TRANSFER" in detailed_upper:
+            if "TRANSFER" in detailed_upper:
                 return True
         
         return False
