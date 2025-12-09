@@ -8,13 +8,21 @@ INCOME_PATTERNS = {
     "salary": {
         "keywords": [
             "SALARY", "WAGES", "PAYROLL", "NET PAY", "BACS", "PAY", 
-            "EMPLOYERS", "EMPLOYER", "WAGE", "PAYSLIP"
+            "EMPLOYERS", "EMPLOYER", "WAGE", "PAYSLIP",
+            "FP-", "FASTER PAYMENT", "BGC", "CREDIT", "LTD", "PLC",
+            "LIMITED", "DIRECT CREDIT", "BANK CREDIT", "CR"
         ],
         "regex_patterns": [
             r"(?i)salary|wages|payroll|net\s*pay",
             r"(?i)\b(employer|company)\s*(payment|pay)\b",
             r"(?i)bacs\s*credit",
             r"(?i)monthly\s*pay",
+            r"(?i)^FP-.*",
+            r"(?i)faster\s*payment",
+            r"(?i)\bbgc\b",
+            r"(?i)direct\s*credit",
+            r"(?i)bank\s*credit",
+            r"(?i)\b(ltd|plc|limited)\b",
         ],
         "weight": 1.0,
         "is_stable": True,
@@ -89,17 +97,17 @@ INCOME_PATTERNS = {
 # Transfer patterns (NOT counted as income)
 TRANSFER_PATTERNS = {
     "keywords": [
-        "TRANSFER", "TFR", "STANDING ORDER IN", "OWN ACCOUNT", 
-        "INTERNAL", "FROM SAVINGS", "FROM CURRENT", "SELF TRANSFER",
-        "MOVED FROM", "MOVED TO"
+        "OWN ACCOUNT", "INTERNAL TRANSFER", "FROM SAVINGS", "FROM CURRENT", 
+        "SELF TRANSFER", "MOVED FROM", "MOVED TO", "BETWEEN ACCOUNTS",
+        "INTERNAL TFR"
     ],
     "regex_patterns": [
-        r"(?i)\btransfer\b",
-        r"(?i)\btfr\b",
-        r"(?i)standing\s*order\s*in",
         r"(?i)own\s*account",
         r"(?i)internal\s*(transfer|tfr)",
         r"(?i)from\s*(savings|current)",
+        r"(?i)between\s*accounts",
+        r"(?i)self\s*transfer",
+        r"(?i)(moved|move)\s*(from|to)\s*(savings|current)",
     ]
 }
 
