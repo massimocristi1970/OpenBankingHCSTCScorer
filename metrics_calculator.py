@@ -184,8 +184,8 @@ class MetricsCalculator:
         monthly_other = other_total / self.months_of_data
         monthly_income = total_income / self.months_of_data
         
-        # Effective income (gig weighted at 70%)
-        effective_monthly = monthly_stable + (monthly_gig * 0.7) + (monthly_other * 0.5)
+        # Effective income (gig weighted at 70%, other at 100%)
+        effective_monthly = monthly_stable + (monthly_gig * 0.7) + monthly_other
         
         # Income stability score
         stability_score = self._calculate_income_stability(transactions)

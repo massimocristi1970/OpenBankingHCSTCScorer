@@ -142,7 +142,7 @@ class TransactionCategorizer:
             confidence=0.5,
             description="Other Income",
             match_method="default",
-            weight=0.5,  # Partial weight for unidentified income
+            weight=1.0,  # Full weight for unidentified income
             is_stable=False
         )
     
