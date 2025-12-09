@@ -449,22 +449,20 @@ RISK_PATTERNS = {
     },
     "failed_payments": {
         "keywords": [
-            "UNPAID", "RETURNED", "BOUNCED", "INSUFFICIENT", "NSF",
-            "DECLINED", "FAILED", "REJECTED", "DISHONOURED", "DD RETURN",
-            "DIRECT DEBIT RETURN", "PAYMENT FAILED", "INSUFFICIENT FUNDS"
+            "UNPAID DIRECT DEBIT", "UNPAID DD", "DD UNPAID",
+            "RETURNED DIRECT DEBIT", "RETURNED DD", "DD RETURNED",
+            "BOUNCED PAYMENT", "BOUNCED DD", "BOUNCED DIRECT DEBIT",
+            "PAYMENT RETURNED", "PAYMENT BOUNCED", "PAYMENT FAILED",
+            "FAILED DIRECT DEBIT", "FAILED DD", "DD FAILED",
+            "DISHONOURED DD", "DISHONOURED DIRECT DEBIT", "DISHONOURED PAYMENT",
+            "INSUFFICIENT FUNDS DD",
+            "DD RETURN", "DIRECT DEBIT RETURN", "RETURNED PAYMENT"
         ],
         "regex_patterns": [
-            r"(?i)unpaid",
-            r"(?i)returned\s*(payment|dd|direct\s*debit)?",
-            r"(?i)bounced",
-            r"(?i)insufficient\s*(funds)?",
-            r"(?i)\bnsf\b",
-            r"(?i)declined",
-            r"(?i)failed\s*(payment|dd|direct\s*debit)?",
-            r"(?i)rejected",
-            r"(?i)dishon(ou)?red",
-            r"(?i)dd\s*return",
-            r"(?i)direct\s*debit\s*return",
+            r"(?i)(unpaid|returned|bounced|failed|dishon(ou)?red)\s+(direct\s*debit|dd|payment)",
+            r"(?i)(direct\s*debit|dd|payment)\s+(unpaid|returned|bounced|failed|dishon(ou)?red)",
+            r"(?i)insufficient\s*funds?\s+(direct\s*debit|dd)\b",
+            r"(?i)\bdd\s+(return(ed)?|unpaid|bounced|failed)",
         ],
         "risk_level": "critical",
         "description": "Failed Payments"
@@ -594,12 +592,12 @@ SCORING_CONFIG = {
     # Hard decline rules
     "hard_decline_rules": {
         "min_monthly_income": 1500,
-        "max_active_hcstc_lenders": 2,  # 3+ triggers decline (in last 90 days)
+        "max_active_hcstc_lenders": 4,  # 5+ triggers decline (in last 90 days) - adjusted for HCSTC market
         "max_gambling_percentage": 15,
         "min_post_loan_disposable": 0,  # Changed from £30 - allows tighter affordability with expense buffer
-        "max_failed_payments": 2,  # 3+ triggers decline (in last 45 days)
+        "max_failed_payments": 5,  # 6+ triggers decline (in last 45 days) - adjusted for HCSTC market
         "max_dca_count": 2,  # 3+ triggers decline
-        "max_dti_with_new_loan": 60,
+        "max_dti_with_new_loan": 70,  # Adjusted from 60 - more realistic for HCSTC market
         "hcstc_lookback_days": 90,  # Days to look back for HCSTC lenders
         "failed_payment_lookback_days": 45,  # Days to look back for failed payments
     },

@@ -243,7 +243,7 @@ class ScoringEngine:
         if not income.has_verifiable_income and income.effective_monthly_income is not None and income.effective_monthly_income < 300:
             reasons.append("No verifiable income source identified")
         
-        # Rule 3: Active HCSTC with 3+ lenders in last 90 days
+        # Rule 3: Active HCSTC with too many lenders in last 90 days
         if debt.active_hcstc_count_90d is not None and debt.active_hcstc_count_90d > rules["max_active_hcstc_lenders"]:
             reasons.append(
                 f"Active HCSTC with {debt.active_hcstc_count_90d} lenders in last 90 days "
@@ -264,7 +264,7 @@ class ScoringEngine:
                 f"below minimum (£{rules['min_post_loan_disposable']})"
             )
         
-        # Rule 6: 3+ failed payments in last 45 days
+        # Rule 6: Too many failed payments in last 45 days
         if risk.failed_payments_count_45d is not None and risk.failed_payments_count_45d > rules["max_failed_payments"]:
             reasons.append(
                 f"Failed payments ({risk.failed_payments_count_45d}) in last 45 days exceed "
@@ -278,7 +278,7 @@ class ScoringEngine:
                 f"(maximum {rules['max_dca_count']})"
             )
         
-        # Rule 8: DTI would exceed 60% with new loan
+        # Rule 8: DTI would exceed maximum threshold with new loan
         new_loan_payment = self._calculate_monthly_payment(
             requested_amount, requested_term
         )

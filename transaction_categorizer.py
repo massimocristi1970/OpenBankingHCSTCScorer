@@ -24,6 +24,36 @@ from config.categorization_patterns import (
 )
 
 
+# HCSTC Lender Canonical Name Mappings
+# Maps variations of lender names to a single canonical identifier
+HCSTC_LENDER_CANONICAL_NAMES = {
+    "LENDING STREAM": "LENDING_STREAM",
+    "LENDINGSTREAM": "LENDING_STREAM",
+    "DRAFTY": "DRAFTY",
+    "MR LENDER": "MR_LENDER",
+    "MRLENDER": "MR_LENDER",
+    "MONEYBOAT": "MONEYBOAT",
+    "CREDITSPRING": "CREDITSPRING",
+    "CASHFLOAT": "CASHFLOAT",
+    "QUIDMARKET": "QUIDMARKET",
+    "QUID MARKET": "QUIDMARKET",
+    "LOANS 2 GO": "LOANS_2_GO",
+    "LOANS2GO": "LOANS_2_GO",
+    "CASHASAP": "CASHASAP",
+    "POLAR CREDIT": "POLAR_CREDIT",
+    "118 118 MONEY": "118_118_MONEY",
+    "118118 MONEY": "118_118_MONEY",
+    "118118MONEY": "118_118_MONEY",
+    "THE MONEY PLATFORM": "THE_MONEY_PLATFORM",
+    "MONEY PLATFORM": "THE_MONEY_PLATFORM",
+    "FAST LOAN UK": "FAST_LOAN_UK",
+    "FASTLOAN": "FAST_LOAN_UK",
+    "CONDUIT": "CONDUIT",
+    "SALAD MONEY": "SALAD_MONEY",
+    "FAIR FINANCE": "FAIR_FINANCE",
+}
+
+
 @dataclass
 class CategoryMatch:
     """Result of transaction categorization."""
@@ -94,6 +124,28 @@ class TransactionCategorizer:
             return ""
         # Convert to uppercase for matching
         return text.upper().strip()
+    
+    def _normalize_hcstc_lender(self, merchant_name: str) -> Optional[str]:
+        """
+        Normalize HCSTC lender name to canonical form.
+        
+        Args:
+            merchant_name: Raw merchant/transaction name
+            
+        Returns:
+            Canonical lender name if recognized, None otherwise
+        """
+        if not merchant_name:
+            return None
+            
+        upper_name = merchant_name.upper()
+        
+        # Check for exact or partial matches with known HCSTC lenders
+        for pattern, canonical in HCSTC_LENDER_CANONICAL_NAMES.items():
+            if pattern in upper_name:
+                return canonical
+        
+        return None
     
     def _categorize_income(
         self, 
@@ -531,13 +583,22 @@ class TransactionCategorizer:
                 # Track distinct HCSTC lenders (all time and 90 days)
                 if category == "debt" and subcategory == "hcstc_payday":
                     merchant = txn.get("merchant_name") or txn.get("name", "")
-                    merchant_key = merchant.upper()[:20]
-                    summary[category][subcategory]["lenders"].add(merchant_key)
-                    
-                    # Track 90-day HCSTC lenders
-                    if txn_date and txn_date >= hcstc_cutoff:
-                        summary[category][subcategory]["lenders_90d"].add(merchant_key)
-                        summary[category][subcategory]["credit_providers_90d"].add(merchant_key)
+                    # Normalize to canonical lender name to avoid counting same lender multiple times
+                    canonical_lender = self._normalize_hcstc_lender(merchant)
+                    if canonical_lender:
+                        summary[category][subcategory]["lenders"].add(canonical_lender)
+                        
+                        # Track 90-day HCSTC lenders
+                        if txn_date and txn_date >= hcstc_cutoff:
+                            summary[category][subcategory]["lenders_90d"].add(canonical_lender)
+                            summary[category][subcategory]["credit_providers_90d"].add(canonical_lender)
+                    else:
+                        # Fallback for unrecognized HCSTC lenders
+                        merchant_key = merchant.upper()[:20]
+                        summary[category][subcategory]["lenders"].add(merchant_key)
+                        if txn_date and txn_date >= hcstc_cutoff:
+                            summary[category][subcategory]["lenders_90d"].add(merchant_key)
+                            summary[category][subcategory]["credit_providers_90d"].add(merchant_key)
                 
                 # Track credit providers in last 90 days for new credit burst detection
                 if category == "debt" and txn_date and txn_date >= new_credit_cutoff:
