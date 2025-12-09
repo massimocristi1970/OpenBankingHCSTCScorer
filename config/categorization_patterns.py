@@ -9,8 +9,7 @@ INCOME_PATTERNS = {
         "keywords": [
             "SALARY", "WAGES", "PAYROLL", "NET PAY", "BACS", "PAY", 
             "EMPLOYERS", "EMPLOYER", "WAGE", "PAYSLIP",
-            "FP-", "FASTER PAYMENT", "BGC", "CREDIT", "LTD", "PLC",
-            "LIMITED", "DIRECT CREDIT", "BANK CREDIT", "CR"
+            "FP-", "FASTER PAYMENT", "BGC"
         ],
         "regex_patterns": [
             r"(?i)salary|wages|payroll|net\s*pay",
@@ -20,9 +19,7 @@ INCOME_PATTERNS = {
             r"(?i)^FP-.*",
             r"(?i)faster\s*payment",
             r"(?i)\bbgc\b",
-            r"(?i)direct\s*credit",
-            r"(?i)bank\s*credit",
-            r"(?i)\b(ltd|plc|limited)\b",
+            r"(?i)\b(ltd|plc|limited)\s*(credit|payment)",
         ],
         "weight": 1.0,
         "is_stable": True,
