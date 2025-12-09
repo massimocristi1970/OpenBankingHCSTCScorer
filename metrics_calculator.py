@@ -48,6 +48,7 @@ class DebtMetrics:
     monthly_debt_payments: float = 0.0
     monthly_hcstc_payments: float = 0.0
     active_hcstc_count: int = 0
+    active_hcstc_count_90d: int = 0  # Count in last 90 days
     monthly_bnpl_payments: float = 0.0
     monthly_credit_card_payments: float = 0.0
     monthly_other_loan_payments: float = 0.0
@@ -89,12 +90,18 @@ class RiskMetrics:
     gambling_percentage: float = 0.0
     gambling_frequency: int = 0
     failed_payments_count: int = 0
+    failed_payments_count_45d: int = 0  # Count in last 45 days
     debt_collection_activity: int = 0
     debt_collection_distinct: int = 0
+    bank_charges_count: int = 0
+    bank_charges_count_90d: int = 0  # Count in last 90 days
+    new_credit_providers_90d: int = 0  # Distinct credit providers in last 90 days
     savings_activity: float = 0.0
     has_gambling_concern: bool = False
     has_failed_payment_concern: bool = False
     has_debt_collection_concern: bool = False
+    has_bank_charges_concern: bool = False  # For mandatory referral
+    has_new_credit_burst: bool = False  # For mandatory referral
 
 
 class MetricsCalculator:
@@ -369,8 +376,9 @@ class MetricsCalculator:
         bnpl = debt_data.get("bnpl", {}).get("total", 0) / self.months_of_data
         catalogue = debt_data.get("catalogue", {}).get("total", 0) / self.months_of_data
         
-        # Active HCSTC lender count
+        # Active HCSTC lender count (all time and 90 days)
         active_hcstc_count = debt_data.get("hcstc_payday", {}).get("distinct_lenders", 0)
+        active_hcstc_count_90d = debt_data.get("hcstc_payday", {}).get("distinct_lenders_90d", 0)
         
         # Total debt commitments
         total_debt = hcstc + other_loans + credit_cards + bnpl + catalogue
@@ -379,6 +387,7 @@ class MetricsCalculator:
             monthly_debt_payments=total_debt,
             monthly_hcstc_payments=hcstc,
             active_hcstc_count=active_hcstc_count,
+            active_hcstc_count_90d=active_hcstc_count_90d,
             monthly_bnpl_payments=bnpl,
             monthly_credit_card_payments=credit_cards,
             monthly_other_loan_payments=other_loans + catalogue,
@@ -406,20 +415,23 @@ class MetricsCalculator:
         essential_costs = expense_metrics.monthly_essential_total or 0.0
         debt_payments = debt_metrics.monthly_debt_payments or 0.0
         
+        # Apply 10% buffer to expenses for income/expenses shock assessment
+        buffered_expenses = essential_costs * 1.1
+        
         # Debt-to-Income Ratio
         if effective_income > 0:
             dti_ratio = (debt_payments / effective_income) * 100
         else:
             dti_ratio = 100.0
         
-        # Essential Ratio
+        # Essential Ratio (using buffered expenses)
         if effective_income > 0:
-            essential_ratio = (essential_costs / effective_income) * 100
+            essential_ratio = (buffered_expenses / effective_income) * 100
         else:
             essential_ratio = 100.0
         
-        # Disposable Income
-        monthly_disposable = effective_income - essential_costs - debt_payments
+        # Disposable Income (using buffered expenses)
+        monthly_disposable = effective_income - buffered_expenses - debt_payments
         
         # Disposable Ratio
         if effective_income > 0:
@@ -620,12 +632,21 @@ class MetricsCalculator:
         else:
             gambling_pct = 0.0
         
-        # Failed payments
+        # Failed payments (all time and 45 days)
         failed_count = risk_data.get("failed_payments", {}).get("count", 0)
+        failed_count_45d = risk_data.get("failed_payments", {}).get("count_45d", 0)
+        
+        # Bank charges (all time and 90 days)
+        bank_charges_count = risk_data.get("bank_charges", {}).get("count", 0)
+        bank_charges_count_90d = risk_data.get("bank_charges", {}).get("count_90d", 0)
         
         # Debt collection
         dca_count = risk_data.get("debt_collection", {}).get("count", 0)
         dca_distinct = risk_data.get("debt_collection", {}).get("distinct_dcas", 0)
+        
+        # New credit providers in last 90 days
+        debt_data = category_summary.get("debt", {})
+        new_credit_providers_90d = debt_data.get("hcstc_payday", {}).get("new_credit_providers_90d", 0)
         
         # Savings activity
         savings_total = positive_data.get("savings", {}).get("total", 0)
@@ -634,16 +655,24 @@ class MetricsCalculator:
         has_gambling_concern = gambling_pct > 5 or gambling_count > 5
         has_failed_payment_concern = failed_count >= 3
         has_dca_concern = dca_distinct >= 2
+        has_bank_charges_concern = bank_charges_count_90d > 0  # Any bank charges in 90 days triggers referral
+        has_new_credit_burst = new_credit_providers_90d >= 3  # 3+ new credit providers triggers referral
         
         return RiskMetrics(
             gambling_total=round(gambling_total, 2),
             gambling_percentage=round(gambling_pct, 1),
             gambling_frequency=gambling_count,
             failed_payments_count=failed_count,
+            failed_payments_count_45d=failed_count_45d,
             debt_collection_activity=dca_count,
             debt_collection_distinct=dca_distinct,
+            bank_charges_count=bank_charges_count,
+            bank_charges_count_90d=bank_charges_count_90d,
+            new_credit_providers_90d=new_credit_providers_90d,
             savings_activity=round(savings_total, 2),
             has_gambling_concern=has_gambling_concern,
             has_failed_payment_concern=has_failed_payment_concern,
-            has_debt_collection_concern=has_dca_concern
+            has_debt_collection_concern=has_dca_concern,
+            has_bank_charges_concern=has_bank_charges_concern,
+            has_new_credit_burst=has_new_credit_burst
         )

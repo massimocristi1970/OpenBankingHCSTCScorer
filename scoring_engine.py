@@ -154,6 +154,25 @@ class ScoringEngine:
             result.risk_level = RiskLevel.VERY_HIGH
             return result
         
+        # Check mandatory referral rules (before scoring)
+        referral_reasons = self._check_mandatory_referral_rules(risk)
+        if referral_reasons:
+            result.decision = Decision.REFER
+            result.processing_notes = referral_reasons
+            result.risk_level = RiskLevel.HIGH
+            # Still calculate score for information
+            score_breakdown = self._calculate_scores(
+                income=income,
+                affordability=affordability,
+                balance=balance,
+                risk=risk,
+                debt=debt
+            )
+            result.score_breakdown = score_breakdown
+            result.score = score_breakdown.total_score
+            result.risk_flags = self._collect_risk_flags(risk, debt, affordability, balance)
+            return result
+        
         # Calculate score breakdown
         score_breakdown = self._calculate_scores(
             income=income,
@@ -224,10 +243,10 @@ class ScoringEngine:
         if not income.has_verifiable_income and income.effective_monthly_income is not None and income.effective_monthly_income < 300:
             reasons.append("No verifiable income source identified")
         
-        # Rule 3: Active HCSTC with 3+ lenders
-        if debt.active_hcstc_count is not None and debt.active_hcstc_count > rules["max_active_hcstc_lenders"]:
+        # Rule 3: Active HCSTC with 3+ lenders in last 90 days
+        if debt.active_hcstc_count_90d is not None and debt.active_hcstc_count_90d > rules["max_active_hcstc_lenders"]:
             reasons.append(
-                f"Active HCSTC with {debt.active_hcstc_count} lenders "
+                f"Active HCSTC with {debt.active_hcstc_count_90d} lenders in last 90 days "
                 f"(maximum {rules['max_active_hcstc_lenders']})"
             )
         
@@ -245,10 +264,10 @@ class ScoringEngine:
                 f"below minimum (£{rules['min_post_loan_disposable']})"
             )
         
-        # Rule 6: 5+ failed payments
-        if risk.failed_payments_count is not None and risk.failed_payments_count > rules["max_failed_payments"]:
+        # Rule 6: 3+ failed payments in last 45 days
+        if risk.failed_payments_count_45d is not None and risk.failed_payments_count_45d > rules["max_failed_payments"]:
             reasons.append(
-                f"Failed payments ({risk.failed_payments_count}) exceed "
+                f"Failed payments ({risk.failed_payments_count_45d}) in last 45 days exceed "
                 f"maximum ({rules['max_failed_payments']})"
             )
         
@@ -273,6 +292,29 @@ class ScoringEngine:
                     f"Projected DTI ({projected_dti:.1f}%) would exceed "
                     f"maximum ({rules['max_dti_with_new_loan']}%)"
                 )
+        
+        return reasons
+    
+    def _check_mandatory_referral_rules(
+        self,
+        risk: RiskMetrics
+    ) -> List[str]:
+        """Check mandatory referral rules and return reasons if any apply."""
+        reasons = []
+        
+        # Rule 1: Bank charges for unpaid items in last 3 months (90 days)
+        if risk.has_bank_charges_concern:
+            reasons.append(
+                f"Mandatory referral: Bank charges for unpaid items detected in last 3 months "
+                f"({risk.bank_charges_count_90d} charges)"
+            )
+        
+        # Rule 2: Multiple new credit providers in last 3 months (90 days)
+        if risk.has_new_credit_burst:
+            reasons.append(
+                f"Mandatory referral: Multiple new credit providers detected in last 3 months "
+                f"({risk.new_credit_providers_90d} providers)"
+            )
         
         return reasons
     
@@ -489,11 +531,11 @@ class ScoringEngine:
         if risk.gambling_percentage is not None and risk.gambling_percentage > 0:
             flags.append(f"Gambling: {risk.gambling_percentage:.1f}% of income")
         
-        if debt.active_hcstc_count is not None and debt.active_hcstc_count > 0:
-            flags.append(f"Active HCSTC: {debt.active_hcstc_count} lenders")
+        if debt.active_hcstc_count_90d is not None and debt.active_hcstc_count_90d > 0:
+            flags.append(f"Active HCSTC (90d): {debt.active_hcstc_count_90d} lenders")
         
-        if risk.failed_payments_count is not None and risk.failed_payments_count > 0:
-            flags.append(f"Failed payments: {risk.failed_payments_count}")
+        if risk.failed_payments_count_45d is not None and risk.failed_payments_count_45d > 0:
+            flags.append(f"Failed payments (45d): {risk.failed_payments_count_45d}")
         
         if risk.debt_collection_distinct is not None and risk.debt_collection_distinct > 0:
             flags.append(f"Debt collection: {risk.debt_collection_distinct} agencies")
