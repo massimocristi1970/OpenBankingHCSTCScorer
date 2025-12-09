@@ -616,7 +616,7 @@ SCORING_CONFIG = {
     "mandatory_referral_rules": {
         "bank_charges_lookback_days": 90,  # Check for bank charges in last 3 months
         "new_credit_lookback_days": 90,  # Check for new credit providers in last 3 months
-        "new_credit_threshold": 3,  # 3+ new credit providers triggers referral
+        "new_credit_threshold": 5,  # 5+ new credit providers triggers referral
     },
 }
 
