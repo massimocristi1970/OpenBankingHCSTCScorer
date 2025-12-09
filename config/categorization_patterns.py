@@ -421,6 +421,27 @@ RISK_PATTERNS = {
         "risk_level": "critical",
         "description": "Gambling"
     },
+    "bank_charges": {
+        "keywords": [
+            "UNPAID ITEM CHARGE", "UNPAID TRANSACTION FEE", "RETURNED ITEM FEE",
+            "RETURNED DD FEE", "UNPAID DD CHARGE", "UNPAID SO CHARGE",
+            "ITEM CHARGE", "TRANSACTION FEE", "BOUNCE FEE", "RETURNED PAYMENT FEE",
+            "INSUFFICIENT FUNDS FEE", "NSF FEE", "OVERDRAFT FEE", "PENALTY CHARGE",
+            "UNPAID CHARGE", "RETURNED FEE", "ITEM FEE", "TRANSACTION CHARGE"
+        ],
+        "regex_patterns": [
+            r"(?i)unpaid\s*(item|transaction|dd|direct\s*debit|so|standing\s*order)?\s*(charge|fee)",
+            r"(?i)returned\s*(item|dd|direct\s*debit|payment)?\s*(charge|fee)",
+            r"(?i)bounce\s*(charge|fee)",
+            r"(?i)insufficient\s*funds\s*(charge|fee)",
+            r"(?i)nsf\s*(charge|fee)",
+            r"(?i)penalty\s*charge",
+            r"(?i)overdraft\s*(charge|fee)",
+            r"(?i)(item|transaction)\s*(charge|fee)",
+        ],
+        "risk_level": "high",
+        "description": "Bank Charges for Unpaid Items"
+    },
     "failed_payments": {
         "keywords": [
             "UNPAID", "RETURNED", "BOUNCED", "INSUFFICIENT", "NSF",
@@ -467,25 +488,6 @@ RISK_PATTERNS = {
         ],
         "risk_level": "severe",
         "description": "Debt Collection"
-    },
-    "bank_charges": {
-        "keywords": [
-            "UNPAID ITEM CHARGE", "UNPAID TRANSACTION FEE", "RETURNED ITEM FEE",
-            "RETURNED DD FEE", "UNPAID DD CHARGE", "UNPAID SO CHARGE",
-            "ITEM CHARGE", "TRANSACTION FEE", "BOUNCE FEE", "RETURNED PAYMENT FEE",
-            "INSUFFICIENT FUNDS FEE", "NSF FEE", "OVERDRAFT FEE", "PENALTY CHARGE"
-        ],
-        "regex_patterns": [
-            r"(?i)unpaid\s*(item|transaction|dd|direct\s*debit|so|standing\s*order)\s*(charge|fee)",
-            r"(?i)returned\s*(item|dd|direct\s*debit|payment)\s*fee",
-            r"(?i)bounce\s*fee",
-            r"(?i)insufficient\s*funds\s*fee",
-            r"(?i)nsf\s*fee",
-            r"(?i)penalty\s*charge",
-            r"(?i)overdraft\s*fee",
-        ],
-        "risk_level": "high",
-        "description": "Bank Charges for Unpaid Items"
     },
 }
 
