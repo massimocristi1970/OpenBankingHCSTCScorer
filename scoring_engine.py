@@ -83,7 +83,6 @@ class ScoringResult:
     # Risk flags
     risk_flags: List[str] = field(default_factory=list)
     decline_reasons: List[str] = field(default_factory=list)
-    conditions: List[str] = field(default_factory=list)
     
     # Processing info
     processing_notes: List[str] = field(default_factory=list)
@@ -578,31 +577,3 @@ class ScoringEngine:
         
         total_repayable = amount + total_interest
         return total_repayable / term
-    
-    def _determine_conditions(
-        self,
-        score: float,
-        risk: RiskMetrics,
-        debt: DebtMetrics,
-        loan_offer: LoanOffer,
-        requested_amount: float
-    ) -> List[str]:
-        """Determine conditions for conditional approval."""
-        conditions = []
-        
-        if loan_offer.approved_amount < requested_amount:
-            conditions.append(
-                f"Reduced loan amount: £{loan_offer.approved_amount:.2f} "
-                f"(requested £{requested_amount:.2f})"
-            )
-        
-        if debt.active_hcstc_count is not None and debt.active_hcstc_count > 0:
-            conditions.append("Clear existing HCSTC debt before drawdown")
-        
-        if risk.gambling_percentage is not None and risk.gambling_percentage > 2:
-            conditions.append("Review gambling activity before approval")
-        
-        if score < 60:
-            conditions.append("Additional income verification required")
-        
-        return conditions
