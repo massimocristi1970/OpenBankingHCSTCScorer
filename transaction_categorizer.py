@@ -23,6 +23,8 @@ from config.categorization_patterns import (
     POSITIVE_PATTERNS,
 )
 
+from income_detector import IncomeDetector
+
 
 # HCSTC Lender Canonical Name Mappings
 # Maps variations of lender names to a single canonical identifier
@@ -101,6 +103,7 @@ class TransactionCategorizer:
         self.essential_patterns = ESSENTIAL_PATTERNS
         self.risk_patterns = RISK_PATTERNS
         self.positive_patterns = POSITIVE_PATTERNS
+        self.income_detector = IncomeDetector()
     
     def categorize_transaction(
         self, 
@@ -135,7 +138,7 @@ class TransactionCategorizer:
         is_credit = amount < 0
         
         if is_credit:
-            return self._categorize_income(combined_text, text, plaid_category, plaid_category_primary)
+            return self._categorize_income(combined_text, text, amount, plaid_category, plaid_category_primary)
         else:
             return self._categorize_expense(combined_text, text, plaid_category)
     
@@ -173,12 +176,118 @@ class TransactionCategorizer:
         self, 
         combined_text: str, 
         description: str,
+        amount: float,
         plaid_category: Optional[str],
         plaid_category_primary: Optional[str] = None
     ) -> CategoryMatch:
         """Categorize an income transaction (credit)."""
         
-        # Check Plaid category for transfers FIRST (most reliable)
+        # NEW APPROACH: Check for INCOME indicators FIRST before marking as transfer
+        # This prevents legitimate salary from being miscategorized as transfers
+        
+        # 1. Use behavioral income detector to check if this is likely income
+        # Note: amount is already negative for credits (PLAID convention)
+        is_income, confidence, reason = self.income_detector.is_likely_income(
+            description=description,
+            amount=amount,
+            plaid_category_primary=plaid_category_primary,
+            plaid_category_detailed=plaid_category
+        )
+        
+        # If behavioral detector says it's income with high confidence, trust it
+        if is_income and confidence >= 0.70:
+            # Determine subcategory based on reason
+            if "salary" in reason or "payroll" in reason or "company" in reason or "wages" in reason:
+                return CategoryMatch(
+                    category="income",
+                    subcategory="salary",
+                    confidence=confidence,
+                    description="Salary & Wages",
+                    match_method=f"behavioral_{reason}",
+                    weight=1.0,
+                    is_stable=True
+                )
+            elif "benefit" in reason:
+                return CategoryMatch(
+                    category="income",
+                    subcategory="benefits",
+                    confidence=confidence,
+                    description="Benefits & Government",
+                    match_method=f"behavioral_{reason}",
+                    weight=1.0,
+                    is_stable=True
+                )
+            elif "pension" in reason:
+                return CategoryMatch(
+                    category="income",
+                    subcategory="pension",
+                    confidence=confidence,
+                    description="Pension Income",
+                    match_method=f"behavioral_{reason}",
+                    weight=1.0,
+                    is_stable=True
+                )
+            # For generic PLAID income, check if it matches gig economy patterns
+            # before defaulting to "other" income
+            elif "plaid_income_category" in reason:
+                # Check if it's gig economy (which has 70% weight)
+                for subcategory, patterns in self.income_patterns.items():
+                    if subcategory == "gig_economy":
+                        match = self._match_patterns(combined_text, patterns)
+                        if match:
+                            return CategoryMatch(
+                                category="income",
+                                subcategory=subcategory,
+                                confidence=match[1],
+                                description=patterns.get("description", subcategory),
+                                match_method=match[0],
+                                weight=patterns.get("weight", 1.0),
+                                is_stable=patterns.get("is_stable", False)
+                            )
+                # Not gig economy, return as other income
+                return CategoryMatch(
+                    category="income",
+                    subcategory="other",
+                    confidence=confidence,
+                    description="Other Income",
+                    match_method=f"behavioral_{reason}",
+                    weight=1.0,
+                    is_stable=False
+                )
+            else:
+                # Other behavioral income
+                return CategoryMatch(
+                    category="income",
+                    subcategory="other",
+                    confidence=confidence,
+                    description="Other Income",
+                    match_method=f"behavioral_{reason}",
+                    weight=1.0,
+                    is_stable=False
+                )
+        
+        # 2. Check income patterns (traditional keyword matching)
+        for subcategory, patterns in self.income_patterns.items():
+            match = self._match_patterns(combined_text, patterns)
+            if match:
+                return CategoryMatch(
+                    category="income",
+                    subcategory=subcategory,
+                    confidence=match[1],
+                    description=patterns.get("description", subcategory),
+                    match_method=match[0],
+                    weight=patterns.get("weight", 1.0),
+                    is_stable=patterns.get("is_stable", False)
+                )
+        
+        # 3. Use PLAID category if available
+        if plaid_category:
+            plaid_match = self._match_plaid_category(plaid_category, is_income=True)
+            if plaid_match:
+                return plaid_match
+        
+        # 4. NOW check for transfers (only if NOT identified as income above)
+        # Check Plaid category for transfers
         # Pass description to detect salary payments that PLAID miscategorized as transfers
         if self._is_plaid_transfer(plaid_category_primary, plaid_category, description):
             return CategoryMatch(
@@ -203,27 +312,7 @@ class TransactionCategorizer:
                 is_stable=False
             )
         
-        # Check income patterns
-        for subcategory, patterns in self.income_patterns.items():
-            match = self._match_patterns(combined_text, patterns)
-            if match:
-                return CategoryMatch(
-                    category="income",
-                    subcategory=subcategory,
-                    confidence=match[1],
-                    description=patterns.get("description", subcategory),
-                    match_method=match[0],
-                    weight=patterns.get("weight", 1.0),
-                    is_stable=patterns.get("is_stable", False)
-                )
-        
-        # Use PLAID category as fallback
-        if plaid_category:
-            plaid_match = self._match_plaid_category(plaid_category, is_income=True)
-            if plaid_match:
-                return plaid_match
-        
-        # Unknown income
+        # 5. Unknown income (default)
         return CategoryMatch(
             category="income",
             subcategory="other",
