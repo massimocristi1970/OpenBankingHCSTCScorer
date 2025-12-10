@@ -246,40 +246,51 @@ def export_csv():
     
     Expects JSON body with 'results' field containing categorization results.
     """
-    data = request.get_json()
-    
-    if not data or 'results' not in data:
-        return jsonify({'error': 'No results provided'}), 400
-    
-    results = data['results']
-    
-    # Create CSV in memory
-    output = io.StringIO()
-    writer = csv.DictWriter(output, fieldnames=[
-        'date', 'description', 'amount', 'merchant_name',
-        'category', 'subcategory', 'confidence', 'match_method',
-        'description_text', 'plaid_category_primary', 'plaid_category_detailed',
-        'risk_level', 'weight', 'is_stable', 'is_housing'
-    ])
-    
-    writer.writeheader()
-    for result in results:
-        writer.writerow(result)
-    
-    # Convert to bytes for sending
-    output.seek(0)
-    csv_data = output.getvalue().encode('utf-8')
-    
-    # Generate filename with timestamp
-    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    filename = f'categorization_results_{timestamp}.csv'
-    
-    return send_file(
-        io.BytesIO(csv_data),
-        mimetype='text/csv',
-        as_attachment=True,
-        download_name=filename
-    )
+    try:
+        data = request.get_json()
+        
+        if not data or 'results' not in data:
+            app.logger.warning("CSV export: No results provided in request")
+            return jsonify({'error': 'No results provided'}), 400
+        
+        results = data['results']
+        
+        if not isinstance(results, list):
+            app.logger.error(f"CSV export: Results is not a list, got {type(results)}")
+            return jsonify({'error': 'Results must be an array'}), 400
+        
+        # Create CSV in memory
+        output = io.StringIO()
+        writer = csv.DictWriter(output, fieldnames=[
+            'date', 'description', 'amount', 'merchant_name',
+            'category', 'subcategory', 'confidence', 'match_method',
+            'description_text', 'plaid_category_primary', 'plaid_category_detailed',
+            'risk_level', 'weight', 'is_stable', 'is_housing'
+        ], restval='')  # Use empty string for missing fields instead of None to prevent CSV write errors
+        
+        writer.writeheader()
+        for result in results:
+            writer.writerow(result)
+        
+        # Convert to bytes for sending
+        output.seek(0)
+        csv_data = output.getvalue().encode('utf-8')
+        
+        # Generate filename with timestamp
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        filename = f'categorization_results_{timestamp}.csv'
+        
+        app.logger.info(f"CSV export: Successfully exported {len(results)} results")
+        
+        return send_file(
+            io.BytesIO(csv_data),
+            mimetype='text/csv',
+            as_attachment=True,
+            download_name=filename
+        )
+    except Exception as e:
+        app.logger.error(f"CSV export error: {str(e)}", exc_info=True)
+        return jsonify({'error': f'Failed to export CSV: {str(e)}'}), 500
 
 
 @app.route('/export/json', methods=['POST'])
@@ -289,26 +300,37 @@ def export_json():
     
     Expects JSON body with 'results' field containing categorization results.
     """
-    data = request.get_json()
-    
-    if not data or 'results' not in data:
-        return jsonify({'error': 'No results provided'}), 400
-    
-    results = data['results']
-    
-    # Generate filename with timestamp
-    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    filename = f'categorization_results_{timestamp}.json'
-    
-    # Create JSON in memory
-    json_data = json.dumps(results, indent=2).encode('utf-8')
-    
-    return send_file(
-        io.BytesIO(json_data),
-        mimetype='application/json',
-        as_attachment=True,
-        download_name=filename
-    )
+    try:
+        data = request.get_json()
+        
+        if not data or 'results' not in data:
+            app.logger.warning("JSON export: No results provided in request")
+            return jsonify({'error': 'No results provided'}), 400
+        
+        results = data['results']
+        
+        if not isinstance(results, list):
+            app.logger.error(f"JSON export: Results is not a list, got {type(results)}")
+            return jsonify({'error': 'Results must be an array'}), 400
+        
+        # Generate filename with timestamp
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        filename = f'categorization_results_{timestamp}.json'
+        
+        # Create JSON in memory
+        json_data = json.dumps(results, indent=2).encode('utf-8')
+        
+        app.logger.info(f"JSON export: Successfully exported {len(results)} results")
+        
+        return send_file(
+            io.BytesIO(json_data),
+            mimetype='application/json',
+            as_attachment=True,
+            download_name=filename
+        )
+    except Exception as e:
+        app.logger.error(f"JSON export error: {str(e)}", exc_info=True)
+        return jsonify({'error': f'Failed to export JSON: {str(e)}'}), 500
 
 
 if __name__ == '__main__':
