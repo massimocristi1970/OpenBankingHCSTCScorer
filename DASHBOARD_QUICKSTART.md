@@ -10,7 +10,7 @@ pip install flask
 python dashboard.py
 
 # 3. Open browser
-# Navigate to: http://localhost:5001
+# Navigate to: 
 
 # 4. Upload JSON files
 # - Drag and drop JSON files with transaction data
