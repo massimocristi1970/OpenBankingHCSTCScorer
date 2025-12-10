@@ -33,8 +33,9 @@ For each transaction, the dashboard displays:
 - **Category Breakdown**: Visual breakdown by category and subcategory
 - **Confidence Filtering**: Filter transactions by high/medium/low confidence
 - **Category Filtering**: View transactions by specific category
+- **Amount Range Filtering**: Filter by minimum and maximum transaction amounts
 - **Search Functionality**: Search transactions by description
-- **Low Confidence Alerts**: Automatically highlights transactions needing review
+- **Low Confidence Alerts**: Automatically highlights transactions needing review with visual highlighting
 
 ### 📥 Export Capabilities
 - **CSV Export**: Download filtered results in CSV format for spreadsheet analysis
@@ -107,8 +108,11 @@ http://localhost:5001
 
 - **Category Filter**: Narrow down to specific categories (income, debt, essential, etc.)
 - **Confidence Filter**: Focus on high, medium, or low confidence transactions
+- **Amount Range Filter**: Filter transactions by minimum and maximum amount (£)
 - **Search**: Find specific transactions by description text
 - **Category Cards**: Click on category/subcategory cards to view only those transactions
+
+Transactions with low confidence (< 60%) are automatically highlighted with a red background for easy identification.
 
 ### Exporting Results
 
