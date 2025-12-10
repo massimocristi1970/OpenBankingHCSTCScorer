@@ -109,6 +109,9 @@ http://localhost:5001
 - **Category Filter**: Narrow down to specific categories (income, debt, essential, etc.)
 - **Confidence Filter**: Focus on high, medium, or low confidence transactions
 - **Amount Range Filter**: Filter transactions by minimum and maximum amount (£)
+  - Supports negative values for income (e.g., Min: -3000, Max: -1000 shows income between £1000-£3000)
+  - Supports positive values for expenses (e.g., Min: 100, Max: 500 shows expenses between £100-£500)
+  - Mix positive and negative to filter across transaction types
 - **Search**: Find specific transactions by description text
 - **Category Cards**: Click on category/subcategory cards to view only those transactions
 

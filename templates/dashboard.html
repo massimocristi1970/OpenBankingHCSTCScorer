@@ -469,11 +469,11 @@
                 </div>
                 <div class="filter-group">
                     <label>Min Amount (£)</label>
-                    <input type="number" id="filterMinAmount" placeholder="Min" step="0.01" min="0">
+                    <input type="number" id="filterMinAmount" placeholder="Min" step="0.01">
                 </div>
                 <div class="filter-group">
                     <label>Max Amount (£)</label>
-                    <input type="number" id="filterMaxAmount" placeholder="Max" step="0.01" min="0">
+                    <input type="number" id="filterMaxAmount" placeholder="Max" step="0.01">
                 </div>
                 <div class="filter-group">
                     <label>Search Description</label>
@@ -690,8 +690,10 @@
         function applyFilters() {
             const categoryFilter = document.getElementById('filterCategory').value;
             const confidenceFilter = document.getElementById('filterConfidence').value;
-            const minAmount = parseFloat(document.getElementById('filterMinAmount').value) || 0;
-            const maxAmount = parseFloat(document.getElementById('filterMaxAmount').value) || Infinity;
+            const minAmountInput = document.getElementById('filterMinAmount').value;
+            const maxAmountInput = document.getElementById('filterMaxAmount').value;
+            const minAmount = minAmountInput !== '' ? parseFloat(minAmountInput) : -Infinity;
+            const maxAmount = maxAmountInput !== '' ? parseFloat(maxAmountInput) : Infinity;
             const searchFilter = document.getElementById('filterSearch').value.toLowerCase();
 
             currentResults = allResults.filter(result => {
@@ -704,9 +706,9 @@
                     if (confidenceFilter === 'low' && conf >= 0.60) return false;
                 }
                 
-                // Filter by amount range (using absolute value for comparison)
-                const absAmount = Math.abs(result.amount);
-                if (absAmount < minAmount || absAmount > maxAmount) return false;
+                // Filter by amount range using actual values (negative = income, positive = expense)
+                // This allows filtering by transaction direction
+                if (result.amount < minAmount || result.amount > maxAmount) return false;
                 
                 if (searchFilter && !result.description.toLowerCase().includes(searchFilter)) return false;
                 
