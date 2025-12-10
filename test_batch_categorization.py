@@ -59,7 +59,9 @@ class TestBatchAnalysis(unittest.TestCase):
     def test_is_likely_income_from_batch_uses_cache(self):
         """Test that is_likely_income_from_batch uses cached patterns."""
         # Use neutral descriptions to test recurring pattern detection
-        # Avoid keywords like "SALARY", "MONTHLY PAY", "LTD", etc.
+        # Avoid payroll keywords (SALARY, WAGES, PAYROLL, BGC, FP-) and
+        # company keywords (LTD, LIMITED, PLC) to ensure we're testing
+        # pattern-based detection, not keyword matching
         transactions = [
             {"name": "AUTOMATED CREDIT REF 12345", "amount": -1500, "date": "2024-01-25"},
             {"name": "AUTOMATED CREDIT REF 23456", "amount": -1500, "date": "2024-02-25"},

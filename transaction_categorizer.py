@@ -231,19 +231,9 @@ class TransactionCategorizer:
             # before defaulting to "other" income
             elif "plaid_income_category" in reason:
                 # Check if it's gig economy (which has 70% weight)
-                for subcategory, patterns in self.income_patterns.items():
-                    if subcategory == "gig_economy":
-                        match = self._match_patterns(combined_text, patterns)
-                        if match:
-                            return CategoryMatch(
-                                category="income",
-                                subcategory=subcategory,
-                                confidence=match[1],
-                                description=patterns.get("description", subcategory),
-                                match_method=match[0],
-                                weight=patterns.get("weight", 1.0),
-                                is_stable=patterns.get("is_stable", False)
-                            )
+                gig_match = self._check_gig_economy_patterns(combined_text)
+                if gig_match:
+                    return gig_match
                 # Not gig economy, return as other income
                 return CategoryMatch(
                     category="income",
@@ -396,6 +386,33 @@ class TransactionCategorizer:
             description="Other Expense",
             match_method="default"
         )
+    
+    def _check_gig_economy_patterns(self, combined_text: str) -> Optional[CategoryMatch]:
+        """
+        Check if transaction matches gig economy patterns.
+        
+        Helper method to avoid duplicate gig economy checking logic.
+        
+        Args:
+            combined_text: Combined description and merchant text (normalized)
+        
+        Returns:
+            CategoryMatch if gig economy pattern found, None otherwise
+        """
+        for subcategory, patterns in self.income_patterns.items():
+            if subcategory == "gig_economy":
+                match = self._match_patterns(combined_text, patterns)
+                if match:
+                    return CategoryMatch(
+                        category="income",
+                        subcategory=subcategory,
+                        confidence=match[1],
+                        description=patterns.get("description", subcategory),
+                        match_method=match[0],
+                        weight=patterns.get("weight", 1.0),
+                        is_stable=patterns.get("is_stable", False)
+                    )
+        return None
     
     def _is_transfer(self, text: str) -> bool:
         """Check if transaction is an internal transfer."""
@@ -849,19 +866,11 @@ class TransactionCategorizer:
                 )
             # For generic PLAID income, check if it matches gig economy patterns
             elif "plaid_income_category" in reason:
-                for subcategory, patterns in self.income_patterns.items():
-                    if subcategory == "gig_economy":
-                        match = self._match_patterns(combined_text, patterns)
-                        if match:
-                            return CategoryMatch(
-                                category="income",
-                                subcategory=subcategory,
-                                confidence=match[1],
-                                description=patterns.get("description", subcategory),
-                                match_method=f"batch_{match[0]}",
-                                weight=patterns.get("weight", 1.0),
-                                is_stable=patterns.get("is_stable", False)
-                            )
+                gig_match = self._check_gig_economy_patterns(combined_text)
+                if gig_match:
+                    # Update match_method to indicate batch processing
+                    gig_match.match_method = f"batch_{gig_match.match_method}"
+                    return gig_match
                 return CategoryMatch(
                     category="income",
                     subcategory="other",
@@ -874,19 +883,11 @@ class TransactionCategorizer:
             else:
                 # Other behavioral income - but check for gig economy first
                 # (recurring patterns might be gig economy work)
-                for subcategory, patterns in self.income_patterns.items():
-                    if subcategory == "gig_economy":
-                        match = self._match_patterns(combined_text, patterns)
-                        if match:
-                            return CategoryMatch(
-                                category="income",
-                                subcategory=subcategory,
-                                confidence=match[1],
-                                description=patterns.get("description", subcategory),
-                                match_method=f"batch_{match[0]}",
-                                weight=patterns.get("weight", 1.0),
-                                is_stable=patterns.get("is_stable", False)
-                            )
+                gig_match = self._check_gig_economy_patterns(combined_text)
+                if gig_match:
+                    # Update match_method to indicate batch processing
+                    gig_match.match_method = f"batch_{gig_match.match_method}"
+                    return gig_match
                 
                 # Not gig economy, return as other income
                 return CategoryMatch(

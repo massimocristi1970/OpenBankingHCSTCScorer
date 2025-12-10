@@ -95,6 +95,8 @@ class IncomeDetector:
         self.min_occurrences = min_occurrences
         # Cache for batch analysis - stores recurring income patterns
         self._cached_recurring_sources: List[RecurringIncomeSource] = []
+        # Index mapping for O(1) transaction lookup
+        self._transaction_index_map: Dict[int, RecurringIncomeSource] = {}
         self._cache_valid = False
     
     def find_recurring_income_sources(
@@ -513,6 +515,17 @@ class IncomeDetector:
             ...     )
         """
         self._cached_recurring_sources = self.find_recurring_income_sources(transactions)
+        
+        # Build index map for O(1) transaction lookup
+        self._transaction_index_map = {}
+        for source in self._cached_recurring_sources:
+            for txn_idx in source.transaction_indices:
+                # Map each transaction index to its source
+                # If multiple sources match same transaction, keep highest confidence
+                if txn_idx not in self._transaction_index_map or \
+                   source.confidence > self._transaction_index_map[txn_idx].confidence:
+                    self._transaction_index_map[txn_idx] = source
+        
         self._cache_valid = True
     
     def clear_batch_cache(self) -> None:
@@ -522,6 +535,7 @@ class IncomeDetector:
         Call this when starting analysis of a new batch of transactions.
         """
         self._cached_recurring_sources = []
+        self._transaction_index_map = {}
         self._cache_valid = False
     
     def is_likely_income_from_batch(
@@ -601,12 +615,11 @@ class IncomeDetector:
                 return (False, 0.0, "company_transfer_ambiguous")
             return (True, 0.80, "company_payment")
         
-        # 5. Check cached recurring patterns (OPTIMIZED - no recomputation)
-        if self._cache_valid and self._cached_recurring_sources:
-            for source in self._cached_recurring_sources:
-                if transaction_index in source.transaction_indices:
-                    if source.confidence >= 0.70:
-                        return (True, source.confidence, f"recurring_{source.source_type}")
+        # 5. Check cached recurring patterns (OPTIMIZED - O(1) lookup via index map)
+        if self._cache_valid and transaction_index in self._transaction_index_map:
+            source = self._transaction_index_map[transaction_index]
+            if source.confidence >= 0.70:
+                return (True, source.confidence, f"recurring_{source.source_type}")
         
         # 6. If PLAID says TRANSFER but no other indicators, not income
         if plaid_category_primary and "TRANSFER" in plaid_category_primary.upper():
