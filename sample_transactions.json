@@ -1,0 +1,95 @@
+[
+  {
+    "name": "BANK GIRO CREDIT ACME CORP LTD",
+    "amount": -2800.00,
+    "date": "2024-01-25",
+    "merchant_name": "ACME CORP LTD",
+    "_comment": "Negative amount = credit/income. Positive = debit/expense."
+  },
+  {
+    "name": "BANK GIRO CREDIT ACME CORP LTD",
+    "amount": -2800.00,
+    "date": "2024-02-25",
+    "merchant_name": "ACME CORP LTD"
+  },
+  {
+    "name": "BANK GIRO CREDIT ACME CORP LTD",
+    "amount": -2800.00,
+    "date": "2024-03-25",
+    "merchant_name": "ACME CORP LTD"
+  },
+  {
+    "name": "TESCO STORES",
+    "amount": 85.30,
+    "date": "2024-01-16",
+    "merchant_name": "TESCO",
+    "personal_finance_category": {
+      "primary": "GENERAL_MERCHANDISE",
+      "detailed": "GENERAL_MERCHANDISE_SUPERSTORES"
+    }
+  },
+  {
+    "name": "SAINSBURYS",
+    "amount": 62.45,
+    "date": "2024-01-18",
+    "merchant_name": "SAINSBURYS"
+  },
+  {
+    "name": "UNIVERSAL CREDIT DWP",
+    "amount": -450.00,
+    "date": "2024-01-20"
+  },
+  {
+    "name": "LENDING STREAM LOAN REPAYMENT",
+    "amount": 150.00,
+    "date": "2024-01-17"
+  },
+  {
+    "name": "BRITISH GAS",
+    "amount": 95.00,
+    "date": "2024-01-10"
+  },
+  {
+    "name": "BET365",
+    "amount": 50.00,
+    "date": "2024-01-22",
+    "personal_finance_category": {
+      "primary": "ENTERTAINMENT",
+      "detailed": "ENTERTAINMENT_CASINOS_AND_GAMBLING"
+    }
+  },
+  {
+    "name": "UBER TRIP 12345",
+    "amount": -35.50,
+    "date": "2024-01-15",
+    "merchant_name": "UBER",
+    "_comment": "Gig economy income - payment received by driver"
+  },
+  {
+    "name": "DELIVEROO PAYMENT",
+    "amount": -125.00,
+    "date": "2024-01-20",
+    "merchant_name": "DELIVEROO",
+    "_comment": "Gig economy income - payment received by delivery driver"
+  },
+  {
+    "name": "RENT PAYMENT LANDLORD",
+    "amount": 850.00,
+    "date": "2024-01-01"
+  },
+  {
+    "name": "SPOTIFY SUBSCRIPTION",
+    "amount": 9.99,
+    "date": "2024-01-05"
+  },
+  {
+    "name": "AMAZON PRIME",
+    "amount": 8.99,
+    "date": "2024-01-10"
+  },
+  {
+    "name": "CREDIT CARD PAYMENT",
+    "amount": 250.00,
+    "date": "2024-01-28"
+  }
+]
