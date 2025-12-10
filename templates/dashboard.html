@@ -588,9 +588,12 @@
                     currentResults = allResults;
                     displayResults(data);
                 } else {
-                    alert('Error: ' + (data.error || 'Unknown error'));
+                    const errorMsg = data.error || 'Unknown error';
+                    console.error('Upload failed:', errorMsg, data);
+                    alert('Error: ' + errorMsg);
                 }
             } catch (error) {
+                console.error('Error uploading files:', error);
                 alert('Error uploading files: ' + error.message);
             } finally {
                 uploadBtn.disabled = false;
@@ -782,33 +785,81 @@
 
         function setupExport() {
             document.getElementById('exportCsv').addEventListener('click', async () => {
-                const response = await fetch('/export/csv', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({results: currentResults})
-                });
-                
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `categorization_results_${Date.now()}.csv`;
-                a.click();
+                try {
+                    // Validate data before export
+                    if (!currentResults || currentResults.length === 0) {
+                        alert('No results to export. Please upload and analyze transactions first.');
+                        console.warn('CSV export: No results available');
+                        return;
+                    }
+                    
+                    console.log(`CSV export: Exporting ${currentResults.length} results`);
+                    
+                    const response = await fetch('/export/csv', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({results: currentResults})
+                    });
+                    
+                    // Check if response is OK before processing
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({error: 'Unknown server error'}));
+                        const errorMsg = errorData.error || `Server error: ${response.status}`;
+                        console.error('CSV export failed:', errorMsg, response.status);
+                        alert(`Failed to export CSV: ${errorMsg}`);
+                        return;
+                    }
+                    
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `categorization_results_${Date.now()}.csv`;
+                    a.click();
+                    console.log('CSV export: Download started successfully');
+                } catch (error) {
+                    console.error('CSV export error:', error);
+                    alert(`Error exporting CSV: ${error.message}`);
+                }
             });
 
             document.getElementById('exportJson').addEventListener('click', async () => {
-                const response = await fetch('/export/json', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({results: currentResults})
-                });
-                
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `categorization_results_${Date.now()}.json`;
-                a.click();
+                try {
+                    // Validate data before export
+                    if (!currentResults || currentResults.length === 0) {
+                        alert('No results to export. Please upload and analyze transactions first.');
+                        console.warn('JSON export: No results available');
+                        return;
+                    }
+                    
+                    console.log(`JSON export: Exporting ${currentResults.length} results`);
+                    
+                    const response = await fetch('/export/json', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({results: currentResults})
+                    });
+                    
+                    // Check if response is OK before processing
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({error: 'Unknown server error'}));
+                        const errorMsg = errorData.error || `Server error: ${response.status}`;
+                        console.error('JSON export failed:', errorMsg, response.status);
+                        alert(`Failed to export JSON: ${errorMsg}`);
+                        return;
+                    }
+                    
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `categorization_results_${Date.now()}.json`;
+                    a.click();
+                    console.log('JSON export: Download started successfully');
+                } catch (error) {
+                    console.error('JSON export error:', error);
+                    alert(`Error exporting JSON: ${error.message}`);
+                }
             });
         }
     </script>
