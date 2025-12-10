@@ -70,6 +70,12 @@ python dashboard.py
 
 The dashboard will start on `http://localhost:5001` (port 5001 to avoid conflicts with the main Streamlit app).
 
+**For development with auto-reload:**
+```bash
+FLASK_DEBUG=1 python dashboard.py
+```
+⚠️ **Note**: Debug mode should NOT be used in production as it poses security risks.
+
 You should see output like:
 ```
 ================================================================================

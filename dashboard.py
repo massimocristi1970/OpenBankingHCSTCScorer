@@ -312,6 +312,8 @@ def export_json():
 
 
 if __name__ == '__main__':
+    import os
+    
     print("=" * 80)
     print("Transaction Categorization Review Dashboard")
     print("=" * 80)
@@ -321,4 +323,11 @@ if __name__ == '__main__':
     print("=" * 80)
     
     # Run on port 5001 to avoid conflicts with main app (if running)
-    app.run(debug=True, port=5001, host='0.0.0.0')
+    # Debug mode is controlled by environment variable for security
+    # Set FLASK_DEBUG=1 only in development environments
+    debug_mode = os.environ.get('FLASK_DEBUG', '0') == '1'
+    if debug_mode:
+        print("\n⚠️  WARNING: Running in DEBUG mode. Not suitable for production!")
+        print("=" * 80)
+    
+    app.run(debug=debug_mode, port=5001, host='0.0.0.0')
