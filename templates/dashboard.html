@@ -513,6 +513,13 @@
         const fileList = document.getElementById('fileList');
         const uploadBtn = document.getElementById('uploadBtn');
         const resultsSection = document.getElementById('resultsSection');
+        
+        // Helper function to escape HTML to prevent XSS (defined once, used many times)
+        const escapeHtml = (text) => {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        };
 
         // Drag and drop handling
         fileLabel.addEventListener('dragover', (e) => {
@@ -692,8 +699,11 @@
             const confidenceFilter = document.getElementById('filterConfidence').value;
             const minAmountInput = document.getElementById('filterMinAmount').value;
             const maxAmountInput = document.getElementById('filterMaxAmount').value;
-            const minAmount = minAmountInput !== '' ? parseFloat(minAmountInput) : -Infinity;
-            const maxAmount = maxAmountInput !== '' ? parseFloat(maxAmountInput) : Infinity;
+            // Parse and validate amount inputs, handling NaN cases
+            const parsedMin = parseFloat(minAmountInput);
+            const parsedMax = parseFloat(maxAmountInput);
+            const minAmount = minAmountInput !== '' && !isNaN(parsedMin) ? parsedMin : -Infinity;
+            const maxAmount = maxAmountInput !== '' && !isNaN(parsedMax) ? parsedMax : Infinity;
             const searchFilter = document.getElementById('filterSearch').value.toLowerCase();
 
             currentResults = allResults.filter(result => {
@@ -735,13 +745,6 @@
                 
                 // Validate category class to prevent CSS injection
                 const categoryClass = result.category === 'income' ? 'income' : 'expense';
-                
-                // Helper function to escape HTML to prevent XSS
-                const escapeHtml = (text) => {
-                    const div = document.createElement('div');
-                    div.textContent = text;
-                    return div.innerHTML;
-                };
                 
                 // Build risk badge with validated risk level for CSS class
                 const allowedRiskLevels = ['critical', 'high', 'medium', 'low'];
