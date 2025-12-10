@@ -522,9 +522,9 @@ POSITIVE_PATTERNS = {
 SCORING_CONFIG = {
     # Score ranges and decisions
     "score_ranges": {
-        "approve": {"min": 45, "max": 100, "decision": "APPROVE"},
-        "refer": {"min": 30, "max": 44, "decision": "REFER"},
-        "decline": {"min": 0, "max": 29, "decision": "DECLINE"},
+        "approve": {"min": 40, "max": 100, "decision": "APPROVE"},
+        "refer": {"min": 25, "max": 39, "decision": "REFER"},
+        "decline": {"min": 0, "max": 24, "decision": "DECLINE"},
     },
     
     # Scoring weights (total = 100)
@@ -590,13 +590,13 @@ SCORING_CONFIG = {
     
     # Hard decline rules
     "hard_decline_rules": {
-        "min_monthly_income": 1500,
-        "max_active_hcstc_lenders": 4,  # 5+ triggers decline (in last 90 days) - adjusted for HCSTC market
+        "min_monthly_income": 1000,
+        "max_active_hcstc_lenders": 6,  # 7+ triggers decline (in last 90 days) - adjusted for HCSTC market
         "max_gambling_percentage": 15,
         "min_post_loan_disposable": 0,  # Changed from £30 - allows tighter affordability with expense buffer
         "max_failed_payments": 5,  # 6+ triggers decline (in last 45 days) - adjusted for HCSTC market
-        "max_dca_count": 2,  # 3+ triggers decline
-        "max_dti_with_new_loan": 70,  # Adjusted from 60 - more realistic for HCSTC market
+        "max_dca_count": 3,  # 4+ triggers decline
+        "max_dti_with_new_loan": 75,  # Adjusted from 70 - more realistic for HCSTC market
         "hcstc_lookback_days": 90,  # Days to look back for HCSTC lenders
         "failed_payment_lookback_days": 45,  # Days to look back for failed payments
     },
