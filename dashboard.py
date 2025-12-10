@@ -258,7 +258,7 @@ def export_csv():
     writer = csv.DictWriter(output, fieldnames=[
         'date', 'description', 'amount', 'merchant_name',
         'category', 'subcategory', 'confidence', 'match_method',
-        'plaid_category_primary', 'plaid_category_detailed',
+        'description_text', 'plaid_category_primary', 'plaid_category_detailed',
         'risk_level', 'weight', 'is_stable', 'is_housing'
     ])
     
