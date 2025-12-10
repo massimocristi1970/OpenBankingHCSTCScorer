@@ -34,16 +34,54 @@ if errorlevel 1 (
 )
 
 REM Start the dashboard application
-echo Launching dashboard application...
+echo Launching dashboard application... 
 echo.
 
 REM Look for dashboard script in common locations
 if exist "dashboard.py" (
-    python dashboard.py
-) else if exist "src\dashboard.py" (
-    python src\dashboard.py
+    REM Start Python in background and open browser after a delay
+    start "" python dashboard.py
+    timeout /t 3 /nobreak
+    start http://localhost:5001
+    echo.
+    echo ====================================================================
+    echo Dashboard is running at http://localhost:5001
+    echo Your browser should open automatically in a moment... 
+    echo ====================================================================
+    echo.
+    echo Press Ctrl+C in this window to stop the dashboard
+    echo.
+    
+    REM Keep the window open
+    pause
+) else if exist "src\dashboard. py" (
+    start "" python src\dashboard.py
+    timeout /t 3 /nobreak
+    start http://localhost:5001
+    echo.
+    echo ====================================================================
+    echo Dashboard is running at http://localhost:5001
+    echo Your browser should open automatically in a moment...
+    echo ====================================================================
+    echo.
+    echo Press Ctrl+C in this window to stop the dashboard
+    echo.
+    
+    pause
 ) else if exist "app\dashboard.py" (
-    python app\dashboard.py
+    start "" python app\dashboard.py
+    timeout /t 3 /nobreak
+    start http://localhost:5001
+    echo. 
+    echo ====================================================================
+    echo Dashboard is running at http://localhost:5001
+    echo Your browser should open automatically in a moment...
+    echo ====================================================================
+    echo. 
+    echo Press Ctrl+C in this window to stop the dashboard
+    echo.
+    
+    pause
 ) else (
     echo Error: Dashboard script not found
     echo Please ensure dashboard.py exists in the project root, src, or app directory
