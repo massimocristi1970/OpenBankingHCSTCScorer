@@ -65,21 +65,31 @@ class IncomeDetector:
     ]
     
     # Loan disbursement keywords (not income)
+    # Note: These are common UK HCSTC lenders and loan-related terms
+    # Kept separate from transaction_categorizer.HCSTC_LENDER_CANONICAL_NAMES
+    # to avoid circular imports and maintain simple exclusion logic
     LOAN_KEYWORDS = [
         "LENDING STREAM", "LENDINGSTREAM", "DRAFTY",
-        "MR LENDER", "MONEYBOAT", "CREDITSPRING",
-        "CASHFLOAT", "QUIDMARKET", "LOANS 2 GO",
+        "MR LENDER", "MRLENDER", "MONEYBOAT", "CREDITSPRING",
+        "CASHFLOAT", "QUIDMARKET", "QUID MARKET", "LOANS 2 GO", "LOANS2GO",
         "LOAN DISBURSEMENT", "LOAN ADVANCE",
-        "PAYDAY LOAN", "SHORT TERM LOAN"
+        "PAYDAY LOAN", "SHORT TERM LOAN",
+        "POLAR CREDIT", "118 118 MONEY", "CASHASAP"
     ]
+    
+    # Minimum amount threshold for large payments (used in company payment detection)
+    LARGE_PAYMENT_THRESHOLD = 500.0
     
     def __init__(self, min_amount: float = 50.0, min_occurrences: int = 2):
         """
         Initialize the income detector.
         
         Args:
-            min_amount: Minimum transaction amount to consider for income detection
-            min_occurrences: Minimum number of occurrences to consider as recurring
+            min_amount: Minimum transaction amount (in currency units) to consider 
+                       for income detection. Transactions below this are ignored.
+                       Default is £50.
+            min_occurrences: Minimum number of similar transactions required to 
+                           establish a recurring pattern. Default is 2.
         """
         self.min_amount = min_amount
         self.min_occurrences = min_occurrences
@@ -146,6 +156,11 @@ class IncomeDetector:
             
             # Check if amounts are similar (within 30% variance)
             avg_amount = sum(amounts) / len(amounts)
+            
+            # Guard against division by zero
+            if avg_amount == 0:
+                continue
+            
             amount_variance = max(abs(a - avg_amount) / avg_amount for a in amounts)
             
             if amount_variance > 0.30:  # More than 30% variance
@@ -447,7 +462,7 @@ class IncomeDetector:
             # Company payment, but check it's not marked as transfer by PLAID
             if plaid_category_primary and "TRANSFER" in plaid_category_primary.upper():
                 # Company name but PLAID says transfer - need more evidence
-                if abs(amount) >= 500:  # Large regular amount
+                if abs(amount) >= self.LARGE_PAYMENT_THRESHOLD:  # Large regular amount
                     return (True, 0.75, "company_payment_large_amount")
                 return (False, 0.0, "company_transfer_ambiguous")
             return (True, 0.80, "company_payment")
