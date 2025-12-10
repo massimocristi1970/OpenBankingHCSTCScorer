@@ -82,6 +82,17 @@ class TransactionCategorizer:
     # Minimum confidence threshold for fuzzy matching
     FUZZY_THRESHOLD = 80
     
+    # Salary detection keywords (used to identify legitimate salary payments)
+    SALARY_KEYWORDS = [
+        "SALARY", "WAGES", "PAYROLL", "NET PAY", "WAGE", 
+        "PAYSLIP", "EMPLOYER", "EMPLOYERS",
+        "BGC", "BANK GIRO CREDIT", "CHEQUERS CONTRACT",
+        "CONTRACT PAY", "MONTHLY PAY", "WEEKLY PAY"
+    ]
+    
+    # Keywords that indicate internal transfers (not income)
+    TRANSFER_EXCLUSION_KEYWORDS = ["OWN ACCOUNT", "INTERNAL", "SELF TRANSFER"]
+    
     def __init__(self):
         """Initialize the categorizer with pattern dictionaries."""
         self.income_patterns = INCOME_PATTERNS
@@ -168,7 +179,8 @@ class TransactionCategorizer:
         """Categorize an income transaction (credit)."""
         
         # Check Plaid category for transfers FIRST (most reliable)
-        if self._is_plaid_transfer(plaid_category_primary, plaid_category):
+        # Pass description to detect salary payments that PLAID miscategorized as transfers
+        if self._is_plaid_transfer(plaid_category_primary, plaid_category, description):
             return CategoryMatch(
                 category="transfer",
                 subcategory="internal",
@@ -312,10 +324,45 @@ class TransactionCategorizer:
         
         return False
     
+    def _contains_salary_keywords(self, text: str) -> bool:
+        """
+        Check if transaction description contains salary/income-related keywords.
+        
+        This is used to identify legitimate salary payments that PLAID may have
+        miscategorized as transfers (e.g., BANK GIRO CREDIT, FP- prefix payments).
+        
+        Args:
+            text: Transaction description text (should be uppercase)
+        
+        Returns:
+            True if salary keywords are found, False otherwise
+        """
+        if not text:
+            return False
+        
+        # Check for salary keywords
+        for keyword in self.SALARY_KEYWORDS:
+            if keyword in text:
+                return True
+        
+        # Check for FP- prefix (Faster Payments for salary)
+        if text.startswith("FP-") or " FP-" in text:
+            return True
+        
+        # Check for patterns like "COMPANY NAME LTD" or "COMPANY NAME LIMITED"
+        # These often indicate employer payments
+        if re.search(r'\b(LTD|LIMITED|PLC)\b', text):
+            # But only if it doesn't contain obvious transfer keywords
+            if not any(kw in text for kw in self.TRANSFER_EXCLUSION_KEYWORDS):
+                return True
+        
+        return False
+    
     def _is_plaid_transfer(
         self, 
         plaid_category_primary: Optional[str], 
-        plaid_category_detailed: Optional[str]
+        plaid_category_detailed: Optional[str],
+        description: Optional[str] = None
     ) -> bool:
         """
         Check if transaction is a transfer based on Plaid categories.
@@ -323,6 +370,7 @@ class TransactionCategorizer:
         Args:
             plaid_category_primary: The primary Plaid category (e.g., "TRANSFER_IN")
             plaid_category_detailed: The detailed Plaid category (e.g., "TRANSFER_IN_ACCOUNT_TRANSFER")
+            description: Optional transaction description to check for salary keywords
         
         Returns:
             True if the transaction is identified as a transfer, False otherwise
@@ -334,6 +382,10 @@ class TransactionCategorizer:
         if plaid_category_primary:
             primary_upper = plaid_category_primary.upper()
             if "TRANSFER_IN" in primary_upper or "TRANSFER_OUT" in primary_upper:
+                # Before marking as transfer, check if description contains salary keywords
+                # This catches legitimate salary payments that PLAID miscategorized
+                if description and self._contains_salary_keywords(description.upper()):
+                    return False  # Not a transfer - it's likely salary
                 return True
         
         # Check detailed category for transfer indicators
@@ -341,6 +393,9 @@ class TransactionCategorizer:
             detailed_upper = plaid_category_detailed.upper()
             # Look for transfer-related keywords in detailed category
             if "TRANSFER" in detailed_upper:
+                # Before marking as transfer, check if description contains salary keywords
+                if description and self._contains_salary_keywords(description.upper()):
+                    return False  # Not a transfer - it's likely salary
                 return True
         
         return False
