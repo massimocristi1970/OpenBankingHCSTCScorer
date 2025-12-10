@@ -733,6 +733,7 @@
                     tr.classList.add('low-confidence');
                 }
                 
+                // Validate category class to prevent CSS injection
                 const categoryClass = result.category === 'income' ? 'income' : 'expense';
                 
                 // Helper function to escape HTML to prevent XSS
@@ -742,22 +743,25 @@
                     return div.innerHTML;
                 };
                 
+                // Build risk badge with validated risk level for CSS class
+                const allowedRiskLevels = ['critical', 'high', 'medium', 'low'];
                 let riskBadge = '';
-                if (result.risk_level) {
+                if (result.risk_level && allowedRiskLevels.includes(result.risk_level)) {
                     const escapedRiskLevel = escapeHtml(result.risk_level);
-                    riskBadge = `<span class="risk-badge risk-${escapedRiskLevel}">${escapedRiskLevel}</span>`;
+                    riskBadge = `<span class="risk-badge risk-${result.risk_level}">${escapedRiskLevel}</span>`;
                 }
                 
                 // Show merchant name if available, otherwise show description
+                // Truncate before escaping to avoid breaking HTML entities
                 const displayText = result.merchant_name || result.description;
+                const truncatedText = displayText.length > 40 ? displayText.substring(0, 40) + '...' : displayText;
                 const fullTooltip = result.merchant_name ? `${result.merchant_name} - ${result.description}` : result.description;
                 const escapedTooltip = escapeHtml(fullTooltip);
-                const escapedDisplayText = escapeHtml(displayText);
-                const truncatedDisplay = displayText.length > 40 ? escapedDisplayText.substring(0, 40) + '...' : escapedDisplayText;
+                const escapedDisplayText = escapeHtml(truncatedText);
 
                 tr.innerHTML = `
                     <td>${escapeHtml(result.date)}</td>
-                    <td title="${escapedTooltip}">${truncatedDisplay}</td>
+                    <td title="${escapedTooltip}">${escapedDisplayText}</td>
                     <td>${result.amount >= 0 ? '' : '-'}£${Math.abs(result.amount).toFixed(2)}</td>
                     <td><span class="category-badge category-${categoryClass}">${escapeHtml(result.category)}</span></td>
                     <td>${escapeHtml(result.subcategory)}</td>
