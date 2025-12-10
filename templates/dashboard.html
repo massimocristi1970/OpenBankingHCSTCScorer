@@ -233,6 +233,47 @@
             background: #38a169;
         }
 
+        .pagination-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding: 15px;
+            background: #f7fafc;
+            border-radius: 8px;
+        }
+
+        .pagination-info {
+            color: #4a5568;
+            font-weight: 600;
+        }
+
+        .pagination-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .pagination-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .pagination-button:hover:not(:disabled) {
+            background: #5a67d8;
+        }
+
+        .pagination-button:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
         .transactions-table {
             width: 100%;
             border-collapse: collapse;
@@ -501,12 +542,22 @@
                 </thead>
                 <tbody id="transactionsList"></tbody>
             </div>
+
+            <div class="pagination-controls" id="paginationControls" style="display: none;">
+                <div class="pagination-info" id="paginationInfo"></div>
+                <div class="pagination-buttons">
+                    <button class="pagination-button" id="prevPageBtn">← Previous</button>
+                    <button class="pagination-button" id="nextPageBtn">Next →</button>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
         let allResults = [];
         let currentResults = [];
+        let currentPage = 1;
+        const ROWS_PER_PAGE = 500;
         
         const fileInput = document.getElementById('fileInput');
         const fileLabel = document.getElementById('fileLabel');
@@ -586,6 +637,7 @@
                 if (data.success) {
                     allResults = data.results;
                     currentResults = allResults;
+                    currentPage = 1; // Reset to first page on new data load
                     displayResults(data);
                 } else {
                     const errorMsg = data.error || 'Unknown error';
@@ -636,6 +688,9 @@
 
             // Set up filtering
             setupFilters();
+
+            // Set up pagination
+            setupPagination();
 
             // Set up export buttons
             setupExport();
@@ -732,6 +787,8 @@
                 return true;
             });
 
+            // Reset to page 1 when filters change
+            currentPage = 1;
             displayTransactions(currentResults);
         }
 
@@ -739,7 +796,14 @@
             const tbody = document.getElementById('transactionsList');
             tbody.innerHTML = '';
 
-            for (const result of results) {
+            // Calculate pagination
+            const totalPages = Math.ceil(results.length / ROWS_PER_PAGE);
+            const startIndex = (currentPage - 1) * ROWS_PER_PAGE;
+            const endIndex = Math.min(startIndex + ROWS_PER_PAGE, results.length);
+            const pageResults = results.slice(startIndex, endIndex);
+
+            // Render only the current page of results
+            for (const result of pageResults) {
                 const tr = document.createElement('tr');
                 
                 const confidenceClass = result.confidence >= 0.80 ? 'high' : 
@@ -781,6 +845,53 @@
                 `;
                 tbody.appendChild(tr);
             }
+
+            // Update pagination UI
+            updatePaginationUI(results.length, totalPages, startIndex, endIndex);
+        }
+
+        function updatePaginationUI(totalResults, totalPages, startIndex, endIndex) {
+            const paginationControls = document.getElementById('paginationControls');
+            const paginationInfo = document.getElementById('paginationInfo');
+            const prevPageBtn = document.getElementById('prevPageBtn');
+            const nextPageBtn = document.getElementById('nextPageBtn');
+
+            if (totalResults === 0) {
+                paginationControls.style.display = 'none';
+                return;
+            }
+
+            // Show pagination controls
+            paginationControls.style.display = 'flex';
+
+            // Update pagination info text
+            paginationInfo.textContent = `Showing ${startIndex + 1}-${endIndex} of ${totalResults} transactions (Page ${currentPage} of ${totalPages})`;
+
+            // Update button states
+            prevPageBtn.disabled = currentPage === 1;
+            nextPageBtn.disabled = currentPage === totalPages;
+        }
+
+        function goToPage(page) {
+            const totalPages = Math.ceil(currentResults.length / ROWS_PER_PAGE);
+            
+            // Validate page number
+            if (page < 1 || page > totalPages) {
+                return;
+            }
+
+            currentPage = page;
+            displayTransactions(currentResults);
+        }
+
+        function setupPagination() {
+            document.getElementById('prevPageBtn').addEventListener('click', () => {
+                goToPage(currentPage - 1);
+            });
+
+            document.getElementById('nextPageBtn').addEventListener('click', () => {
+                goToPage(currentPage + 1);
+            });
         }
 
         function setupExport() {
