@@ -279,6 +279,15 @@
             background: #f7fafc;
         }
 
+        .transactions-table tr.low-confidence {
+            background: #fff5f5;
+            border-left: 4px solid #fc8181;
+        }
+
+        .transactions-table tr.low-confidence:hover {
+            background: #fed7d7;
+        }
+
         .confidence-badge {
             display: inline-block;
             padding: 5px 12px;
@@ -459,6 +468,14 @@
                     </select>
                 </div>
                 <div class="filter-group">
+                    <label>Min Amount (£)</label>
+                    <input type="number" id="filterMinAmount" placeholder="Min" step="0.01">
+                </div>
+                <div class="filter-group">
+                    <label>Max Amount (£)</label>
+                    <input type="number" id="filterMaxAmount" placeholder="Max" step="0.01">
+                </div>
+                <div class="filter-group">
                     <label>Search Description</label>
                     <input type="text" id="filterSearch" placeholder="Search transactions...">
                 </div>
@@ -496,6 +513,17 @@
         const fileList = document.getElementById('fileList');
         const uploadBtn = document.getElementById('uploadBtn');
         const resultsSection = document.getElementById('resultsSection');
+        
+        // Helper function to escape HTML to prevent XSS (defined once, used many times)
+        const escapeHtml = (text) => {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        };
+        
+        // Constants for validation
+        const ALLOWED_RISK_LEVELS = ['critical', 'high', 'medium', 'low'];
+        const DESCRIPTION_TRUNCATE_LENGTH = 40;
 
         // Drag and drop handling
         fileLabel.addEventListener('dragover', (e) => {
@@ -658,9 +686,11 @@
         function setupFilters() {
             const filterCategory = document.getElementById('filterCategory');
             const filterConfidence = document.getElementById('filterConfidence');
+            const filterMinAmount = document.getElementById('filterMinAmount');
+            const filterMaxAmount = document.getElementById('filterMaxAmount');
             const filterSearch = document.getElementById('filterSearch');
 
-            [filterCategory, filterConfidence, filterSearch].forEach(el => {
+            [filterCategory, filterConfidence, filterMinAmount, filterMaxAmount, filterSearch].forEach(el => {
                 el.addEventListener('change', applyFilters);
                 if (el.tagName === 'INPUT') {
                     el.addEventListener('input', applyFilters);
@@ -671,6 +701,13 @@
         function applyFilters() {
             const categoryFilter = document.getElementById('filterCategory').value;
             const confidenceFilter = document.getElementById('filterConfidence').value;
+            const minAmountInput = document.getElementById('filterMinAmount').value;
+            const maxAmountInput = document.getElementById('filterMaxAmount').value;
+            // Parse and validate amount inputs, handling NaN cases
+            const parsedMin = parseFloat(minAmountInput);
+            const parsedMax = parseFloat(maxAmountInput);
+            const minAmount = minAmountInput !== '' && !isNaN(parsedMin) ? parsedMin : -Infinity;
+            const maxAmount = maxAmountInput !== '' && !isNaN(parsedMax) ? parsedMax : Infinity;
             const searchFilter = document.getElementById('filterSearch').value.toLowerCase();
 
             currentResults = allResults.filter(result => {
@@ -682,6 +719,10 @@
                     if (confidenceFilter === 'medium' && (conf < 0.60 || conf >= 0.80)) return false;
                     if (confidenceFilter === 'low' && conf >= 0.60) return false;
                 }
+                
+                // Filter by amount range using actual values (negative = income, positive = expense)
+                // This allows filtering by transaction direction
+                if (result.amount < minAmount || result.amount > maxAmount) return false;
                 
                 if (searchFilter && !result.description.toLowerCase().includes(searchFilter)) return false;
                 
@@ -701,22 +742,39 @@
                 const confidenceClass = result.confidence >= 0.80 ? 'high' : 
                                        result.confidence >= 0.60 ? 'medium' : 'low';
                 
+                // Add low-confidence class for visual highlighting
+                if (confidenceClass === 'low') {
+                    tr.classList.add('low-confidence');
+                }
+                
+                // Validate category class to prevent CSS injection
                 const categoryClass = result.category === 'income' ? 'income' : 'expense';
                 
+                // Build risk badge with validated risk level for CSS class
                 let riskBadge = '';
-                if (result.risk_level) {
-                    riskBadge = `<span class="risk-badge risk-${result.risk_level}">${result.risk_level}</span>`;
+                if (result.risk_level && ALLOWED_RISK_LEVELS.includes(result.risk_level)) {
+                    const escapedRiskLevel = escapeHtml(result.risk_level);
+                    riskBadge = `<span class="risk-badge risk-${result.risk_level}">${escapedRiskLevel}</span>`;
                 }
+                
+                // Show merchant name if available, otherwise show description
+                // Truncate before escaping to avoid breaking HTML entities
+                const displayText = result.merchant_name || result.description;
+                const truncatedText = displayText.length > DESCRIPTION_TRUNCATE_LENGTH ? 
+                    displayText.substring(0, DESCRIPTION_TRUNCATE_LENGTH) + '...' : displayText;
+                const fullTooltip = result.merchant_name ? `${result.merchant_name} - ${result.description}` : result.description;
+                const escapedTooltip = escapeHtml(fullTooltip);
+                const escapedDisplayText = escapeHtml(truncatedText);
 
                 tr.innerHTML = `
-                    <td>${result.date}</td>
-                    <td title="${result.description}">${result.description.substring(0, 40)}${result.description.length > 40 ? '...' : ''}</td>
+                    <td>${escapeHtml(result.date)}</td>
+                    <td title="${escapedTooltip}">${escapedDisplayText}</td>
                     <td>${result.amount >= 0 ? '' : '-'}£${Math.abs(result.amount).toFixed(2)}</td>
-                    <td><span class="category-badge category-${categoryClass}">${result.category}</span></td>
-                    <td>${result.subcategory}</td>
+                    <td><span class="category-badge category-${categoryClass}">${escapeHtml(result.category)}</span></td>
+                    <td>${escapeHtml(result.subcategory)}</td>
                     <td><span class="confidence-badge confidence-${confidenceClass}">${(result.confidence * 100).toFixed(0)}%</span></td>
-                    <td>${result.match_method}</td>
-                    <td>${result.plaid_category_primary || result.plaid_category_detailed || '-'}</td>
+                    <td>${escapeHtml(result.match_method)}</td>
+                    <td>${escapeHtml(result.plaid_category_primary || result.plaid_category_detailed || '-')}</td>
                 `;
                 tbody.appendChild(tr);
             }

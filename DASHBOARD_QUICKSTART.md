@@ -59,8 +59,10 @@ Your JSON files should contain transaction data with these fields:
 | Feature | What It Does |
 |---------|-------------|
 | **Confidence Filtering** | Focus on low/medium/high confidence transactions |
+| **Amount Range Filtering** | Filter by min/max transaction amounts (£) |
 | **Category Drilling** | Click a category to see all transactions in it |
 | **Search** | Find specific transactions by description |
+| **Visual Highlighting** | Low confidence transactions highlighted in red |
 | **Export** | Download filtered results for offline analysis |
 
 ## ⚠️ Important Notes
