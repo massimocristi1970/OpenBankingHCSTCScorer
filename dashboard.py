@@ -266,7 +266,7 @@ def export_csv():
             'category', 'subcategory', 'confidence', 'match_method',
             'description_text', 'plaid_category_primary', 'plaid_category_detailed',
             'risk_level', 'weight', 'is_stable', 'is_housing'
-        ], restval='')  # Use empty string for missing fields
+        ], restval='')  # Use empty string for missing fields instead of None to prevent CSV write errors
         
         writer.writeheader()
         for result in results:
