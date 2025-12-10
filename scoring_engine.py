@@ -277,26 +277,26 @@ class ScoringEngine:
         breakdown = ScoreBreakdown()
         penalties = []
         
-        # 1. Affordability Score (45 points)
+        # 1. Affordability Score (78.75 points, previously 45)
         aff_weights = self.weights["affordability"]
         
-        # DTI Ratio (18 points)
+        # DTI Ratio (31.5 points, previously 18)
         dti_points = self._score_threshold(
             affordability.debt_to_income_ratio,
             self.thresholds["dti_ratio"],
             is_lower_better=True
         )
         
-        # Disposable Income (15 points)
+        # Disposable Income (26.25 points, previously 15)
         disp_points = self._score_threshold(
             affordability.monthly_disposable,
             self.thresholds["disposable_income"],
             is_lower_better=False
         )
         
-        # Post-loan Affordability (12 points)
+        # Post-loan Affordability (21 points, previously 12)
         if affordability.post_loan_disposable is not None:
-            post_loan_points = min(12, max(0, affordability.post_loan_disposable / 50 * 12))
+            post_loan_points = min(21, max(0, affordability.post_loan_disposable / 50 * 21))
         else:
             post_loan_points = 0
         
@@ -308,24 +308,24 @@ class ScoringEngine:
             "post_loan_affordability": round(post_loan_points, 1),
         }
         
-        # 2. Income Quality Score (25 points)
+        # 2. Income Quality Score (43.75 points, previously 25)
         inc_weights = self.weights["income_quality"]
         
-        # Income Stability (12 points)
+        # Income Stability (21 points, previously 12)
         stability_points = self._score_threshold(
             income.income_stability_score,
             self.thresholds["income_stability"],
             is_lower_better=False
         )
         
-        # Income Regularity (8 points)
+        # Income Regularity (14 points, previously 8)
         if income.income_regularity_score is not None:
-            regularity_points = min(8, income.income_regularity_score / 100 * 8)
+            regularity_points = min(14, income.income_regularity_score / 100 * 14)
         else:
             regularity_points = 0
         
-        # Income Verification (5 points)
-        verification_points = 5 if income.has_verifiable_income else 2
+        # Income Verification (8.75 points, previously 5)
+        verification_points = 8.75 if income.has_verifiable_income else 3.5
         
         income_score = stability_points + regularity_points + verification_points
         breakdown.income_quality_score = min(income_score, inc_weights["total"])
@@ -335,36 +335,36 @@ class ScoringEngine:
             "income_verification": round(verification_points, 1),
         }
         
-        # 3. Account Conduct Score (20 points)
+        # 3. Account Conduct Score (35 points, previously 20)
         conduct_weights = self.weights["account_conduct"]
         
-        # Failed Payments (8 points)
+        # Failed Payments (14 points, previously 8)
         if risk.failed_payments_count is not None:
-            failed_points = max(0, 8 - risk.failed_payments_count * 2)
+            failed_points = max(0, 14 - risk.failed_payments_count * 3.5)
         else:
             failed_points = 0
         
-        # Overdraft Usage (7 points)
+        # Overdraft Usage (12.25 points, previously 7)
         if balance.days_in_overdraft is not None:
             if balance.days_in_overdraft == 0:
-                overdraft_points = 7
+                overdraft_points = 12.25
             elif balance.days_in_overdraft <= 5:
-                overdraft_points = 5
+                overdraft_points = 8.75
             elif balance.days_in_overdraft <= 15:
-                overdraft_points = 3
+                overdraft_points = 5.25
             else:
                 overdraft_points = 0
         else:
             overdraft_points = 0
         
-        # Balance Management (5 points)
+        # Balance Management (8.75 points, previously 5)
         if balance.average_balance is not None:
             if balance.average_balance >= 500:
-                balance_points = 5
+                balance_points = 8.75
             elif balance.average_balance >= 200:
-                balance_points = 3
+                balance_points = 5.25
             elif balance.average_balance >= 0:
-                balance_points = 1
+                balance_points = 1.75
             else:
                 balance_points = 0
         else:
@@ -378,22 +378,22 @@ class ScoringEngine:
             "balance_management": round(balance_points, 1),
         }
         
-        # 4. Risk Indicators Score (10 points)
+        # 4. Risk Indicators Score (17.5 points, previously 10)
         risk_weights = self.weights["risk_indicators"]
         
-        # Gambling Activity (5 points)
+        # Gambling Activity (8.75 points, previously 5)
         gambling_points = self._score_threshold(
             risk.gambling_percentage,
             self.thresholds["gambling_percentage"],
             is_lower_better=True
         )
         
-        # HCSTC History (5 points)
+        # HCSTC History (8.75 points, previously 5)
         if debt.active_hcstc_count is not None:
             if debt.active_hcstc_count == 0:
-                hcstc_points = 5
+                hcstc_points = 8.75
             elif debt.active_hcstc_count == 1:
-                hcstc_points = 2
+                hcstc_points = 3.5
             else:
                 hcstc_points = 0
                 penalties.append(f"Multiple HCSTC lenders ({debt.active_hcstc_count})")
@@ -407,21 +407,21 @@ class ScoringEngine:
             "hcstc_history": round(hcstc_points, 1),
         }
         
-        # Apply penalties
+        # Apply penalties (scaled by 1.75x)
         if risk.gambling_percentage is not None and risk.gambling_percentage > 5:
-            penalty = -5
+            penalty = -8.75  # Previously -5
             penalties.append(f"Gambling penalty: {penalty}")
             risk_score += penalty
         
         if debt.active_hcstc_count is not None and debt.active_hcstc_count >= 2:
-            penalty = -10
+            penalty = -17.5  # Previously -10
             penalties.append(f"Multiple HCSTC penalty: {penalty}")
             risk_score += penalty
         
         breakdown.penalties_applied = penalties
         
-        # Total Score
-        breakdown.total_score = max(0, min(100, 
+        # Total Score (max 175, previously 100)
+        breakdown.total_score = max(0, min(175, 
             breakdown.affordability_score +
             breakdown.income_quality_score +
             breakdown.account_conduct_score +
