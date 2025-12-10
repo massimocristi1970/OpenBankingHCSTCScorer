@@ -24,6 +24,7 @@ Thumbs.db
 
 # Test files
 /tmp/
+large_test_transactions.json
 
 # Logs
 *.log
