@@ -872,7 +872,23 @@ class TransactionCategorizer:
                     is_stable=False
                 )
             else:
-                # Other behavioral income
+                # Other behavioral income - but check for gig economy first
+                # (recurring patterns might be gig economy work)
+                for subcategory, patterns in self.income_patterns.items():
+                    if subcategory == "gig_economy":
+                        match = self._match_patterns(combined_text, patterns)
+                        if match:
+                            return CategoryMatch(
+                                category="income",
+                                subcategory=subcategory,
+                                confidence=match[1],
+                                description=patterns.get("description", subcategory),
+                                match_method=f"batch_{match[0]}",
+                                weight=patterns.get("weight", 1.0),
+                                is_stable=patterns.get("is_stable", False)
+                            )
+                
+                # Not gig economy, return as other income
                 return CategoryMatch(
                     category="income",
                     subcategory="other",
