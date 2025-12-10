@@ -3,7 +3,8 @@
     "name": "BANK GIRO CREDIT ACME CORP LTD",
     "amount": -2800.00,
     "date": "2024-01-25",
-    "merchant_name": "ACME CORP LTD"
+    "merchant_name": "ACME CORP LTD",
+    "_comment": "Negative amount = credit/income. Positive = debit/expense."
   },
   {
     "name": "BANK GIRO CREDIT ACME CORP LTD",
@@ -61,13 +62,15 @@
     "name": "UBER TRIP 12345",
     "amount": -35.50,
     "date": "2024-01-15",
-    "merchant_name": "UBER"
+    "merchant_name": "UBER",
+    "_comment": "Gig economy income - payment received by driver"
   },
   {
     "name": "DELIVEROO PAYMENT",
     "amount": -125.00,
     "date": "2024-01-20",
-    "merchant_name": "DELIVEROO"
+    "merchant_name": "DELIVEROO",
+    "_comment": "Gig economy income - payment received by delivery driver"
   },
   {
     "name": "RENT PAYMENT LANDLORD",
