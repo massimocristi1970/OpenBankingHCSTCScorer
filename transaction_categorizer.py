@@ -664,6 +664,281 @@ class TransactionCategorizer:
         
         return results
     
+    def categorize_transactions_batch(
+        self,
+        transactions: List[Dict]
+    ) -> List[Tuple[Dict, CategoryMatch]]:
+        """
+        Categorize a list of transactions with optimized batch processing.
+        
+        This method is more efficient than categorize_transactions() for large
+        transaction lists because it performs recurring pattern detection once
+        for the entire batch, rather than potentially analyzing patterns for
+        each individual transaction.
+        
+        Performance Benefits:
+        - Single pass for recurring income detection (O(n²) once vs. potentially per-transaction)
+        - Cached pattern lookup for individual categorizations (O(1) per transaction)
+        - Dramatically faster for large transaction sets (100+ transactions)
+        
+        Args:
+            transactions: List of transaction dictionaries with:
+                - 'name': Transaction description
+                - 'amount': Amount (negative for credits, positive for debits)
+                - 'date': Transaction date (YYYY-MM-DD)
+                - 'merchant_name': Optional merchant name
+                - 'personal_finance_category': Optional PLAID category (dict or flat fields)
+        
+        Returns:
+            List of tuples (transaction, category_match)
+        
+        Example:
+            >>> categorizer = TransactionCategorizer()
+            >>> transactions = [
+            ...     {"name": "ACME LTD SALARY", "amount": -2500, "date": "2024-01-25"},
+            ...     {"name": "TESCO", "amount": 45.50, "date": "2024-01-26"},
+            ... ]
+            >>> results = categorizer.categorize_transactions_batch(transactions)
+            >>> for txn, match in results:
+            ...     print(f"{txn['name']}: {match.category}/{match.subcategory}")
+        """
+        # Step 1: Analyze batch for recurring income patterns
+        # This populates the income detector's cache with recurring sources
+        self.income_detector.analyze_batch(transactions)
+        
+        try:
+            # Step 2: Categorize each transaction using cached patterns
+            results = []
+            
+            for idx, txn in enumerate(transactions):
+                description = txn.get("name", "")
+                amount = txn.get("amount", 0)
+                merchant_name = txn.get("merchant_name")
+                plaid_category = txn.get("personal_finance_category.detailed")
+                plaid_category_primary = txn.get("personal_finance_category.primary")
+                
+                # Handle nested PLAID category if present
+                if "personal_finance_category" in txn:
+                    pfc = txn.get("personal_finance_category", {})
+                    if isinstance(pfc, dict):
+                        if not plaid_category:
+                            plaid_category = pfc.get("detailed")
+                        if not plaid_category_primary:
+                            plaid_category_primary = pfc.get("primary")
+                
+                # Use optimized batch categorization
+                category_match = self._categorize_transaction_from_batch(
+                    description=description,
+                    amount=amount,
+                    transaction_index=idx,
+                    merchant_name=merchant_name,
+                    plaid_category=plaid_category,
+                    plaid_category_primary=plaid_category_primary
+                )
+                
+                results.append((txn, category_match))
+            
+            return results
+        
+        finally:
+            # Step 3: Clean up cache to avoid memory leaks
+            self.income_detector.clear_batch_cache()
+    
+    def _categorize_transaction_from_batch(
+        self,
+        description: str,
+        amount: float,
+        transaction_index: int,
+        merchant_name: Optional[str] = None,
+        plaid_category: Optional[str] = None,
+        plaid_category_primary: Optional[str] = None
+    ) -> CategoryMatch:
+        """
+        Categorize a single transaction using cached batch patterns.
+        
+        Internal method used by categorize_transactions_batch(). Uses the
+        income detector's cached recurring patterns for efficient categorization.
+        
+        Args:
+            description: Transaction description/name
+            amount: Transaction amount (negative = credit, positive = debit)
+            transaction_index: Index in the batch (for pattern lookup)
+            merchant_name: Optional merchant name from PLAID
+            plaid_category: Optional PLAID category (personal_finance_category.detailed)
+            plaid_category_primary: Optional PLAID primary category
+        
+        Returns:
+            CategoryMatch with categorization result
+        """
+        # Normalize text for matching
+        text = self._normalize_text(description)
+        merchant_text = self._normalize_text(merchant_name) if merchant_name else ""
+        combined_text = f"{text} {merchant_text}".strip()
+        
+        # Determine if income or expense
+        is_credit = amount < 0
+        
+        if is_credit:
+            return self._categorize_income_from_batch(
+                combined_text, 
+                text, 
+                amount, 
+                transaction_index,
+                plaid_category, 
+                plaid_category_primary
+            )
+        else:
+            return self._categorize_expense(combined_text, text, plaid_category)
+    
+    def _categorize_income_from_batch(
+        self,
+        combined_text: str,
+        description: str,
+        amount: float,
+        transaction_index: int,
+        plaid_category: Optional[str],
+        plaid_category_primary: Optional[str] = None
+    ) -> CategoryMatch:
+        """
+        Categorize an income transaction using cached batch patterns.
+        
+        Internal method that uses the optimized is_likely_income_from_batch()
+        which leverages pre-computed recurring patterns.
+        """
+        # Use batch-optimized income detection
+        is_income, confidence, reason = self.income_detector.is_likely_income_from_batch(
+            description=description,
+            amount=amount,
+            transaction_index=transaction_index,
+            plaid_category_primary=plaid_category_primary,
+            plaid_category_detailed=plaid_category
+        )
+        
+        # If behavioral detector says it's income with high confidence, trust it
+        if is_income and confidence >= 0.70:
+            # Determine subcategory based on reason
+            if "salary" in reason or "payroll" in reason or "company" in reason or "wages" in reason:
+                return CategoryMatch(
+                    category="income",
+                    subcategory="salary",
+                    confidence=confidence,
+                    description="Salary & Wages",
+                    match_method=f"batch_behavioral_{reason}",
+                    weight=1.0,
+                    is_stable=True
+                )
+            elif "benefit" in reason:
+                return CategoryMatch(
+                    category="income",
+                    subcategory="benefits",
+                    confidence=confidence,
+                    description="Benefits & Government",
+                    match_method=f"batch_behavioral_{reason}",
+                    weight=1.0,
+                    is_stable=True
+                )
+            elif "pension" in reason:
+                return CategoryMatch(
+                    category="income",
+                    subcategory="pension",
+                    confidence=confidence,
+                    description="Pension Income",
+                    match_method=f"batch_behavioral_{reason}",
+                    weight=1.0,
+                    is_stable=True
+                )
+            # For generic PLAID income, check if it matches gig economy patterns
+            elif "plaid_income_category" in reason:
+                for subcategory, patterns in self.income_patterns.items():
+                    if subcategory == "gig_economy":
+                        match = self._match_patterns(combined_text, patterns)
+                        if match:
+                            return CategoryMatch(
+                                category="income",
+                                subcategory=subcategory,
+                                confidence=match[1],
+                                description=patterns.get("description", subcategory),
+                                match_method=f"batch_{match[0]}",
+                                weight=patterns.get("weight", 1.0),
+                                is_stable=patterns.get("is_stable", False)
+                            )
+                return CategoryMatch(
+                    category="income",
+                    subcategory="other",
+                    confidence=confidence,
+                    description="Other Income",
+                    match_method=f"batch_behavioral_{reason}",
+                    weight=1.0,
+                    is_stable=False
+                )
+            else:
+                # Other behavioral income
+                return CategoryMatch(
+                    category="income",
+                    subcategory="other",
+                    confidence=confidence,
+                    description="Other Income",
+                    match_method=f"batch_behavioral_{reason}",
+                    weight=1.0,
+                    is_stable=False
+                )
+        
+        # Fall back to non-batch logic for non-income or low-confidence cases
+        # Check income patterns (traditional keyword matching)
+        for subcategory, patterns in self.income_patterns.items():
+            match = self._match_patterns(combined_text, patterns)
+            if match:
+                return CategoryMatch(
+                    category="income",
+                    subcategory=subcategory,
+                    confidence=match[1],
+                    description=patterns.get("description", subcategory),
+                    match_method=match[0],
+                    weight=patterns.get("weight", 1.0),
+                    is_stable=patterns.get("is_stable", False)
+                )
+        
+        # Use PLAID category if available
+        if plaid_category:
+            plaid_match = self._match_plaid_category(plaid_category, is_income=True)
+            if plaid_match:
+                return plaid_match
+        
+        # Check for transfers (only if NOT identified as income above)
+        if self._is_plaid_transfer(plaid_category_primary, plaid_category, description):
+            return CategoryMatch(
+                category="transfer",
+                subcategory="internal",
+                confidence=0.95,
+                description="Internal Transfer",
+                match_method="plaid",
+                weight=0.0,
+                is_stable=False
+            )
+        
+        # Check if it's a transfer based on keywords (fallback)
+        if self._is_transfer(combined_text):
+            return CategoryMatch(
+                category="transfer",
+                subcategory="internal",
+                confidence=0.9,
+                description="Internal Transfer",
+                match_method="keyword",
+                weight=0.0,
+                is_stable=False
+            )
+        
+        # Unknown income (default)
+        return CategoryMatch(
+            category="income",
+            subcategory="other",
+            confidence=0.5,
+            description="Other Income",
+            match_method="default",
+            weight=1.0,
+            is_stable=False
+        )
+    
     def get_category_summary(
         self, 
         categorized_transactions: List[Tuple[Dict, CategoryMatch]]

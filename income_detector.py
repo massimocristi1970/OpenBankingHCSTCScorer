@@ -93,6 +93,9 @@ class IncomeDetector:
         """
         self.min_amount = min_amount
         self.min_occurrences = min_occurrences
+        # Cache for batch analysis - stores recurring income patterns
+        self._cached_recurring_sources: List[RecurringIncomeSource] = []
+        self._cache_valid = False
     
     def find_recurring_income_sources(
         self, 
@@ -474,6 +477,134 @@ class IncomeDetector:
             # Check if current transaction is part of a recurring pattern
             for source in recurring_sources:
                 if current_txn_index in source.transaction_indices:
+                    if source.confidence >= 0.70:
+                        return (True, source.confidence, f"recurring_{source.source_type}")
+        
+        # 6. If PLAID says TRANSFER but no other indicators, not income
+        if plaid_category_primary and "TRANSFER" in plaid_category_primary.upper():
+            return (False, 0.0, "plaid_transfer_category")
+        
+        if plaid_category_detailed and "TRANSFER" in plaid_category_detailed.upper():
+            return (False, 0.0, "plaid_transfer_category")
+        
+        # 7. Default: unknown
+        return (False, 0.0, "insufficient_evidence")
+    
+    def analyze_batch(self, transactions: List[Dict]) -> None:
+        """
+        Analyze a batch of transactions to detect recurring income patterns.
+        
+        This method should be called once before categorizing multiple transactions
+        from the same dataset. It caches recurring pattern detection results to
+        avoid repeated expensive analysis.
+        
+        Args:
+            transactions: List of transaction dictionaries with 'amount', 'date', 'name'
+        
+        Example:
+            >>> detector = IncomeDetector()
+            >>> detector.analyze_batch(all_transactions)
+            >>> # Now categorize individual transactions efficiently
+            >>> for idx, txn in enumerate(all_transactions):
+            ...     is_income, conf, reason = detector.is_likely_income_from_batch(
+            ...         description=txn['name'],
+            ...         amount=txn['amount'],
+            ...         transaction_index=idx
+            ...     )
+        """
+        self._cached_recurring_sources = self.find_recurring_income_sources(transactions)
+        self._cache_valid = True
+    
+    def clear_batch_cache(self) -> None:
+        """
+        Clear the cached batch analysis results.
+        
+        Call this when starting analysis of a new batch of transactions.
+        """
+        self._cached_recurring_sources = []
+        self._cache_valid = False
+    
+    def is_likely_income_from_batch(
+        self,
+        description: str,
+        amount: float,
+        transaction_index: int,
+        plaid_category_primary: Optional[str] = None,
+        plaid_category_detailed: Optional[str] = None
+    ) -> Tuple[bool, float, str]:
+        """
+        Determine if a transaction is likely income using cached batch patterns.
+        
+        This method is optimized for batch processing. It uses pre-computed
+        recurring patterns from analyze_batch() for better performance.
+        
+        Args:
+            description: Transaction description
+            amount: Transaction amount (should be negative for credits)
+            transaction_index: Index of transaction in the batch
+            plaid_category_primary: PLAID primary category
+            plaid_category_detailed: PLAID detailed category
+        
+        Returns:
+            Tuple of (is_likely_income, confidence, reason)
+        
+        Note:
+            Call analyze_batch() first to populate the cache, or this method
+            will fall back to single-transaction analysis.
+        """
+        if amount >= 0:  # Not a credit
+            return (False, 0.0, "not_credit")
+        
+        desc_upper = description.upper() if description else ""
+        
+        # 1. Check for exclusions first
+        for keyword in self.EXCLUSION_KEYWORDS:
+            if keyword in desc_upper:
+                return (False, 0.0, "internal_transfer")
+        
+        for keyword in self.LOAN_KEYWORDS:
+            if keyword in desc_upper:
+                return (False, 0.0, "loan_disbursement")
+        
+        # 2. Check PLAID INCOME category (highest priority)
+        if plaid_category_detailed:
+            detailed_upper = plaid_category_detailed.upper()
+            if "INCOME" in detailed_upper:
+                if "WAGES" in detailed_upper or "SALARY" in detailed_upper or "PAYROLL" in detailed_upper:
+                    return (True, 0.95, "plaid_income_salary")
+                elif "BENEFIT" in detailed_upper or "GOVERNMENT" in detailed_upper:
+                    return (True, 0.95, "plaid_income_benefits")
+                elif "PENSION" in detailed_upper or "RETIREMENT" in detailed_upper:
+                    return (True, 0.95, "plaid_income_pension")
+                else:
+                    return (True, 0.95, "plaid_income_category")
+        
+        if plaid_category_primary:
+            if "INCOME" in plaid_category_primary.upper():
+                return (True, 0.95, "plaid_income_category")
+        
+        # 3. Check keyword matching (high confidence)
+        if self.matches_payroll_patterns(description):
+            return (True, 0.90, "payroll_keywords")
+        
+        if self.matches_benefit_patterns(description):
+            return (True, 0.90, "benefit_keywords")
+        
+        if self._matches_pension_patterns(description):
+            return (True, 0.90, "pension_keywords")
+        
+        # 4. Check for company name patterns
+        if re.search(r'\b(LTD|LIMITED|PLC|CORP|CORPORATION|INC)\b', desc_upper):
+            if plaid_category_primary and "TRANSFER" in plaid_category_primary.upper():
+                if abs(amount) >= self.LARGE_PAYMENT_THRESHOLD:
+                    return (True, 0.75, "company_payment_large_amount")
+                return (False, 0.0, "company_transfer_ambiguous")
+            return (True, 0.80, "company_payment")
+        
+        # 5. Check cached recurring patterns (OPTIMIZED - no recomputation)
+        if self._cache_valid and self._cached_recurring_sources:
+            for source in self._cached_recurring_sources:
+                if transaction_index in source.transaction_indices:
                     if source.confidence >= 0.70:
                         return (True, source.confidence, f"recurring_{source.source_type}")
         
