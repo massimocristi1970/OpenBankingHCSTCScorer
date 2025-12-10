@@ -23,7 +23,7 @@ from transaction_categorizer import TransactionCategorizer, CategoryMatch
 
 
 app = Flask(__name__)
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # 500MB max file size
 app.config['UPLOAD_FOLDER'] = '/tmp/dashboard_uploads'
 
 # Ensure upload folder exists
