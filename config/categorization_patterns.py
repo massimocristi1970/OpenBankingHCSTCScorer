@@ -519,72 +519,74 @@ POSITIVE_PATTERNS = {
 }
 
 # Scoring Configuration
+# NOTE: All point values have been rescaled by 1.75x (70/40) to shift passing threshold from ≥40 to ≥70
+# Maximum possible score is now 175 (previously 100)
 SCORING_CONFIG = {
     # Score ranges and decisions
     "score_ranges": {
-        "approve": {"min": 40, "max": 100, "decision": "APPROVE"},
-        "refer": {"min": 25, "max": 39, "decision": "REFER"},
-        "decline": {"min": 0, "max": 24, "decision": "DECLINE"},
+        "approve": {"min": 70, "max": 175, "decision": "APPROVE"},
+        "refer": {"min": 45, "max": 69, "decision": "REFER"},
+        "decline": {"min": 0, "max": 44, "decision": "DECLINE"},
     },
     
-    # Scoring weights (total = 100)
+    # Scoring weights (total = 175, previously 100)
     "weights": {
         "affordability": {
-            "total": 45,
-            "dti_ratio": 18,
-            "disposable_income": 15,
-            "post_loan_affordability": 12,
+            "total": 78.75,  # Previously 45
+            "dti_ratio": 31.5,  # Previously 18
+            "disposable_income": 26.25,  # Previously 15
+            "post_loan_affordability": 21,  # Previously 12
         },
         "income_quality": {
-            "total": 25,
-            "income_stability": 12,
-            "income_regularity": 8,
-            "income_verification": 5,
+            "total": 43.75,  # Previously 25
+            "income_stability": 21,  # Previously 12
+            "income_regularity": 14,  # Previously 8
+            "income_verification": 8.75,  # Previously 5
         },
         "account_conduct": {
-            "total": 20,
-            "failed_payments": 8,
-            "overdraft_usage": 7,
-            "balance_management": 5,
+            "total": 35,  # Previously 20
+            "failed_payments": 14,  # Previously 8
+            "overdraft_usage": 12.25,  # Previously 7
+            "balance_management": 8.75,  # Previously 5
         },
         "risk_indicators": {
-            "total": 10,
-            "gambling_activity": 5,
-            "hcstc_history": 5,
+            "total": 17.5,  # Previously 10
+            "gambling_activity": 8.75,  # Previously 5
+            "hcstc_history": 8.75,  # Previously 5
         },
     },
     
-    # Thresholds for scoring
+    # Thresholds for scoring (all point values scaled by 1.75x)
     "thresholds": {
         "dti_ratio": [
-            {"max": 15, "points": 18},
-            {"max": 25, "points": 15},
-            {"max": 35, "points": 12},
-            {"max": 45, "points": 8},
-            {"max": 55, "points": 4},
+            {"max": 15, "points": 31.5},  # Previously 18
+            {"max": 25, "points": 26.25},  # Previously 15
+            {"max": 35, "points": 21},  # Previously 12
+            {"max": 45, "points": 14},  # Previously 8
+            {"max": 55, "points": 7},  # Previously 4
             {"max": 100, "points": 0},
         ],
         "disposable_income": [
-            {"min": 400, "points": 15},
-            {"min": 300, "points": 13},
-            {"min": 200, "points": 10},
-            {"min": 100, "points": 6},
-            {"min": 50, "points": 3},
+            {"min": 400, "points": 26.25},  # Previously 15
+            {"min": 300, "points": 22.75},  # Previously 13
+            {"min": 200, "points": 17.5},  # Previously 10
+            {"min": 100, "points": 10.5},  # Previously 6
+            {"min": 50, "points": 5.25},  # Previously 3
             {"min": 0, "points": 0},
         ],
         "income_stability": [
-            {"min": 90, "points": 12},
-            {"min": 75, "points": 10},
-            {"min": 60, "points": 7},
-            {"min": 40, "points": 4},
+            {"min": 90, "points": 21},  # Previously 12
+            {"min": 75, "points": 17.5},  # Previously 10
+            {"min": 60, "points": 12.25},  # Previously 7
+            {"min": 40, "points": 7},  # Previously 4
             {"min": 0, "points": 0},
         ],
         "gambling_percentage": [
-            {"max": 0, "points": 5},
-            {"max": 2, "points": 3},
+            {"max": 0, "points": 8.75},  # Previously 5
+            {"max": 2, "points": 5.25},  # Previously 3
             {"max": 5, "points": 0},
-            {"max": 10, "points": -3},
-            {"max": 100, "points": -5},
+            {"max": 10, "points": -5.25},  # Previously -3
+            {"max": 100, "points": -8.75},  # Previously -5
         ],
     },
     
@@ -601,13 +603,13 @@ SCORING_CONFIG = {
         "failed_payment_lookback_days": 45,  # Days to look back for failed payments
     },
     
-    # Loan amount determination by score
+    # Loan amount determination by score (thresholds scaled by 1.75x)
     "score_based_limits": [
-        {"min_score": 85, "max_amount": 1500, "max_term": 6},
-        {"min_score": 70, "max_amount": 1200, "max_term": 6},
-        {"min_score": 60, "max_amount": 800, "max_term": 5},
-        {"min_score": 50, "max_amount": 500, "max_term": 4},
-        {"min_score": 40, "max_amount": 300, "max_term": 3},
+        {"min_score": 149, "max_amount": 1500, "max_term": 6},  # Previously 85
+        {"min_score": 123, "max_amount": 1200, "max_term": 6},  # Previously 70
+        {"min_score": 105, "max_amount": 800, "max_term": 5},   # Previously 60
+        {"min_score": 88, "max_amount": 500, "max_term": 4},    # Previously 50
+        {"min_score": 70, "max_amount": 300, "max_term": 3},    # Previously 40
         {"min_score": 0, "max_amount": 0, "max_term": 0},
     ],
     

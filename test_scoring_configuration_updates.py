@@ -28,17 +28,17 @@ class TestScoringConfigurationUpdates(unittest.TestCase):
         """Test that score thresholds have been updated correctly."""
         score_ranges = self.config["score_ranges"]
         
-        # Test APPROVE threshold (was ≥45, now ≥40)
-        self.assertEqual(score_ranges["approve"]["min"], 40)
-        self.assertEqual(score_ranges["approve"]["max"], 100)
+        # Test APPROVE threshold (≥70)
+        self.assertEqual(score_ranges["approve"]["min"], 70)
+        self.assertEqual(score_ranges["approve"]["max"], 175)
         
-        # Test REFER threshold (was 30-44, now 25-39)
-        self.assertEqual(score_ranges["refer"]["min"], 25)
-        self.assertEqual(score_ranges["refer"]["max"], 39)
+        # Test REFER threshold (45-69)
+        self.assertEqual(score_ranges["refer"]["min"], 45)
+        self.assertEqual(score_ranges["refer"]["max"], 69)
         
-        # Test DECLINE threshold (was <30, now <25)
+        # Test DECLINE threshold (<45)
         self.assertEqual(score_ranges["decline"]["min"], 0)
-        self.assertEqual(score_ranges["decline"]["max"], 24)
+        self.assertEqual(score_ranges["decline"]["max"], 44)
     
     def test_updated_hard_decline_rules(self):
         """Test that hard decline rules have been relaxed."""
@@ -56,23 +56,23 @@ class TestScoringConfigurationUpdates(unittest.TestCase):
         # Test max_dca_count (was 2, now 3)
         self.assertEqual(rules["max_dca_count"], 3)
     
-    def test_score_based_limits_for_40_45_range(self):
-        """Test that score-based limits exist for 40-45 score range."""
+    def test_score_based_limits_for_70_range(self):
+        """Test that score-based limits exist for score 70 (new baseline)."""
         limits = self.config["score_based_limits"]
         
-        # Find the limit for score 40
-        limit_40 = None
+        # Find the limit for score 70 (rescaled from 40)
+        limit_70 = None
         for limit in limits:
-            if limit["min_score"] == 40:
-                limit_40 = limit
+            if limit["min_score"] == 70:
+                limit_70 = limit
                 break
         
-        self.assertIsNotNone(limit_40, "Score-based limit for score 40 should exist")
-        self.assertGreater(limit_40["max_amount"], 0, "Max amount should be greater than 0")
-        self.assertGreater(limit_40["max_term"], 0, "Max term should be greater than 0")
+        self.assertIsNotNone(limit_70, "Score-based limit for score 70 should exist")
+        self.assertGreater(limit_70["max_amount"], 0, "Max amount should be greater than 0")
+        self.assertGreater(limit_70["max_term"], 0, "Max term should be greater than 0")
     
-    def test_score_40_results_in_approval(self):
-        """Test that a score of exactly 40 results in APPROVE decision."""
+    def test_score_70_results_in_approval(self):
+        """Test that a score of exactly 70 results in APPROVE decision."""
         # Create metrics for a borderline approval case
         metrics = {
             "income": IncomeMetrics(
@@ -114,47 +114,46 @@ class TestScoringConfigurationUpdates(unittest.TestCase):
             application_ref="TEST_40_SCORE"
         )
         
-        # With a score around 40, we should get APPROVE
         # Note: The exact score may vary based on scoring calculations,
         # but we're testing that the decision logic works correctly
-        if result.score >= 40:
+        if result.score >= 70:
             self.assertEqual(result.decision, Decision.APPROVE,
-                           f"Score {result.score} (≥40) should result in APPROVE")
-        elif result.score >= 25:
+                           f"Score {result.score} (≥70) should result in APPROVE")
+        elif result.score >= 45:
             self.assertEqual(result.decision, Decision.REFER,
-                           f"Score {result.score} (25-39) should result in REFER")
+                           f"Score {result.score} (45-69) should result in REFER")
         else:
             self.assertEqual(result.decision, Decision.DECLINE,
-                           f"Score {result.score} (<25) should result in DECLINE")
+                           f"Score {result.score} (<45) should result in DECLINE")
     
-    def test_score_44_results_in_approval(self):
-        """Test that a score of 44 (previously REFER) now results in APPROVE."""
+    def test_score_77_results_in_approval(self):
+        """Test that a score of 77 (above new threshold) results in APPROVE."""
         # For this test, we check the decision logic directly
-        decision, risk_level = self.scoring_engine._determine_decision(44)
+        decision, risk_level = self.scoring_engine._determine_decision(77)
         
         self.assertEqual(decision, Decision.APPROVE,
-                        "Score 44 should now result in APPROVE (was REFER)")
+                        "Score 77 should result in APPROVE (≥70)")
     
-    def test_score_39_results_in_refer(self):
-        """Test that a score of 39 (top of new REFER range) results in REFER."""
-        decision, risk_level = self.scoring_engine._determine_decision(39)
+    def test_score_69_results_in_refer(self):
+        """Test that a score of 69 (top of REFER range) results in REFER."""
+        decision, risk_level = self.scoring_engine._determine_decision(69)
         
         self.assertEqual(decision, Decision.REFER,
-                        "Score 39 should result in REFER")
+                        "Score 69 should result in REFER")
     
-    def test_score_25_results_in_refer(self):
-        """Test that a score of 25 (bottom of new REFER range) results in REFER."""
-        decision, risk_level = self.scoring_engine._determine_decision(25)
+    def test_score_45_results_in_refer(self):
+        """Test that a score of 45 (bottom of REFER range) results in REFER."""
+        decision, risk_level = self.scoring_engine._determine_decision(45)
         
         self.assertEqual(decision, Decision.REFER,
-                        "Score 25 should result in REFER")
+                        "Score 45 should result in REFER")
     
-    def test_score_24_results_in_decline(self):
-        """Test that a score of 24 (top of new DECLINE range) results in DECLINE."""
-        decision, risk_level = self.scoring_engine._determine_decision(24)
+    def test_score_44_results_in_decline(self):
+        """Test that a score of 44 (top of DECLINE range) results in DECLINE."""
+        decision, risk_level = self.scoring_engine._determine_decision(44)
         
         self.assertEqual(decision, Decision.DECLINE,
-                        "Score 24 should result in DECLINE")
+                        "Score 44 should result in DECLINE")
     
     def test_income_1100_not_hard_declined(self):
         """Test that income of £1,100 (above new minimum) does not trigger hard decline."""
