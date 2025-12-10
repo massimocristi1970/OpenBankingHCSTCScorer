@@ -520,6 +520,10 @@
             div.textContent = text;
             return div.innerHTML;
         };
+        
+        // Constants for validation
+        const ALLOWED_RISK_LEVELS = ['critical', 'high', 'medium', 'low'];
+        const DESCRIPTION_TRUNCATE_LENGTH = 40;
 
         // Drag and drop handling
         fileLabel.addEventListener('dragover', (e) => {
@@ -747,9 +751,8 @@
                 const categoryClass = result.category === 'income' ? 'income' : 'expense';
                 
                 // Build risk badge with validated risk level for CSS class
-                const allowedRiskLevels = ['critical', 'high', 'medium', 'low'];
                 let riskBadge = '';
-                if (result.risk_level && allowedRiskLevels.includes(result.risk_level)) {
+                if (result.risk_level && ALLOWED_RISK_LEVELS.includes(result.risk_level)) {
                     const escapedRiskLevel = escapeHtml(result.risk_level);
                     riskBadge = `<span class="risk-badge risk-${result.risk_level}">${escapedRiskLevel}</span>`;
                 }
@@ -757,7 +760,8 @@
                 // Show merchant name if available, otherwise show description
                 // Truncate before escaping to avoid breaking HTML entities
                 const displayText = result.merchant_name || result.description;
-                const truncatedText = displayText.length > 40 ? displayText.substring(0, 40) + '...' : displayText;
+                const truncatedText = displayText.length > DESCRIPTION_TRUNCATE_LENGTH ? 
+                    displayText.substring(0, DESCRIPTION_TRUNCATE_LENGTH) + '...' : displayText;
                 const fullTooltip = result.merchant_name ? `${result.merchant_name} - ${result.description}` : result.description;
                 const escapedTooltip = escapeHtml(fullTooltip);
                 const escapedDisplayText = escapeHtml(truncatedText);
