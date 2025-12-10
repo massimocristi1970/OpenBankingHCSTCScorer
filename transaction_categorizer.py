@@ -82,6 +82,17 @@ class TransactionCategorizer:
     # Minimum confidence threshold for fuzzy matching
     FUZZY_THRESHOLD = 80
     
+    # Salary detection keywords (used to identify legitimate salary payments)
+    SALARY_KEYWORDS = [
+        "SALARY", "WAGES", "PAYROLL", "NET PAY", "WAGE", 
+        "PAYSLIP", "EMPLOYER", "EMPLOYERS",
+        "BGC", "BANK GIRO CREDIT", "CHEQUERS CONTRACT",
+        "CONTRACT PAY", "MONTHLY PAY", "WEEKLY PAY"
+    ]
+    
+    # Keywords that indicate internal transfers (not income)
+    TRANSFER_EXCLUSION_KEYWORDS = ["OWN ACCOUNT", "INTERNAL", "SELF TRANSFER"]
+    
     def __init__(self):
         """Initialize the categorizer with pattern dictionaries."""
         self.income_patterns = INCOME_PATTERNS
@@ -329,17 +340,8 @@ class TransactionCategorizer:
         if not text:
             return False
         
-        # Keywords that strongly indicate salary/wages payments
-        # Note: "PAY" is included in compound forms to avoid false positives
-        salary_keywords = [
-            "SALARY", "WAGES", "PAYROLL", "NET PAY", "WAGE", 
-            "PAYSLIP", "EMPLOYER", "EMPLOYERS",
-            "BGC", "BANK GIRO CREDIT", "CHEQUERS CONTRACT",
-            "CONTRACT PAY", "MONTHLY PAY", "WEEKLY PAY"
-        ]
-        
-        # Check for keywords
-        for keyword in salary_keywords:
+        # Check for salary keywords
+        for keyword in self.SALARY_KEYWORDS:
             if keyword in text:
                 return True
         
@@ -351,7 +353,7 @@ class TransactionCategorizer:
         # These often indicate employer payments
         if re.search(r'\b(LTD|LIMITED|PLC)\b', text):
             # But only if it doesn't contain obvious transfer keywords
-            if not any(kw in text for kw in ["OWN ACCOUNT", "INTERNAL", "SELF TRANSFER"]):
+            if not any(kw in text for kw in self.TRANSFER_EXCLUSION_KEYWORDS):
                 return True
         
         return False
