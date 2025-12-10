@@ -28,15 +28,15 @@ class TestScoringConfigurationUpdates(unittest.TestCase):
         """Test that score thresholds have been updated correctly."""
         score_ranges = self.config["score_ranges"]
         
-        # Test APPROVE threshold (rescaled: now ≥70)
+        # Test APPROVE threshold (≥70)
         self.assertEqual(score_ranges["approve"]["min"], 70)
         self.assertEqual(score_ranges["approve"]["max"], 175)
         
-        # Test REFER threshold (rescaled: now 45-69)
+        # Test REFER threshold (45-69)
         self.assertEqual(score_ranges["refer"]["min"], 45)
         self.assertEqual(score_ranges["refer"]["max"], 69)
         
-        # Test DECLINE threshold (rescaled: now <45)
+        # Test DECLINE threshold (<45)
         self.assertEqual(score_ranges["decline"]["min"], 0)
         self.assertEqual(score_ranges["decline"]["max"], 44)
     
@@ -114,7 +114,6 @@ class TestScoringConfigurationUpdates(unittest.TestCase):
             application_ref="TEST_40_SCORE"
         )
         
-        # With these metrics, score should be in the rescaled range
         # Note: The exact score may vary based on scoring calculations,
         # but we're testing that the decision logic works correctly
         if result.score >= 70:

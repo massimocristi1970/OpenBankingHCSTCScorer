@@ -605,11 +605,11 @@ SCORING_CONFIG = {
     
     # Loan amount determination by score (thresholds scaled by 1.75x)
     "score_based_limits": [
-        {"min_score": 149, "max_amount": 1500, "max_term": 6},  # Previously 85 (85 * 1.75 = 148.75, rounded to 149)
-        {"min_score": 123, "max_amount": 1200, "max_term": 6},  # Previously 70 (70 * 1.75 = 122.5, rounded to 123)
-        {"min_score": 105, "max_amount": 800, "max_term": 5},   # Previously 60 (60 * 1.75 = 105)
-        {"min_score": 88, "max_amount": 500, "max_term": 4},    # Previously 50 (50 * 1.75 = 87.5, rounded to 88)
-        {"min_score": 70, "max_amount": 300, "max_term": 3},    # Previously 40 (40 * 1.75 = 70)
+        {"min_score": 149, "max_amount": 1500, "max_term": 6},  # Previously 85
+        {"min_score": 123, "max_amount": 1200, "max_term": 6},  # Previously 70
+        {"min_score": 105, "max_amount": 800, "max_term": 5},   # Previously 60
+        {"min_score": 88, "max_amount": 500, "max_term": 4},    # Previously 50
+        {"min_score": 70, "max_amount": 300, "max_term": 3},    # Previously 40
         {"min_score": 0, "max_amount": 0, "max_term": 0},
     ],
     
