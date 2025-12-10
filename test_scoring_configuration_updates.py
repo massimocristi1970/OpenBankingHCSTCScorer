@@ -291,10 +291,10 @@ class TestScoringConfigurationUpdates(unittest.TestCase):
             ),
         }
         
-        # Test with a loan that would bring DTI to approximately 74%
+        # Test with a loan that keeps DTI under 75%
         # Monthly income: £2000, existing debt: £1000 (50%)
-        # Loan of £300 over 3 months = ~£173/month payment = total £1173/month = 58.6% DTI
-        # Use smaller loan to keep under 75%
+        # Loan of £300 over 3 months = ~£173/month payment
+        # Projected DTI: (£1000 + £173) / £2000 = 58.6% (well under 75% threshold)
         decline_reasons = self.scoring_engine._check_hard_decline_rules(
             income=metrics["income"],
             debt=metrics["debt"],
