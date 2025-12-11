@@ -170,31 +170,29 @@ def run_open_banking_scoring(
     """
     # Step 1: Categorize transactions
     categorizer = TransactionCategorizer()
-    categorized = []
+    categorized = categorizer.categorize_transactions(transactions)
+    category_summary = categorizer.get_category_summary(categorized)
     
-    for txn in transactions:
-        # Extract transaction fields
-        description = txn.get("description", "")
-        amount = txn.get("amount", 0.0)
-        merchant_name = txn.get("merchant_name")
-        plaid_category = txn.get("plaid_category")
-        plaid_category_primary = txn.get("plaid_category_primary")
-        date = txn.get("date")
-        
-        # Categorize
-        category_match = categorizer.categorize_transaction(
-            description=description,
-            amount=amount,
-            merchant_name=merchant_name,
-            plaid_category=plaid_category,
-            plaid_category_primary=plaid_category_primary
-        )
-        
-        # Build categorized transaction
+    # Step 2: Calculate metrics
+    # Prepare accounts list (empty if not provided)
+    accounts = []
+    
+    calculator = MetricsCalculator()
+    metrics = calculator.calculate_all_metrics(
+        category_summary=category_summary,
+        transactions=transactions,
+        accounts=accounts,
+        loan_amount=requested_amount,
+        loan_term=requested_term
+    )
+    
+    # Build categorized transaction list for response
+    categorized_list = []
+    for txn, category_match in categorized:
         categorized_txn = {
-            "date": date,
-            "amount": amount,
-            "description": description,
+            "date": txn.get("date"),
+            "amount": txn.get("amount"),
+            "description": txn.get("description"),
             "category": category_match.category,
             "subcategory": category_match.subcategory,
             "confidence": category_match.confidence,
@@ -204,24 +202,12 @@ def run_open_banking_scoring(
             "is_housing": category_match.is_housing,
             "risk_level": category_match.risk_level,
         }
-        categorized.append(categorized_txn)
-    
-    # Step 2: Calculate metrics
-    calculator = MetricsCalculator()
-    metrics = calculator.calculate_all_metrics(
-        categorized_transactions=categorized,
-        days_covered=days_covered
-    )
+        categorized_list.append(categorized_txn)
     
     # Step 3: Score the application
     scoring_engine = ScoringEngine()
     scoring_result = scoring_engine.score_application(
-        income_metrics=metrics["income"],
-        expense_metrics=metrics["expense"],
-        debt_metrics=metrics["debt"],
-        affordability_metrics=metrics["affordability"],
-        balance_metrics=metrics["balance"],
-        risk_metrics=metrics["risk"],
+        metrics=metrics,
         requested_amount=requested_amount,
         requested_term=requested_term
     )
@@ -230,10 +216,10 @@ def run_open_banking_scoring(
     result = {
         "decision": scoring_result.decision.value,
         "score": scoring_result.score,
-        "max_approved_amount": scoring_result.max_approved_amount,
-        "max_approved_term": scoring_result.max_approved_term,
+        "max_approved_amount": scoring_result.loan_offer.approved_amount if scoring_result.loan_offer else 0,
+        "max_approved_term": scoring_result.loan_offer.approved_term if scoring_result.loan_offer else 0,
         "decline_reasons": scoring_result.decline_reasons,
-        "referral_reasons": scoring_result.referral_reasons,
+        "referral_reasons": scoring_result.risk_flags,  # risk_flags contains referral reasons
         "metrics": {
             "income": {
                 "total_income": metrics["income"].total_income,
@@ -248,24 +234,26 @@ def run_open_banking_scoring(
                 "monthly_income_breakdown": metrics["income"].monthly_income_breakdown,
             },
             "expense": {
-                "monthly_housing": metrics["expense"].monthly_housing,
-                "monthly_council_tax": metrics["expense"].monthly_council_tax,
-                "monthly_utilities": metrics["expense"].monthly_utilities,
-                "monthly_transport": metrics["expense"].monthly_transport,
-                "monthly_groceries": metrics["expense"].monthly_groceries,
-                "monthly_communications": metrics["expense"].monthly_communications,
-                "monthly_insurance": metrics["expense"].monthly_insurance,
-                "monthly_childcare": metrics["expense"].monthly_childcare,
-                "monthly_essential_total": metrics["expense"].monthly_essential_total,
-                "essential_breakdown": metrics["expense"].essential_breakdown,
+                "monthly_housing": metrics["expenses"].monthly_housing,
+                "monthly_council_tax": metrics["expenses"].monthly_council_tax,
+                "monthly_utilities": metrics["expenses"].monthly_utilities,
+                "monthly_transport": metrics["expenses"].monthly_transport,
+                "monthly_groceries": metrics["expenses"].monthly_groceries,
+                "monthly_communications": metrics["expenses"].monthly_communications,
+                "monthly_insurance": metrics["expenses"].monthly_insurance,
+                "monthly_childcare": metrics["expenses"].monthly_childcare,
+                "monthly_essential_total": metrics["expenses"].monthly_essential_total,
+                "essential_breakdown": metrics["expenses"].essential_breakdown,
             },
             "debt": {
                 "monthly_debt_payments": metrics["debt"].monthly_debt_payments,
                 "monthly_hcstc_payments": metrics["debt"].monthly_hcstc_payments,
                 "active_hcstc_count": metrics["debt"].active_hcstc_count,
-                "unique_hcstc_lenders": metrics["debt"].unique_hcstc_lenders,
-                "active_credit_cards": metrics["debt"].active_credit_cards,
-                "active_bnpl_count": metrics["debt"].active_bnpl_count,
+                "active_hcstc_count_90d": metrics["debt"].active_hcstc_count_90d,
+                "monthly_bnpl_payments": metrics["debt"].monthly_bnpl_payments,
+                "monthly_credit_card_payments": metrics["debt"].monthly_credit_card_payments,
+                "monthly_other_loan_payments": metrics["debt"].monthly_other_loan_payments,
+                "total_debt_commitments": metrics["debt"].total_debt_commitments,
                 "debt_breakdown": metrics["debt"].debt_breakdown,
             },
             "affordability": {
@@ -284,10 +272,15 @@ def run_open_banking_scoring(
             "risk": {
                 "gambling_total": metrics["risk"].gambling_total,
                 "gambling_percentage": metrics["risk"].gambling_percentage,
+                "gambling_frequency": metrics["risk"].gambling_frequency,
                 "bank_charges_count": metrics["risk"].bank_charges_count,
+                "bank_charges_count_90d": metrics["risk"].bank_charges_count_90d,
                 "failed_payments_count": metrics["risk"].failed_payments_count,
-                "debt_collection_count": metrics["risk"].debt_collection_count,
-                "new_credit_providers_count": metrics["risk"].new_credit_providers_count,
+                "failed_payments_count_45d": metrics["risk"].failed_payments_count_45d,
+                "debt_collection_activity": metrics["risk"].debt_collection_activity,
+                "debt_collection_distinct": metrics["risk"].debt_collection_distinct,
+                "new_credit_providers_90d": metrics["risk"].new_credit_providers_90d,
+                "savings_activity": metrics["risk"].savings_activity,
             },
         },
         "score_breakdown": {
@@ -300,7 +293,7 @@ def run_open_banking_scoring(
             "risk_indicators_score": scoring_result.score_breakdown.risk_indicators_score,
             "risk_breakdown": scoring_result.score_breakdown.risk_breakdown,
         },
-        "categorized_transactions": categorized,
+        "categorized_transactions": categorized_list,
     }
     
     return result
