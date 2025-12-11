@@ -95,6 +95,19 @@ class TransactionCategorizer:
     # Keywords that indicate internal transfers (not income)
     TRANSFER_EXCLUSION_KEYWORDS = ["OWN ACCOUNT", "INTERNAL", "SELF TRANSFER"]
     
+    # Known expense services that should not be treated as income
+    # These are payment processors, BNPL services, and lenders that might
+    # have keywords like "PAY" or "PAYMENT" but are expenses, not income
+    KNOWN_EXPENSE_SERVICES = [
+        # Payment processors
+        "PAYPAL", "STRIPE", "SQUARE", "WORLDPAY", "SAGEPAY",
+        # BNPL services (already in debt patterns but listed for clarity)
+        "CLEARPAY", "KLARNA", "ZILCH", "LAYBUY", "MONZO FLEX",
+        # HCSTC Lenders (already in debt patterns but listed for clarity)
+        "LENDING STREAM", "LENDINGSTREAM", "MONEYBOAT", "DRAFTY",
+        "CASHFLOAT", "QUIDMARKET", "MR LENDER", "MRLENDER",
+    ]
+    
     def __init__(self):
         """Initialize the categorizer with pattern dictionaries."""
         self.income_patterns = INCOME_PATTERNS
@@ -182,10 +195,63 @@ class TransactionCategorizer:
     ) -> CategoryMatch:
         """Categorize an income transaction (credit)."""
         
-        # NEW APPROACH: Check for INCOME indicators FIRST before marking as transfer
-        # This prevents legitimate salary from being miscategorized as transfers
+        # STEP 0: Check if this is a known expense service that should NEVER be income
+        # This prevents false positives from keyword matching (e.g., "PAYPAL PAYMENT", "CLEARPAY")
+        for service in self.KNOWN_EXPENSE_SERVICES:
+            if service in combined_text:
+                # This is a known expense service - check if it's actually a refund/credit
+                # If PLAID says it's a transfer or loan, trust that
+                if plaid_category_primary and "TRANSFER" in plaid_category_primary.upper():
+                    return CategoryMatch(
+                        category="transfer",
+                        subcategory="internal",
+                        confidence=0.90,
+                        description="Internal Transfer",
+                        match_method="plaid",
+                        weight=0.0,
+                        is_stable=False
+                    )
+                # Otherwise default to other income with low confidence
+                # (could be a refund or reimbursement)
+                return CategoryMatch(
+                    category="income",
+                    subcategory="other",
+                    confidence=0.5,
+                    description="Other Income",
+                    match_method="known_service_exclusion",
+                    weight=1.0,
+                    is_stable=False
+                )
         
-        # 1. Use behavioral income detector to check if this is likely income
+        # STEP 1: Check PLAID categories for high-confidence loan/transfer indicators
+        # BEFORE applying keyword-based income detection
+        # This preserves PLAID's accurate categorization of loan payments and transfers
+        if plaid_category or plaid_category_primary:
+            plaid_cat_upper = (plaid_category or "").upper()
+            plaid_primary_upper = (plaid_category_primary or "").upper()
+            
+            # Check for LOAN-related categories (these are NEVER income, even with keywords)
+            if "LOAN" in plaid_cat_upper or "LOAN" in plaid_primary_upper:
+                # This is a loan disbursement or related transaction
+                # Let it fall through to other categorization logic
+                # (it will be caught as expense/other or transfer)
+                pass
+            
+            # Check for TRANSFER_IN with CASH_ADVANCES or LOANS
+            # These are loan disbursements, not income
+            elif "CASH_ADVANCES" in plaid_cat_upper or "ADVANCES" in plaid_cat_upper:
+                # This is likely a cash advance or loan disbursement
+                return CategoryMatch(
+                    category="transfer",
+                    subcategory="internal",
+                    confidence=0.85,
+                    description="Internal Transfer",
+                    match_method="plaid",
+                    weight=0.0,
+                    is_stable=False
+                )
+        
+        # STEP 2: Use behavioral income detector to check if this is likely income
         # Note: amount is already negative for credits (PLAID convention)
         is_income, confidence, reason = self.income_detector.is_likely_income(
             description=description,
@@ -256,27 +322,39 @@ class TransactionCategorizer:
                     is_stable=False
                 )
         
-        # 2. Check income patterns (traditional keyword matching)
+        # STEP 3: Check income patterns (traditional keyword matching)
+        # BUT: If PLAID says TRANSFER_IN (not income), only override with strong evidence
         for subcategory, patterns in self.income_patterns.items():
             match = self._match_patterns(combined_text, patterns)
             if match:
+                match_method, match_confidence = match
+                
+                # If PLAID says TRANSFER_IN, require explicit salary keywords to override
+                # This prevents false positives from generic keywords like "PAY" in "PAYMENT"
+                if plaid_category_primary and "TRANSFER" in plaid_category_primary.upper():
+                    # For keyword/fuzzy matches on TRANSFER_IN, require salary keywords
+                    if match_method in ("keyword", "fuzzy"):
+                        if not self._contains_salary_keywords(description):
+                            # Skip this keyword match - trust PLAID's transfer categorization
+                            continue
+                
                 return CategoryMatch(
                     category="income",
                     subcategory=subcategory,
-                    confidence=match[1],
+                    confidence=match_confidence,
                     description=patterns.get("description", subcategory),
-                    match_method=match[0],
+                    match_method=match_method,
                     weight=patterns.get("weight", 1.0),
                     is_stable=patterns.get("is_stable", False)
                 )
         
-        # 3. Use PLAID category if available
+        # STEP 4: Use PLAID category if available
         if plaid_category:
             plaid_match = self._match_plaid_category(plaid_category, is_income=True)
             if plaid_match:
                 return plaid_match
         
-        # 4. NOW check for transfers (only if NOT identified as income above)
+        # STEP 5: NOW check for transfers (only if NOT identified as income above)
         # Check Plaid category for transfers
         # Pass description to detect salary payments that PLAID miscategorized as transfers
         if self._is_plaid_transfer(plaid_category_primary, plaid_category, description):
@@ -302,7 +380,7 @@ class TransactionCategorizer:
                 is_stable=False
             )
         
-        # 5. Unknown income (default)
+        # STEP 6: Unknown income (default)
         return CategoryMatch(
             category="income",
             subcategory="other",
@@ -372,13 +450,16 @@ class TransactionCategorizer:
                     match_method=match[0]
                 )
         
-        # Use PLAID category as fallback
+        # IMPORTANT: Use PLAID category as fallback BEFORE defaulting to generic expense
+        # This preserves high-confidence PLAID categorizations (e.g., gambling, restaurants)
+        # Only fall back to generic expense/other if PLAID also doesn't have a match
         if plaid_category:
             plaid_match = self._match_plaid_category(plaid_category, is_income=False)
             if plaid_match:
+                # If PLAID has high confidence (>= 0.85), trust it over our generic default
                 return plaid_match
         
-        # Unknown expense
+        # Unknown expense (only reached if no patterns matched AND no PLAID category)
         return CategoryMatch(
             category="expense",
             subcategory="other",
@@ -617,6 +698,15 @@ class TransactionCategorizer:
                     description="Groceries",
                     match_method="plaid"
                 )
+            # Food and dining categories
+            if "RESTAURANT" in plaid_upper or "FOOD_AND_DRINK" in plaid_upper:
+                return CategoryMatch(
+                    category="expense",
+                    subcategory="food_dining",
+                    confidence=0.85,
+                    description="Food & Dining",
+                    match_method="plaid"
+                )
             if "GAMBLING" in plaid_upper or "CASINO" in plaid_upper:
                 return CategoryMatch(
                     category="risk",
@@ -822,6 +912,45 @@ class TransactionCategorizer:
         Internal method that uses the optimized is_likely_income_from_batch()
         which leverages pre-computed recurring patterns.
         """
+        # STEP 0: Check if this is a known expense service (same as non-batch)
+        for service in self.KNOWN_EXPENSE_SERVICES:
+            if service in combined_text:
+                if plaid_category_primary and "TRANSFER" in plaid_category_primary.upper():
+                    return CategoryMatch(
+                        category="transfer",
+                        subcategory="internal",
+                        confidence=0.90,
+                        description="Internal Transfer",
+                        match_method="plaid",
+                        weight=0.0,
+                        is_stable=False
+                    )
+                return CategoryMatch(
+                    category="income",
+                    subcategory="other",
+                    confidence=0.5,
+                    description="Other Income",
+                    match_method="known_service_exclusion",
+                    weight=1.0,
+                    is_stable=False
+                )
+        
+        # STEP 1: Check PLAID categories for loan/transfer indicators (same as non-batch)
+        if plaid_category or plaid_category_primary:
+            plaid_cat_upper = (plaid_category or "").upper()
+            plaid_primary_upper = (plaid_category_primary or "").upper()
+            
+            if "CASH_ADVANCES" in plaid_cat_upper or "ADVANCES" in plaid_cat_upper:
+                return CategoryMatch(
+                    category="transfer",
+                    subcategory="internal",
+                    confidence=0.85,
+                    description="Internal Transfer",
+                    match_method="plaid",
+                    weight=0.0,
+                    is_stable=False
+                )
+        
         # Use batch-optimized income detection
         is_income, confidence, reason = self.income_detector.is_likely_income_from_batch(
             description=description,
@@ -902,15 +1031,24 @@ class TransactionCategorizer:
         
         # Fall back to non-batch logic for non-income or low-confidence cases
         # Check income patterns (traditional keyword matching)
+        # BUT: If PLAID says TRANSFER_IN, require strong evidence to override
         for subcategory, patterns in self.income_patterns.items():
             match = self._match_patterns(combined_text, patterns)
             if match:
+                match_method, match_confidence = match
+                
+                # If PLAID says TRANSFER_IN, require explicit salary keywords to override
+                if plaid_category_primary and "TRANSFER" in plaid_category_primary.upper():
+                    if match_method in ("keyword", "fuzzy"):
+                        if not self._contains_salary_keywords(description):
+                            continue
+                
                 return CategoryMatch(
                     category="income",
                     subcategory=subcategory,
-                    confidence=match[1],
+                    confidence=match_confidence,
                     description=patterns.get("description", subcategory),
-                    match_method=match[0],
+                    match_method=match_method,
                     weight=patterns.get("weight", 1.0),
                     is_stable=patterns.get("is_stable", False)
                 )
