@@ -98,7 +98,8 @@ class TransactionCategorizer:
     # Known expense services that should not be treated as income
     # These are payment processors, BNPL services, and lenders that might
     # have keywords like "PAY" or "PAYMENT" but are expenses, not income
-    KNOWN_EXPENSE_SERVICES = [
+    # Stored as set for O(1) lookup performance
+    KNOWN_EXPENSE_SERVICES = {
         # Payment processors
         "PAYPAL", "STRIPE", "SQUARE", "WORLDPAY", "SAGEPAY",
         # BNPL services (already in debt patterns but listed for clarity)
@@ -106,7 +107,7 @@ class TransactionCategorizer:
         # HCSTC Lenders (already in debt patterns but listed for clarity)
         "LENDING STREAM", "LENDINGSTREAM", "MONEYBOAT", "DRAFTY",
         "CASHFLOAT", "QUIDMARKET", "MR LENDER", "MRLENDER",
-    ]
+    }
     
     def __init__(self):
         """Initialize the categorizer with pattern dictionaries."""
@@ -230,16 +231,9 @@ class TransactionCategorizer:
             plaid_cat_upper = (plaid_category or "").upper()
             plaid_primary_upper = (plaid_category_primary or "").upper()
             
-            # Check for LOAN-related categories (these are NEVER income, even with keywords)
-            if "LOAN" in plaid_cat_upper or "LOAN" in plaid_primary_upper:
-                # This is a loan disbursement or related transaction
-                # Let it fall through to other categorization logic
-                # (it will be caught as expense/other or transfer)
-                pass
-            
             # Check for TRANSFER_IN with CASH_ADVANCES or LOANS
             # These are loan disbursements, not income
-            elif "CASH_ADVANCES" in plaid_cat_upper or "ADVANCES" in plaid_cat_upper:
+            if "CASH_ADVANCES" in plaid_cat_upper or "ADVANCES" in plaid_cat_upper:
                 # This is likely a cash advance or loan disbursement
                 return CategoryMatch(
                     category="transfer",
