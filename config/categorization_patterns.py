@@ -89,6 +89,31 @@ INCOME_PATTERNS = {
         "is_stable": False,
         "description": "Gig Economy Income"
     },
+    "loans": {
+        "keywords": [
+            "LOAN PAYMENT", "LOAN REPAYMENT", "LOAN DISBURSEMENT",
+            "PERSONAL LOAN", "UNSECURED LOAN", "GUARANTOR LOAN",
+            "MR LENDER", "LENDABLE", "ZOPA", "TOTALSA", "AQUA",
+            "VISA DIRECT PAYMENT", "LOAN REVERSAL", "LOAN REFUND"
+        ],
+        "regex_patterns": [
+            r"(?i)loan\s*(payment|repayment|disbursement)",
+            r"(?i)personal\s*loan",
+            r"(?i)unsecured\s*loan",
+            r"(?i)guarantor\s*loan",
+            r"(?i)mr\s*lender",
+            r"(?i)lendable",
+            r"(?i)\bzopa\b",
+            r"(?i)totalsa",
+            r"(?i)\baqua\b",
+            r"(?i)visa\s*direct\s*payment",
+            r"(?i)(loan|loans)\s*(reversal|refund)",
+            r"(?i)reversal\s*of.*\bloan",
+        ],
+        "weight": 0.0,  # Not counted as income
+        "is_stable": False,
+        "description": "Loan Payments/Disbursements"
+    },
 }
 
 # Transfer patterns (NOT counted as income)
