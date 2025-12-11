@@ -107,6 +107,9 @@ class TransactionCategorizer:
         # HCSTC Lenders (already in debt patterns but listed for clarity)
         "LENDING STREAM", "LENDINGSTREAM", "MONEYBOAT", "DRAFTY",
         "CASHFLOAT", "QUIDMARKET", "MR LENDER", "MRLENDER",
+        # Additional loan providers
+        "LENDABLE", "ZOPA", "TOTALSA", "AQUA", "HSBC LOANS",
+        "VISA DIRECT PAYMENT", "BARCLAYS CASHBACK",
     }
     
     def __init__(self):
@@ -202,16 +205,29 @@ class TransactionCategorizer:
             if service in combined_text:
                 # This is a known expense service - check if it's actually a refund/credit
                 # If PLAID says it's a transfer or loan, trust that
-                if plaid_category_primary and "TRANSFER" in plaid_category_primary.upper():
-                    return CategoryMatch(
-                        category="transfer",
-                        subcategory="internal",
-                        confidence=0.90,
-                        description="Internal Transfer",
-                        match_method="plaid",
-                        weight=0.0,
-                        is_stable=False
-                    )
+                if plaid_category_primary:
+                    plaid_primary_upper = plaid_category_primary.upper()
+                    if "TRANSFER" in plaid_primary_upper:
+                        return CategoryMatch(
+                            category="transfer",
+                            subcategory="internal",
+                            confidence=0.90,
+                            description="Internal Transfer",
+                            match_method="plaid",
+                            weight=0.0,
+                            is_stable=False
+                        )
+                    # CRITICAL: Check for LOAN_PAYMENTS to prevent loan disbursements from being income
+                    if "LOAN_PAYMENTS" in plaid_primary_upper:
+                        return CategoryMatch(
+                            category="income",
+                            subcategory="loans",
+                            confidence=0.95,
+                            description="Loan Payments/Disbursements",
+                            match_method="plaid",
+                            weight=0.0,
+                            is_stable=False
+                        )
                 # Otherwise default to other income with low confidence
                 # (could be a refund or reimbursement)
                 return CategoryMatch(
@@ -230,6 +246,20 @@ class TransactionCategorizer:
         if plaid_category or plaid_category_primary:
             plaid_cat_upper = (plaid_category or "").upper()
             plaid_primary_upper = (plaid_category_primary or "").upper()
+            
+            # Check for LOAN_PAYMENTS category - these are loan disbursements/refunds, NOT income
+            # CRITICAL: This must be checked BEFORE keyword-based income detection to prevent
+            # loan disbursements from being miscategorized as salary/income
+            if "LOAN_PAYMENTS" in plaid_primary_upper or "LOAN_PAYMENTS" in plaid_cat_upper:
+                return CategoryMatch(
+                    category="income",
+                    subcategory="loans",
+                    confidence=0.95,
+                    description="Loan Payments/Disbursements",
+                    match_method="plaid",
+                    weight=0.0,  # Not counted as income
+                    is_stable=False
+                )
             
             # Check for TRANSFER_IN with CASH_ADVANCES or LOANS
             # These are loan disbursements, not income
@@ -909,16 +939,29 @@ class TransactionCategorizer:
         # STEP 0: Check if this is a known expense service (same as non-batch)
         for service in self.KNOWN_EXPENSE_SERVICES:
             if service in combined_text:
-                if plaid_category_primary and "TRANSFER" in plaid_category_primary.upper():
-                    return CategoryMatch(
-                        category="transfer",
-                        subcategory="internal",
-                        confidence=0.90,
-                        description="Internal Transfer",
-                        match_method="plaid",
-                        weight=0.0,
-                        is_stable=False
-                    )
+                if plaid_category_primary:
+                    plaid_primary_upper = plaid_category_primary.upper()
+                    if "TRANSFER" in plaid_primary_upper:
+                        return CategoryMatch(
+                            category="transfer",
+                            subcategory="internal",
+                            confidence=0.90,
+                            description="Internal Transfer",
+                            match_method="plaid",
+                            weight=0.0,
+                            is_stable=False
+                        )
+                    # CRITICAL: Check for LOAN_PAYMENTS to prevent loan disbursements from being income
+                    if "LOAN_PAYMENTS" in plaid_primary_upper:
+                        return CategoryMatch(
+                            category="income",
+                            subcategory="loans",
+                            confidence=0.95,
+                            description="Loan Payments/Disbursements",
+                            match_method="plaid",
+                            weight=0.0,
+                            is_stable=False
+                        )
                 return CategoryMatch(
                     category="income",
                     subcategory="other",
@@ -933,6 +976,18 @@ class TransactionCategorizer:
         if plaid_category or plaid_category_primary:
             plaid_cat_upper = (plaid_category or "").upper()
             plaid_primary_upper = (plaid_category_primary or "").upper()
+            
+            # Check for LOAN_PAYMENTS category - these are loan disbursements/refunds, NOT income
+            if "LOAN_PAYMENTS" in plaid_primary_upper or "LOAN_PAYMENTS" in plaid_cat_upper:
+                return CategoryMatch(
+                    category="income",
+                    subcategory="loans",
+                    confidence=0.95,
+                    description="Loan Payments/Disbursements",
+                    match_method="plaid",
+                    weight=0.0,
+                    is_stable=False
+                )
             
             if "CASH_ADVANCES" in plaid_cat_upper or "ADVANCES" in plaid_cat_upper:
                 return CategoryMatch(
