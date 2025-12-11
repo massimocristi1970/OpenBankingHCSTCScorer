@@ -155,82 +155,51 @@ def run_open_banking_scoring(
         >>> print(f"Decision: {result.decision}")
         >>> print(f"Score: {result.score}")
     """
-    # Step 1: Categorize all transactions
-    categorizer = TransactionCategorizer()
-    categorized_transactions = []
-    
+    # Step 1: Normalize transaction keys for compatibility
+    # The categorizer expects 'name' but we receive 'description'
+    normalized_transactions = []
     for txn in transactions:
-        category_match = categorizer.categorize_transaction(
-            description=txn.get("description", ""),
-            amount=txn.get("amount", 0.0),
-            merchant_name=txn.get("merchant_name"),
-            plaid_category=txn.get("plaid_category"),
-            plaid_category_primary=txn.get("plaid_category_primary")
-        )
-        
-        # Add categorization to transaction
-        categorized_txn = txn.copy()
-        categorized_txn.update({
-            "category": category_match.category,
-            "subcategory": category_match.subcategory,
-            "confidence": category_match.confidence,
-            "match_method": category_match.match_method,
-            "risk_level": category_match.risk_level,
-            "weight": category_match.weight,
-            "is_stable": category_match.is_stable,
-            "is_housing": category_match.is_housing,
-        })
-        categorized_transactions.append(categorized_txn)
+        norm_txn = txn.copy()
+        # Map 'description' to 'name' if needed
+        if "description" in norm_txn and "name" not in norm_txn:
+            norm_txn["name"] = norm_txn["description"]
+        normalized_transactions.append(norm_txn)
     
-    # Step 2: Calculate financial metrics
-    calculator = MetricsCalculator()
+    # Step 2: Categorize all transactions
+    categorizer = TransactionCategorizer()
+    categorized = categorizer.categorize_transactions(normalized_transactions)
+    category_summary = categorizer.get_category_summary(categorized)
     
-    # Calculate metrics
-    income_metrics = calculator.calculate_income_metrics(
-        categorized_transactions,
-        months_of_data
+    # Step 3: Calculate financial metrics
+    calculator = MetricsCalculator(months_of_data=months_of_data)
+    
+    # Extract accounts from transactions (optional, for balance metrics)
+    accounts = []
+    
+    # Calculate all metrics
+    metrics = calculator.calculate_all_metrics(
+        category_summary=category_summary,
+        transactions=normalized_transactions,
+        accounts=accounts,
+        loan_amount=loan_amount,
+        loan_term=loan_term
     )
     
-    expense_metrics = calculator.calculate_expense_metrics(
-        categorized_transactions,
-        months_of_data
-    )
+    income_metrics = metrics["income"]
+    expense_metrics = metrics["expenses"]
+    debt_metrics = metrics["debt"]
+    affordability_metrics = metrics["affordability"]
+    balance_metrics = metrics["balance"]
+    risk_metrics = metrics["risk"]
     
-    debt_metrics = calculator.calculate_debt_metrics(
-        categorized_transactions,
-        months_of_data
-    )
-    
-    affordability_metrics = calculator.calculate_affordability_metrics(
-        income_metrics,
-        expense_metrics,
-        debt_metrics,
-        loan_amount,
-        loan_term
-    )
-    
-    balance_metrics = calculator.calculate_balance_metrics(
-        categorized_transactions
-    )
-    
-    risk_metrics = calculator.calculate_risk_metrics(
-        categorized_transactions,
-        income_metrics.monthly_income
-    )
-    
-    # Step 3: Apply scoring engine
+    # Step 4: Apply scoring engine
     scoring_engine = ScoringEngine()
     
     result = scoring_engine.score_application(
-        application_ref=application_ref,
-        loan_amount=loan_amount,
-        loan_term=loan_term,
-        income_metrics=income_metrics,
-        expense_metrics=expense_metrics,
-        debt_metrics=debt_metrics,
-        affordability_metrics=affordability_metrics,
-        balance_metrics=balance_metrics,
-        risk_metrics=risk_metrics
+        metrics=metrics,
+        requested_amount=loan_amount,
+        requested_term=loan_term,
+        application_ref=application_ref
     )
     
     return result
