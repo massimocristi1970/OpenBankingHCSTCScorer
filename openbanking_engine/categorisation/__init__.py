@@ -1,7 +1,7 @@
 """
-Categorisation Module for HCSTC Scoring Engine.
+Categorisation Module for HCSTC Scoring Engine.   
 
-Orchestrates transaction categorization through:
+Orchestrates transaction categorization through:   
 - Preprocessing (normalization, transfer detection)
 - Pattern matching (keyword and regex-based)
 - PFC mapping (Plaid Personal Finance Category)
@@ -9,11 +9,19 @@ Orchestrates transaction categorization through:
 """
 
 from .engine import TransactionCategorizer, CategoryMatch
-from .preprocess import normalize_text, detect_internal_transfers, apply_pfc_mapping
+from .preprocess import (
+    normalize_text,
+    normalize_hcstc_lender,
+    combine_description_merchant,
+    is_internal_transfer,
+    map_pfc_to_category,
+    HCSTC_LENDER_CANONICAL_NAMES,
+)
 from .pattern_matching import (
-    match_keywords,
-    match_regex_patterns,
-    match_pattern_dict,
+    match_patterns,
+    match_keyword_list,
+    match_regex_list,
+    fuzzy_match_keywords,
 )
 
 __all__ = [
@@ -22,10 +30,14 @@ __all__ = [
     "CategoryMatch",
     # Preprocessing utilities
     "normalize_text",
-    "detect_internal_transfers",
-    "apply_pfc_mapping",
+    "normalize_hcstc_lender",
+    "combine_description_merchant",
+    "is_internal_transfer",
+    "map_pfc_to_category",
+    "HCSTC_LENDER_CANONICAL_NAMES",
     # Pattern matching utilities
-    "match_keywords",
-    "match_regex_patterns",
-    "match_pattern_dict",
+    "match_patterns",
+    "match_keyword_list",
+    "match_regex_list",
+    "fuzzy_match_keywords",
 ]
