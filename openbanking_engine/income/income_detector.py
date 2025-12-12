@@ -86,6 +86,19 @@ class IncomeDetector:
     LONG_NUMBER_THRESHOLD = 8  # Remove number sequences with 8+ digits
     LONG_ID_THRESHOLD = 12  # Remove alphanumeric IDs with 12+ characters
     
+    # Payment frequency thresholds (in days)
+    # These define the acceptable ranges for different payment cadences
+    WEEKLY_MIN_DAYS = 5        # Weekly payments: 7 days ±2 days tolerance
+    WEEKLY_MAX_DAYS = 9
+    FORTNIGHTLY_MIN_DAYS = 11  # Fortnightly payments: 14 days ±3 days tolerance
+    FORTNIGHTLY_MAX_DAYS = 17
+    MONTHLY_MIN_DAYS = 25      # Monthly payments: 28-31 days ±3 days tolerance
+    MONTHLY_MAX_DAYS = 35
+    
+    # Variance thresholds for salary detection
+    SALARY_TIGHT_VARIANCE = 0.05  # 5% variance for tight patterns (monthly with consistent day)
+    SALARY_LOOSE_VARIANCE = 0.30  # 30% variance for other recurring patterns
+    
     def __init__(self, min_amount: float = 50.0, min_occurrences: int = 3):
         """
         Initialize the income detector.
@@ -189,12 +202,10 @@ class IncomeDetector:
                 
                 avg_interval = sum(intervals) / len(intervals)
                 
-                # Check if interval matches common pay periods
-                # Weekly: 7±2 days, Fortnightly: 14±3 days, 
-                # Monthly: 28-31 days, 4-weekly: 28±3 days
-                is_weekly = 5 <= avg_interval <= 9
-                is_fortnightly = 11 <= avg_interval <= 17
-                is_monthly = 25 <= avg_interval <= 35
+                # Check if interval matches common pay periods using class constants
+                is_weekly = self.WEEKLY_MIN_DAYS <= avg_interval <= self.WEEKLY_MAX_DAYS
+                is_fortnightly = self.FORTNIGHTLY_MIN_DAYS <= avg_interval <= self.FORTNIGHTLY_MAX_DAYS
+                is_monthly = self.MONTHLY_MIN_DAYS <= avg_interval <= self.MONTHLY_MAX_DAYS
                 
                 is_regular_interval = is_weekly or is_fortnightly or is_monthly
                 
@@ -212,15 +223,14 @@ class IncomeDetector:
                         day_of_month_consistent = True
                 
                 # Apply stricter variance threshold for salary-like patterns
-                # Salary: 5% variance for monthly with consistent day
-                # Other recurring: 30% variance
+                # Use class constants for variance thresholds
                 if is_monthly and day_of_month_consistent:
                     # Tight variance for salary-like monthly payments
-                    if amount_variance > 0.05:  # More than 5% variance
+                    if amount_variance > self.SALARY_TIGHT_VARIANCE:
                         continue
                 else:
                     # Standard variance for other recurring payments
-                    if amount_variance > 0.30:  # More than 30% variance
+                    if amount_variance > self.SALARY_LOOSE_VARIANCE:
                         continue
             else:
                 avg_interval = 0
@@ -337,10 +347,11 @@ class IncomeDetector:
         # Check for payroll patterns
         if self.matches_payroll_patterns(description):
             # Higher confidence for weekly/fortnightly (typical salary patterns)
-            if 5 <= frequency_days <= 9 or 11 <= frequency_days <= 17:
+            if (self.WEEKLY_MIN_DAYS <= frequency_days <= self.WEEKLY_MAX_DAYS or 
+                self.FORTNIGHTLY_MIN_DAYS <= frequency_days <= self.FORTNIGHTLY_MAX_DAYS):
                 return ("salary", min(0.95, base_confidence + 0.25))
             # Monthly salary with consistent day
-            elif 25 <= frequency_days <= 35:
+            elif self.MONTHLY_MIN_DAYS <= frequency_days <= self.MONTHLY_MAX_DAYS:
                 if day_of_month_consistent:
                     return ("salary", min(0.95, base_confidence + 0.30))
                 return ("salary", min(0.95, base_confidence + 0.20))
@@ -349,36 +360,51 @@ class IncomeDetector:
         # Check for benefits patterns
         if self.matches_benefit_patterns(description):
             # Benefits are typically monthly
-            if 25 <= frequency_days <= 35:
+            if self.MONTHLY_MIN_DAYS <= frequency_days <= self.MONTHLY_MAX_DAYS:
                 return ("benefits", min(0.95, base_confidence + 0.25))
             return ("benefits", min(0.90, base_confidence + 0.15))
         
         # Check for pension patterns
         if self._matches_pension_patterns(description):
             # Pensions are typically monthly
-            if 25 <= frequency_days <= 35:
+            if self.MONTHLY_MIN_DAYS <= frequency_days <= self.MONTHLY_MAX_DAYS:
                 return ("pension", min(0.95, base_confidence + 0.25))
             return ("pension", min(0.90, base_confidence + 0.15))
         
         # Check for company name patterns (LTD, PLC, etc.)
         if re.search(r'\b(LTD|LIMITED|PLC|CORP|CORPORATION|INC)\b', desc_upper):
             # Likely employer payment
-            if 25 <= frequency_days <= 35:  # Monthly
+            if self.MONTHLY_MIN_DAYS <= frequency_days <= self.MONTHLY_MAX_DAYS:
                 if day_of_month_consistent:
                     # Monthly payment from company with consistent day = very likely salary
                     return ("salary", min(0.90, base_confidence + 0.25))
                 return ("salary", min(0.85, base_confidence + 0.15))
-            elif 11 <= frequency_days <= 17:  # Fortnightly
+            elif self.FORTNIGHTLY_MIN_DAYS <= frequency_days <= self.FORTNIGHTLY_MAX_DAYS:
                 return ("salary", min(0.85, base_confidence + 0.15))
             return ("salary", min(0.75, base_confidence + 0.10))
         
+        # Behavioral salary detection (no explicit keywords required)
         # Regular payment with reasonable amount (£200+) and monthly cadence with consistent day
-        if amount >= 200 and 25 <= frequency_days <= 35 and day_of_month_consistent:
+        # Note: Tight variance (<= 5%) is already enforced in find_recurring_income_sources()
+        # for monthly patterns with day_of_month_consistent=True
+        if amount >= 200 and self.MONTHLY_MIN_DAYS <= frequency_days <= self.MONTHLY_MAX_DAYS and day_of_month_consistent:
             # Likely salary even without explicit keywords
-            return ("salary", min(0.80, base_confidence + 0.15))
+            # Behavioral analysis shows tight variance + consistent day = salary pattern
+            return ("salary", min(0.95, base_confidence + 0.30))
+        
+        # Regular fortnightly payment with reasonable amount (£200+)
+        # Fortnightly is a common UK salary pattern
+        if amount >= 200 and self.FORTNIGHTLY_MIN_DAYS <= frequency_days <= self.FORTNIGHTLY_MAX_DAYS:
+            # Likely salary even without explicit keywords
+            return ("salary", min(0.90, base_confidence + 0.20))
+        
+        # Regular weekly payment with reasonable amount (£200+)
+        # Weekly is less common for salary but still used
+        if amount >= 200 and self.WEEKLY_MIN_DAYS <= frequency_days <= self.WEEKLY_MAX_DAYS:
+            return ("salary", min(0.85, base_confidence + 0.15))
         
         # Regular payment with reasonable amount (£200+) and monthly cadence
-        if amount >= 200 and 25 <= frequency_days <= 35:
+        if amount >= 200 and self.MONTHLY_MIN_DAYS <= frequency_days <= self.MONTHLY_MAX_DAYS:
             return ("unknown", min(0.70, base_confidence + 0.10))
         
         return ("unknown", base_confidence)
