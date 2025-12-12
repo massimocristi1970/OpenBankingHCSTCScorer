@@ -116,14 +116,13 @@ INCOME_PATTERNS = {
     },
     "refund": {
         "keywords": [
-            "REFUND", "REFUNDED", "REIMBURSEMENT",
-            "CASHBACK", "CREDIT ADJUSTMENT"
+            "REFUND", "REFUNDED", "RETURN", "CREDIT REVERSAL",
+            "RETURN CREDIT", "REFUND CREDIT"
         ],
         "regex_patterns": [
-            r"(?i)\brefund(ed)?\b",
-            
-            r"(?i)reimbursement",
-            r"(?i)cash\s*back",
+            r"(?i)refund",
+            r"(?i)credit\s*reversal",
+            r"(?i)return\s*credit",
         ],
         "weight": 1.0,
         "is_stable": False,

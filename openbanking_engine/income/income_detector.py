@@ -123,21 +123,28 @@ class IncomeDetector:
         self._transaction_index_map: Dict[int, RecurringIncomeSource] = {}
         self._cache_valid = False
     
+    # COMMENTED OUT - No longer used in PLAID-first approach
+    # Remove behavioral/recurring pattern detection (Pragmatic Fix)
     def find_recurring_income_sources(
         self, 
         transactions: List[Dict]
     ) -> List[RecurringIncomeSource]:
         """
-        Find recurring income sources by analyzing transaction patterns.
+        [DEPRECATED] Find recurring income sources by analyzing transaction patterns.
         
-        Groups similar transactions by amount and description, then identifies
-        those with regular intervals (weekly, fortnightly, monthly, etc.).
+        This method is no longer used in the simplified PLAID-first approach.
+        Kept for backward compatibility only.
         
         Args:
             transactions: List of transaction dictionaries with 'amount', 'date', 'name'
         
         Returns:
-            List of RecurringIncomeSource objects
+            Empty list (behavioral detection disabled)
+        """
+        # Return empty list - behavioral detection disabled
+        return []
+        
+        # Original implementation commented out
         """
         # Filter to credit transactions (negative amounts in PLAID format)
         # and above minimum amount threshold
@@ -267,6 +274,7 @@ class IncomeDetector:
         recurring_sources.sort(key=lambda x: x.confidence, reverse=True)
         
         return recurring_sources
+        """
     
     def _normalize_description(self, description: str) -> str:
         """
@@ -311,6 +319,7 @@ class IncomeDetector:
         
         return desc
     
+    # COMMENTED OUT - No longer used in PLAID-first approach
     def _classify_income_source(
         self, 
         description: str, 
@@ -320,7 +329,10 @@ class IncomeDetector:
         day_of_month_consistent: bool = False
     ) -> Tuple[str, float]:
         """
-        Classify income source type and calculate confidence.
+        [DEPRECATED] Classify income source type and calculate confidence.
+        
+        This method is no longer used in the simplified PLAID-first approach.
+        Kept for backward compatibility only.
         
         Args:
             description: Normalized transaction description
@@ -331,6 +343,11 @@ class IncomeDetector:
         
         Returns:
             Tuple of (source_type, confidence)
+        """
+        # Return default - behavioral classification disabled
+        return ("unknown", 0.0)
+        
+        # Original implementation commented out
         """
         desc_upper = description.upper()
         
@@ -408,6 +425,7 @@ class IncomeDetector:
             return ("unknown", min(0.70, base_confidence + 0.10))
         
         return ("unknown", base_confidence)
+        """
     
     def matches_payroll_patterns(self, description: str) -> bool:
         """
@@ -489,21 +507,21 @@ class IncomeDetector:
         current_txn_index: Optional[int] = None
     ) -> Tuple[bool, float, str]:
         """
-        Determine if a transaction is likely income using combined heuristics.
+        Determine if a transaction is likely income using PLAID-first approach.
         
-        This is the main entry point for income detection. It combines:
-        1. PLAID category analysis (if INCOME category, high confidence)
-        2. Keyword matching (payroll, benefits, pension)
-        3. Recurring pattern detection (if full transaction list provided)
-        4. Exclusion rules (transfers, loans)
+        SIMPLIFIED APPROACH (Pragmatic Fix):
+        1. Check PLAID INCOME_WAGES first → return (True, 0.95, "plaid_income_wages")
+        2. Check PLAID INCOME category → return (True, 0.85, "plaid_income_general")
+        3. Otherwise, fall back to keyword matching in categorization engine
+        4. NO behavioral/recurring pattern logic
         
         Args:
             description: Transaction description
             amount: Transaction amount (should be negative for credits)
             plaid_category_primary: PLAID primary category
             plaid_category_detailed: PLAID detailed category
-            all_transactions: Optional full transaction list for pattern analysis
-            current_txn_index: Index of current transaction in all_transactions
+            all_transactions: NOT USED (kept for backward compatibility)
+            current_txn_index: NOT USED (kept for backward compatibility)
         
         Returns:
             Tuple of (is_likely_income, confidence, reason)
@@ -511,110 +529,44 @@ class IncomeDetector:
         if amount >= 0:  # Not a credit
             return (False, 0.0, "not_credit")
         
-        desc_upper = description.upper() if description else ""
-        
-        # 1. Check for exclusions first
-        for keyword in self.EXCLUSION_KEYWORDS:
-            if keyword in desc_upper:
-                return (False, 0.0, "internal_transfer")
-        
-        for keyword in self.LOAN_KEYWORDS:
-            if keyword in desc_upper:
-                return (False, 0.0, "loan_disbursement")
-        
-        # 2. Check PLAID INCOME category (highest priority)
+        # 1. Check PLAID INCOME_WAGES first (highest confidence)
         if plaid_category_detailed:
             detailed_upper = plaid_category_detailed.upper()
+            if "INCOME_WAGES" in detailed_upper:
+                return (True, 0.95, "plaid_income_wages")
+            # Check for other specific income types in detailed category
             if "INCOME" in detailed_upper:
-                # Return specific reason based on detailed category
-                if "WAGES" in detailed_upper or "SALARY" in detailed_upper or "PAYROLL" in detailed_upper:
-                    return (True, 0.95, "plaid_income_salary")
+                if "SALARY" in detailed_upper or "PAYROLL" in detailed_upper:
+                    return (True, 0.95, "plaid_income_wages")
                 elif "BENEFIT" in detailed_upper or "GOVERNMENT" in detailed_upper:
-                    return (True, 0.95, "plaid_income_benefits")
+                    return (True, 0.85, "plaid_income_general")
                 elif "PENSION" in detailed_upper or "RETIREMENT" in detailed_upper:
-                    return (True, 0.95, "plaid_income_pension")
+                    return (True, 0.85, "plaid_income_general")
                 else:
-                    return (True, 0.95, "plaid_income_category")
+                    return (True, 0.85, "plaid_income_general")
         
+        # 2. Check PLAID primary category for INCOME
         if plaid_category_primary:
             if "INCOME" in plaid_category_primary.upper():
-                return (True, 0.95, "plaid_income_category")
+                return (True, 0.85, "plaid_income_general")
         
-        # 3. Check keyword matching (high confidence)
-        if self.matches_payroll_patterns(description):
-            return (True, 0.90, "payroll_keywords")
-        
-        if self.matches_benefit_patterns(description):
-            return (True, 0.90, "benefit_keywords")
-        
-        if self._matches_pension_patterns(description):
-            return (True, 0.90, "pension_keywords")
-        
-        # 4. Check for company name patterns
-        if re.search(r'\b(LTD|LIMITED|PLC|CORP|CORPORATION|INC)\b', desc_upper):
-            # Company payment, but check it's not marked as transfer by PLAID
-            if plaid_category_primary and "TRANSFER" in plaid_category_primary.upper():
-                # Company name but PLAID says transfer - need more evidence
-                if abs(amount) >= self.LARGE_PAYMENT_THRESHOLD:  # Large regular amount
-                    return (True, 0.75, "company_payment_large_amount")
-                return (False, 0.0, "company_transfer_ambiguous")
-            return (True, 0.80, "company_payment")
-        
-        # 5. Check recurring patterns if full transaction list provided
-        if all_transactions and current_txn_index is not None:
-            recurring_sources = self.find_recurring_income_sources(all_transactions)
-            
-            # Check if current transaction is part of a recurring pattern
-            for source in recurring_sources:
-                if current_txn_index in source.transaction_indices:
-                    if source.confidence >= 0.70:
-                        return (True, source.confidence, f"recurring_{source.source_type}")
-        
-        # 6. If PLAID says TRANSFER but no other indicators, not income
-        if plaid_category_primary and "TRANSFER" in plaid_category_primary.upper():
-            return (False, 0.0, "plaid_transfer_category")
-        
-        if plaid_category_detailed and "TRANSFER" in plaid_category_detailed.upper():
-            return (False, 0.0, "plaid_transfer_category")
-        
-        # 7. Default: unknown
-        return (False, 0.0, "insufficient_evidence")
+        # 3. Fall back to keyword matching (handled by categorization engine)
+        # Return False here to let the engine handle it
+        return (False, 0.0, "no_plaid_income")
     
+    # COMMENTED OUT - No longer used in PLAID-first approach
     def analyze_batch(self, transactions: List[Dict]) -> None:
         """
-        Analyze a batch of transactions to detect recurring income patterns.
+        [DEPRECATED] Analyze a batch of transactions to detect recurring income patterns.
         
-        This method should be called once before categorizing multiple transactions
-        from the same dataset. It caches recurring pattern detection results to
-        avoid repeated expensive analysis.
+        This method is no longer used in the simplified PLAID-first approach.
+        Kept for backward compatibility only - does nothing.
         
         Args:
-            transactions: List of transaction dictionaries with 'amount', 'date', 'name'
-        
-        Example:
-            >>> detector = IncomeDetector()
-            >>> detector.analyze_batch(all_transactions)
-            >>> # Now categorize individual transactions efficiently
-            >>> for idx, txn in enumerate(all_transactions):
-            ...     is_income, conf, reason = detector.is_likely_income_from_batch(
-            ...         description=txn['name'],
-            ...         amount=txn['amount'],
-            ...         transaction_index=idx
-            ...     )
+            transactions: List of transaction dictionaries (NOT USED)
         """
-        self._cached_recurring_sources = self.find_recurring_income_sources(transactions)
-        
-        # Build index map for O(1) transaction lookup
-        self._transaction_index_map = {}
-        for source in self._cached_recurring_sources:
-            for txn_idx in source.transaction_indices:
-                # Map each transaction index to its source
-                # If multiple sources match same transaction, keep highest confidence
-                if txn_idx not in self._transaction_index_map or \
-                   source.confidence > self._transaction_index_map[txn_idx].confidence:
-                    self._transaction_index_map[txn_idx] = source
-        
-        self._cache_valid = True
+        # Do nothing - behavioral detection disabled
+        pass
     
     def clear_batch_cache(self) -> None:
         """
@@ -635,86 +587,25 @@ class IncomeDetector:
         plaid_category_detailed: Optional[str] = None
     ) -> Tuple[bool, float, str]:
         """
-        Determine if a transaction is likely income using cached batch patterns.
+        Determine if a transaction is likely income using PLAID-first approach.
         
-        This method is optimized for batch processing. It uses pre-computed
-        recurring patterns from analyze_batch() for better performance.
+        SIMPLIFIED APPROACH (Pragmatic Fix):
+        Same as is_likely_income() - no batch-specific logic needed.
         
         Args:
             description: Transaction description
             amount: Transaction amount (should be negative for credits)
-            transaction_index: Index of transaction in the batch
+            transaction_index: NOT USED (kept for backward compatibility)
             plaid_category_primary: PLAID primary category
             plaid_category_detailed: PLAID detailed category
         
         Returns:
             Tuple of (is_likely_income, confidence, reason)
-        
-        Note:
-            Call analyze_batch() first to populate the cache, or this method
-            will fall back to single-transaction analysis.
         """
-        if amount >= 0:  # Not a credit
-            return (False, 0.0, "not_credit")
-        
-        desc_upper = description.upper() if description else ""
-        
-        # 1. Check for exclusions first
-        for keyword in self.EXCLUSION_KEYWORDS:
-            if keyword in desc_upper:
-                return (False, 0.0, "internal_transfer")
-        
-        for keyword in self.LOAN_KEYWORDS:
-            if keyword in desc_upper:
-                return (False, 0.0, "loan_disbursement")
-        
-        # 2. Check PLAID INCOME category (highest priority)
-        if plaid_category_detailed:
-            detailed_upper = plaid_category_detailed.upper()
-            if "INCOME" in detailed_upper:
-                if "WAGES" in detailed_upper or "SALARY" in detailed_upper or "PAYROLL" in detailed_upper:
-                    return (True, 0.95, "plaid_income_salary")
-                elif "BENEFIT" in detailed_upper or "GOVERNMENT" in detailed_upper:
-                    return (True, 0.95, "plaid_income_benefits")
-                elif "PENSION" in detailed_upper or "RETIREMENT" in detailed_upper:
-                    return (True, 0.95, "plaid_income_pension")
-                else:
-                    return (True, 0.95, "plaid_income_category")
-        
-        if plaid_category_primary:
-            if "INCOME" in plaid_category_primary.upper():
-                return (True, 0.95, "plaid_income_category")
-        
-        # 3. Check keyword matching (high confidence)
-        if self.matches_payroll_patterns(description):
-            return (True, 0.90, "payroll_keywords")
-        
-        if self.matches_benefit_patterns(description):
-            return (True, 0.90, "benefit_keywords")
-        
-        if self._matches_pension_patterns(description):
-            return (True, 0.90, "pension_keywords")
-        
-        # 4. Check for company name patterns
-        if re.search(r'\b(LTD|LIMITED|PLC|CORP|CORPORATION|INC)\b', desc_upper):
-            if plaid_category_primary and "TRANSFER" in plaid_category_primary.upper():
-                if abs(amount) >= self.LARGE_PAYMENT_THRESHOLD:
-                    return (True, 0.75, "company_payment_large_amount")
-                return (False, 0.0, "company_transfer_ambiguous")
-            return (True, 0.80, "company_payment")
-        
-        # 5. Check cached recurring patterns (OPTIMIZED - O(1) lookup via index map)
-        if self._cache_valid and transaction_index in self._transaction_index_map:
-            source = self._transaction_index_map[transaction_index]
-            if source.confidence >= 0.70:
-                return (True, source.confidence, f"recurring_{source.source_type}")
-        
-        # 6. If PLAID says TRANSFER but no other indicators, not income
-        if plaid_category_primary and "TRANSFER" in plaid_category_primary.upper():
-            return (False, 0.0, "plaid_transfer_category")
-        
-        if plaid_category_detailed and "TRANSFER" in plaid_category_detailed.upper():
-            return (False, 0.0, "plaid_transfer_category")
-        
-        # 7. Default: unknown
-        return (False, 0.0, "insufficient_evidence")
+        # Just delegate to the simplified is_likely_income method
+        return self.is_likely_income(
+            description=description,
+            amount=amount,
+            plaid_category_primary=plaid_category_primary,
+            plaid_category_detailed=plaid_category_detailed
+        )
