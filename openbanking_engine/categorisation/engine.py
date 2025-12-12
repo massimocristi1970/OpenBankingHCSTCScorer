@@ -309,7 +309,9 @@ class TransactionCategorizer:
                     confidence=0.7,
                     description="Other Income",
                     match_method=f"plaid_{reason}",
-                    weight=0.5,  # Lower weight for uncertain income
+                    # Weight 0.5 for unverifiable income (vs 1.0 for stable salary)
+                    # This reflects that non-salary income is less reliable for affordability
+                    weight=0.5,
                     is_stable=False
                 )
         
@@ -361,7 +363,9 @@ class TransactionCategorizer:
             confidence=0.5,
             description="Other Income",
             match_method="default",
-            weight=0.5,  # Lower weight for unverifiable income
+            # Weight 0.5 for unverifiable income (vs 1.0 for stable salary)
+            # This reflects that unknown income sources are less reliable for affordability
+            weight=0.5,
             is_stable=False
         )
     

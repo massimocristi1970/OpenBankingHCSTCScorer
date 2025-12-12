@@ -123,8 +123,6 @@ class IncomeDetector:
         self._transaction_index_map: Dict[int, RecurringIncomeSource] = {}
         self._cache_valid = False
     
-    # COMMENTED OUT - No longer used in PLAID-first approach
-    # Remove behavioral/recurring pattern detection (Pragmatic Fix)
     def find_recurring_income_sources(
         self, 
         transactions: List[Dict]
@@ -133,19 +131,15 @@ class IncomeDetector:
         [DEPRECATED] Find recurring income sources by analyzing transaction patterns.
         
         This method is no longer used in the simplified PLAID-first approach.
-        Kept for backward compatibility only.
+        Returns empty list for backward compatibility only.
         
         Args:
-            transactions: List of transaction dictionaries with 'amount', 'date', 'name'
+            transactions: List of transaction dictionaries (NOT USED)
         
         Returns:
-            Empty list (behavioral detection disabled)
+            Empty list (behavioral detection disabled in Pragmatic Fix)
         """
-        # Return empty list - behavioral detection disabled
         return []
-        
-        # Original implementation commented out
-        """
         # Filter to credit transactions (negative amounts in PLAID format)
         # and above minimum amount threshold
         income_candidates = []
@@ -273,8 +267,7 @@ class IncomeDetector:
         # Sort by confidence (highest first)
         recurring_sources.sort(key=lambda x: x.confidence, reverse=True)
         
-        return recurring_sources
-        """
+
     
     def _normalize_description(self, description: str) -> str:
         """
@@ -319,7 +312,6 @@ class IncomeDetector:
         
         return desc
     
-    # COMMENTED OUT - No longer used in PLAID-first approach
     def _classify_income_source(
         self, 
         description: str, 
@@ -332,23 +324,19 @@ class IncomeDetector:
         [DEPRECATED] Classify income source type and calculate confidence.
         
         This method is no longer used in the simplified PLAID-first approach.
-        Kept for backward compatibility only.
+        Returns default values for backward compatibility only.
         
         Args:
-            description: Normalized transaction description
-            amount: Average amount
-            occurrence_count: Number of occurrences
-            frequency_days: Average days between payments
-            day_of_month_consistent: Whether payment day is consistent (±3 days)
+            description: NOT USED
+            amount: NOT USED
+            occurrence_count: NOT USED
+            frequency_days: NOT USED
+            day_of_month_consistent: NOT USED
         
         Returns:
-            Tuple of (source_type, confidence)
+            Tuple of ("unknown", 0.0) - behavioral classification disabled
         """
-        # Return default - behavioral classification disabled
         return ("unknown", 0.0)
-        
-        # Original implementation commented out
-        """
         desc_upper = description.upper()
         
         # Check for exclusions first (these are NOT income)
@@ -424,8 +412,7 @@ class IncomeDetector:
         if amount >= 200 and self.MONTHLY_MIN_DAYS <= frequency_days <= self.MONTHLY_MAX_DAYS:
             return ("unknown", min(0.70, base_confidence + 0.10))
         
-        return ("unknown", base_confidence)
-        """
+
     
     def matches_payroll_patterns(self, description: str) -> bool:
         """
@@ -554,18 +541,16 @@ class IncomeDetector:
         # Return False here to let the engine handle it
         return (False, 0.0, "no_plaid_income")
     
-    # COMMENTED OUT - No longer used in PLAID-first approach
     def analyze_batch(self, transactions: List[Dict]) -> None:
         """
         [DEPRECATED] Analyze a batch of transactions to detect recurring income patterns.
         
         This method is no longer used in the simplified PLAID-first approach.
-        Kept for backward compatibility only - does nothing.
+        Does nothing - kept for backward compatibility only.
         
         Args:
             transactions: List of transaction dictionaries (NOT USED)
         """
-        # Do nothing - behavioral detection disabled
         pass
     
     def clear_batch_cache(self) -> None:
