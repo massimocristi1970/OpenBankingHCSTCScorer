@@ -28,3 +28,8 @@ large_test_transactions.json
 
 # Logs
 *.log
+
+# Backup files
+*.orig
+*.bak
+*~

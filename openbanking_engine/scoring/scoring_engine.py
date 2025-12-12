@@ -7,7 +7,7 @@ from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass, field
 from enum import Enum
 
-from ..config import SCORING_CONFIG, PRODUCT_CONFIG
+from ..config.scoring_config import SCORING_CONFIG, PRODUCT_CONFIG
 from .feature_builder import (
     IncomeMetrics,
     ExpenseMetrics,

@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from collections import defaultdict
 import statistics
 
-from ..config import PRODUCT_CONFIG
+from ..config.scoring_config import PRODUCT_CONFIG
 
 
 @dataclass

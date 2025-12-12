@@ -1,11 +1,11 @@
 """
-Scoring Configuration for HCSTC Loan Applications.
-
-Contains SCORING_CONFIG with weights, thresholds, hard decline rules, and
-PRODUCT_CONFIG with loan product parameters.
+Scoring configuration for HCSTC Loan Scoring.
+Contains scoring weights, thresholds, and decision rules.
 """
 
 # Scoring Configuration
+# NOTE: All point values have been rescaled by 1.75x (70/40) to shift passing threshold from ≥40 to ≥70
+# Maximum possible score is now 175 (previously 100)
 SCORING_CONFIG = {
     # Score ranges and decisions
     "score_ranges": {
