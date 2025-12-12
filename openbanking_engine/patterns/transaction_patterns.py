@@ -93,7 +93,7 @@ INCOME_PATTERNS = {
         "keywords": [
             "LOAN PAYMENT", "LOAN REPAYMENT", "LOAN DISBURSEMENT",
             "PERSONAL LOAN", "UNSECURED LOAN", "GUARANTOR LOAN",
-            "MR LENDER", "LENDABLE", "ZOPA", "TOTALSA", "AQUA",
+             "LENDABLE", "ZOPA", "TOTALSA", "AQUA",
             "VISA DIRECT PAYMENT", "LOAN REVERSAL", "LOAN REFUND"
         ],
         "regex_patterns": [
@@ -116,15 +116,12 @@ INCOME_PATTERNS = {
     },
     "refund": {
         "keywords": [
-            "REFUND", "REFUNDED", "RETURN", "RETURNED", 
-            "CREDIT REVERSAL", "REVERSAL", "REIMBURSEMENT",
+            "REFUND", "REFUNDED", "REIMBURSEMENT",
             "CASHBACK", "CREDIT ADJUSTMENT"
         ],
         "regex_patterns": [
             r"(?i)\brefund(ed)?\b",
-            r"(?i)\breturn(ed)?\b",
-            r"(?i)credit\s*(reversal|adjustment)",
-            r"(?i)\breversal\b",
+            
             r"(?i)reimbursement",
             r"(?i)cash\s*back",
         ],
@@ -470,46 +467,48 @@ RISK_PATTERNS = {
         "description": "Gambling"
     },
     "bank_charges": {
-        "keywords": [
-            "UNPAID ITEM CHARGE", "UNPAID TRANSACTION FEE", "RETURNED ITEM FEE",
-            "RETURNED DD FEE", "UNPAID DD CHARGE", "UNPAID SO CHARGE",
-            "ITEM CHARGE", "TRANSACTION FEE", "BOUNCE FEE", "RETURNED PAYMENT FEE",
-            "INSUFFICIENT FUNDS FEE", "NSF FEE", "OVERDRAFT FEE", "PENALTY CHARGE",
-            "UNPAID CHARGE", "RETURNED FEE", "ITEM FEE", "TRANSACTION CHARGE"
-        ],
-        "regex_patterns": [
-            r"(?i)unpaid\s*(item|transaction|dd|direct\s*debit|so|standing\s*order)?\s*(charge|fee)",
-            r"(?i)returned\s*(item|dd|direct\s*debit|payment)?\s*(charge|fee)",
-            r"(?i)bounce\s*(charge|fee)",
-            r"(?i)insufficient\s*funds\s*(charge|fee)",
-            r"(?i)nsf\s*(charge|fee)",
-            r"(?i)penalty\s*charge",
-            r"(?i)overdraft\s*(charge|fee)",
-            r"(?i)(item|transaction)\s*(charge|fee)",
-        ],
-        "risk_level": "high",
-        "description": "Bank Charges for Unpaid Items"
-    },
+  "keywords": [
+    "UNPAID ITEM CHARGE", "UNPAID TRANSACTION FEE", "RETURNED ITEM FEE",
+    "RETURNED DD FEE", "UNPAID DD CHARGE", "UNPAID SO CHARGE",
+    "BOUNCE FEE", "RETURNED PAYMENT FEE",
+    "INSUFFICIENT FUNDS FEE", "NSF FEE", "OVERDRAFT FEE", "PENALTY CHARGE",
+    "UNPAID CHARGE", "RETURNED FEE", "ITEM FEE",
+    "CREDIT REVERSAL"   # (optional)
+  ],
+  "regex_patterns": [
+    r"(?i)\b(unpaid|returned|bounced|failed|dishono(u)?red)\b.*\b(charge|fee)\b",
+    r"(?i)\b(charge|fee)\b.*\b(unpaid|returned|bounced|failed|nsf|insufficient|dishono(u)?red)\b",
+    r"(?i)\boverdraft\b.*\b(charge|fee)\b",
+    r"(?i)\bnsf\b.*\b(charge|fee)\b",
+    r"(?i)\binsufficient\s*funds\b.*\b(charge|fee)\b",
+    r"(?i)\b(item|transaction)\b.*\b(charge|fee)\b",
+    r"(?i)\bcredit\s*(reversal|adjustment)\b",
+  ],
+  "risk_level": "high",
+  "description": "Bank charges for unpaid/returned items"
+},
+
     "failed_payments": {
-        "keywords": [
-            "UNPAID DIRECT DEBIT", "UNPAID DD", "DD UNPAID",
-            "RETURNED DIRECT DEBIT", "RETURNED DD", "DD RETURNED",
-            "BOUNCED PAYMENT", "BOUNCED DD", "BOUNCED DIRECT DEBIT",
-            "PAYMENT RETURNED", "PAYMENT BOUNCED", "PAYMENT FAILED",
-            "FAILED DIRECT DEBIT", "FAILED DD", "DD FAILED",
-            "DISHONOURED DD", "DISHONOURED DIRECT DEBIT", "DISHONOURED PAYMENT",
-            "INSUFFICIENT FUNDS DD",
-            "DD RETURN", "DIRECT DEBIT RETURN", "RETURNED PAYMENT"
-        ],
-        "regex_patterns": [
-            r"(?i)(unpaid|returned|bounced|failed|dishono(u)?red)\s+(direct\s*debit|dd|payment)",
-            r"(?i)(direct\s*debit|dd|payment)\s+(unpaid|returned|bounced|failed|dishono(u)?red)",
-            r"(?i)insufficient\s*funds?\s+(direct\s*debit|dd)\b",
-            r"(?i)\bdd\s+(return(ed)?|unpaid|bounced|failed)",
-        ],
-        "risk_level": "critical",
-        "description": "Failed Payments"
-    },
+  "keywords": [
+    "UNPAID DIRECT DEBIT", "UNPAID DD", "DD UNPAID",
+    "RETURNED DIRECT DEBIT", "RETURNED DD", "DD RETURNED",
+    "BOUNCED PAYMENT", "BOUNCED DD", "BOUNCED DIRECT DEBIT",
+    "PAYMENT RETURNED", "PAYMENT BOUNCED", "PAYMENT FAILED",
+    "FAILED DIRECT DEBIT", "FAILED DD", "DD FAILED",
+    "DISHONOURED DD", "DISHONOURED DIRECT DEBIT", "DISHONOURED PAYMENT",
+    "INSUFFICIENT FUNDS DD",
+    "DD RETURN", "DIRECT DEBIT RETURN", "RETURNED PAYMENT"
+  ],
+  "regex_patterns": [
+    r"(?i)\b(unpaid|returned|bounced|failed|dishono(u)?red)\b\s+(direct\s*debit|dd|payment)\b",
+    r"(?i)\b(direct\s*debit|dd|payment)\b\s+\b(unpaid|returned|bounced|failed|dishono(u)?red)\b",
+    r"(?i)\binsufficient\s*funds?\b\s+(direct\s*debit|dd)\b",
+    r"(?i)\bdd\b\s+\b(return(ed)?|unpaid|bounced|failed)\b",
+  ],
+  "risk_level": "critical",
+  "description": "Failed payment events (DD/payment returned/failed)"
+},
+
     "debt_collection": {
         "keywords": [
             "DEBT COLLECTION", "DCA", "LOWELL", "CABOT", "INTRUM",
