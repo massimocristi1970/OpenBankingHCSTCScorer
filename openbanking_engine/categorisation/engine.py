@@ -441,7 +441,17 @@ class TransactionCategorizer:
         if plaid_category:
             plaid_upper = plaid_category.upper()
             # Check for groceries/food patterns in PLAID first
-            if "FOOD_AND_DRINK" in plaid_upper or "GROCERY" in plaid_upper or "GROCERIES" in plaid_upper:
+            if "GROCERY" in plaid_upper or "GROCERIES" in plaid_upper:
+                # PLAID explicitly says groceries - trust it even without keyword match
+                return CategoryMatch(
+                    category="essential",
+                    subcategory="groceries",
+                    confidence=0.90,  # High confidence when PLAID says groceries
+                    description="Groceries",
+                    match_method="plaid",
+                    is_housing=False
+                )
+            elif "FOOD_AND_DRINK" in plaid_upper:
                 # Check if it's actually a grocery store vs restaurant
                 for subcategory, patterns in self.essential_patterns.items():
                     if subcategory == "groceries":
@@ -455,8 +465,16 @@ class TransactionCategorizer:
                                 match_method="plaid_keyword",
                                 is_housing=False
                             )
-                # If PLAID says FOOD but no grocery keywords, might be restaurant
-                # Fall through to check other patterns
+                # If PLAID says FOOD_AND_DRINK but no grocery keywords, assume groceries
+                # (safer than miscategorizing as debt)
+                return CategoryMatch(
+                    category="essential",
+                    subcategory="groceries",
+                    confidence=0.85,
+                    description="Groceries",
+                    match_method="plaid",
+                    is_housing=False
+                )
         
         # Check essential patterns BEFORE debt patterns
         # This prevents grocery stores from being miscategorized as credit card/catalogue debt
