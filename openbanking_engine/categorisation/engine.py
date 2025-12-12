@@ -415,6 +415,37 @@ class TransactionCategorizer:
             is_stable=False
         )
     
+    def _check_credit_card_or_catalogue_debt(
+        self,
+        combined_text: str
+    ) -> Optional[CategoryMatch]:
+        """
+        Check if transaction matches credit card or catalogue debt patterns.
+        
+        Helper method to avoid code duplication when checking for debt patterns
+        before categorizing as groceries.
+        
+        Args:
+            combined_text: Combined description and merchant text (normalized)
+        
+        Returns:
+            CategoryMatch if debt pattern found, None otherwise
+        """
+        for subcategory, patterns in self.debt_patterns.items():
+            if subcategory in ["credit_cards", "catalogue"]:
+                match = self._match_patterns(combined_text, patterns)
+                if match:
+                    # This is a credit card or catalogue payment, not groceries
+                    return CategoryMatch(
+                        category="debt",
+                        subcategory=subcategory,
+                        confidence=match[1],
+                        description=patterns.get("description", subcategory),
+                        match_method=match[0],
+                        risk_level=patterns.get("risk_level", "medium")
+                    )
+        return None
+    
     def _categorize_expense(
         self, 
         combined_text: str, 
@@ -444,19 +475,9 @@ class TransactionCategorizer:
             if "GROCERY" in plaid_upper or "GROCERIES" in plaid_upper:
                 # Before trusting PLAID groceries, check if this is a credit card/catalogue payment
                 # (e.g., "SAINSBURYS BANK" might be categorized as GROCERIES by PLAID)
-                for subcategory, patterns in self.debt_patterns.items():
-                    if subcategory in ["credit_cards", "catalogue"]:
-                        match = self._match_patterns(combined_text, patterns)
-                        if match:
-                            # This is a credit card or catalogue payment, not groceries
-                            return CategoryMatch(
-                                category="debt",
-                                subcategory=subcategory,
-                                confidence=match[1],
-                                description=patterns.get("description", subcategory),
-                                match_method=match[0],
-                                risk_level=patterns.get("risk_level", "medium")
-                            )
+                debt_match = self._check_credit_card_or_catalogue_debt(combined_text)
+                if debt_match:
+                    return debt_match
                 
                 # No debt match found, trust PLAID's grocery categorization
                 return CategoryMatch(
@@ -472,25 +493,9 @@ class TransactionCategorizer:
                 # before checking groceries. This handles cases like "SAINSBURYS BANK"
                 # where both grocery and credit card keywords match.
                 # Credit card/catalogue payments take precedence over groceries.
-                debt_match = None
-                for subcategory, patterns in self.debt_patterns.items():
-                    if subcategory in ["credit_cards", "catalogue"]:
-                        match = self._match_patterns(combined_text, patterns)
-                        if match:
-                            debt_match = (subcategory, patterns, match)
-                            break  # Found debt match, stop checking
-                
-                # If debt match found, return it (credit card/catalogue payment)
+                debt_match = self._check_credit_card_or_catalogue_debt(combined_text)
                 if debt_match:
-                    subcategory, patterns, match = debt_match
-                    return CategoryMatch(
-                        category="debt",
-                        subcategory=subcategory,
-                        confidence=match[1],
-                        description=patterns.get("description", subcategory),
-                        match_method=match[0],
-                        risk_level=patterns.get("risk_level", "medium")
-                    )
+                    return debt_match
                 
                 # No debt match, check if it's a grocery store
                 for subcategory, patterns in self.essential_patterns.items():
