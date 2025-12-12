@@ -1,5 +1,5 @@
 """
-HCSTC Batch Processor for processing multiple loan applications.
+HCSTC Batch Processor for processing multiple loan applications.  
 Handles JSON files and ZIP archives with comprehensive error handling.
 """
 
@@ -14,10 +14,11 @@ from datetime import datetime
 from pathlib import Path
 import traceback
 
-from transaction_categorizer import TransactionCategorizer
-from metrics_calculator import MetricsCalculator
-from scoring_engine import ScoringEngine, ScoringResult, Decision
-
+from openbanking_engine.scoring.scoring_engine import ScoringEngine, Decision, ScoringResult
+from openbanking_engine.config.scoring_config import PRODUCT_CONFIG
+from openbanking_engine.categorisation.engine import TransactionCategorizer
+from openbanking_engine. income.income_detector import IncomeDetector
+from openbanking_engine.scoring.feature_builder import MetricsCalculator
 
 # Configure logging
 logging.basicConfig(

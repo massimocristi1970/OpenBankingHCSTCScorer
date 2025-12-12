@@ -5,15 +5,14 @@ Streamlit-based batch processing application for scoring consumer loan applicati
 
 import streamlit as st
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
+import plotly. express as px
+import plotly. graph_objects as go
 from datetime import datetime
 import io
 
 from hcstc_batch_processor import HCSTCBatchProcessor, BatchResult
-from scoring_engine import Decision
-from config.categorization_patterns import PRODUCT_CONFIG
-
+from openbanking_engine.scoring.scoring_engine import Decision
+from openbanking_engine. config.scoring_config import PRODUCT_CONFIG
 
 # Page configuration
 st.set_page_config(

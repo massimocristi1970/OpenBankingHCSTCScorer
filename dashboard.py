@@ -1,7 +1,7 @@
 """
 Transaction Categorization Review Dashboard
 
-A non-intrusive Flask-based tool for reviewing and analyzing transaction categorization.
+A non-intrusive Flask-based tool for reviewing and analyzing transaction categorization. 
 This dashboard helps identify miscategorizations by processing transaction data through
 the existing categorization engine and displaying detailed results with confidence scores.
 
@@ -19,8 +19,7 @@ import io
 from flask import Flask, render_template, request, jsonify, send_file
 from werkzeug.utils import secure_filename
 
-from transaction_categorizer import TransactionCategorizer, CategoryMatch
-
+from openbanking_engine.categorisation.engine import TransactionCategorizer
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # 500MB max file size
