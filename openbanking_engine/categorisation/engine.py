@@ -420,7 +420,23 @@ class TransactionCategorizer:
         # SIMPLIFIED: Let keyword patterns drive categorization naturally
         # No PLAID defaults that override keyword matching (Pragmatic Fix)
         
-        # Check essential patterns BEFORE debt patterns
+        # Special case: If description contains BANK or CREDIT CARD indicators, check debt first
+        # This handles "SAINSBURYS BANK" vs "SAINSBURYS" distinction
+        if any(indicator in combined_text for indicator in ["BANK", "CREDIT CARD", "CARD", "BARCLAYCARD"]):
+            # Check debt patterns first for financial institutions
+            for subcategory, patterns in self.debt_patterns.items():
+                match = self._match_patterns(combined_text, patterns)
+                if match:
+                    return CategoryMatch(
+                        category="debt",
+                        subcategory=subcategory,
+                        confidence=match[1],
+                        description=patterns.get("description", subcategory),
+                        match_method=match[0],
+                        risk_level=patterns.get("risk_level", "medium")
+                    )
+        
+        # Check essential patterns BEFORE debt patterns (for non-bank transactions)
         # This prevents grocery stores from being miscategorized as credit card/catalogue debt
         for subcategory, patterns in self.essential_patterns.items():
             match = self._match_patterns(combined_text, patterns)
