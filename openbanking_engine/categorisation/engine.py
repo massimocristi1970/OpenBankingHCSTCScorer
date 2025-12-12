@@ -262,14 +262,14 @@ class TransactionCategorizer:
                 )
             
             # Check for TRANSFER_IN with CASH_ADVANCES or LOANS
-            # These are loan disbursements, not income
-            if "CASH_ADVANCES" in plaid_cat_upper or "ADVANCES" in plaid_cat_upper:
+            # These are loan disbursements, should be categorized as income > loans with weight=0.0
+            if "CASH_ADVANCES" in plaid_cat_upper or "ADVANCES" in plaid_cat_upper or "LOANS" in plaid_cat_upper:
                 # This is likely a cash advance or loan disbursement
                 return CategoryMatch(
-                    category="transfer",
-                    subcategory="internal",
-                    confidence=0.85,
-                    description="Internal Transfer",
+                    category="income",
+                    subcategory="loans",
+                    confidence=0.95,
+                    description="Loan Payments/Disbursements",
                     match_method="plaid",
                     weight=0.0,
                     is_stable=False
@@ -436,20 +436,30 @@ class TransactionCategorizer:
                     risk_level=patterns.get("risk_level", "medium")
                 )
         
-        # Check debt patterns
-        for subcategory, patterns in self.debt_patterns.items():
-            match = self._match_patterns(combined_text, patterns)
-            if match:
-                return CategoryMatch(
-                    category="debt",
-                    subcategory=subcategory,
-                    confidence=match[1],
-                    description=patterns.get("description", subcategory),
-                    match_method=match[0],
-                    risk_level=patterns.get("risk_level", "medium")
-                )
+        # Check PLAID category for essential patterns (e.g., FOOD_AND_DRINK for groceries)
+        # This ensures PLAID grocery categorization overrides credit card/catalogue debt patterns
+        if plaid_category:
+            plaid_upper = plaid_category.upper()
+            # Check for groceries/food patterns in PLAID first
+            if "FOOD_AND_DRINK" in plaid_upper or "GROCERY" in plaid_upper or "GROCERIES" in plaid_upper:
+                # Check if it's actually a grocery store vs restaurant
+                for subcategory, patterns in self.essential_patterns.items():
+                    if subcategory == "groceries":
+                        match = self._match_patterns(combined_text, patterns)
+                        if match:
+                            return CategoryMatch(
+                                category="essential",
+                                subcategory="groceries",
+                                confidence=0.90,  # High confidence when both PLAID and keywords match
+                                description="Groceries",
+                                match_method="plaid_keyword",
+                                is_housing=False
+                            )
+                # If PLAID says FOOD but no grocery keywords, might be restaurant
+                # Fall through to check other patterns
         
-        # Check essential patterns
+        # Check essential patterns BEFORE debt patterns
+        # This prevents grocery stores from being miscategorized as credit card/catalogue debt
         for subcategory, patterns in self.essential_patterns.items():
             match = self._match_patterns(combined_text, patterns)
             if match:
@@ -460,6 +470,19 @@ class TransactionCategorizer:
                     description=patterns.get("description", subcategory),
                     match_method=match[0],
                     is_housing=patterns.get("is_housing", False)
+                )
+        
+        # Check debt patterns AFTER essential patterns
+        for subcategory, patterns in self.debt_patterns.items():
+            match = self._match_patterns(combined_text, patterns)
+            if match:
+                return CategoryMatch(
+                    category="debt",
+                    subcategory=subcategory,
+                    confidence=match[1],
+                    description=patterns.get("description", subcategory),
+                    match_method=match[0],
+                    risk_level=patterns.get("risk_level", "medium")
                 )
         
         # Check positive patterns
@@ -989,12 +1012,12 @@ class TransactionCategorizer:
                     is_stable=False
                 )
             
-            if "CASH_ADVANCES" in plaid_cat_upper or "ADVANCES" in plaid_cat_upper:
+            if "CASH_ADVANCES" in plaid_cat_upper or "ADVANCES" in plaid_cat_upper or "LOANS" in plaid_cat_upper:
                 return CategoryMatch(
-                    category="transfer",
-                    subcategory="internal",
-                    confidence=0.85,
-                    description="Internal Transfer",
+                    category="income",
+                    subcategory="loans",
+                    confidence=0.95,
+                    description="Loan Payments/Disbursements",
                     match_method="plaid",
                     weight=0.0,
                     is_stable=False
