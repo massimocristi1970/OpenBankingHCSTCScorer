@@ -66,9 +66,11 @@ class TestMonthCalculationFix(unittest.TestCase):
     def test_calculate_months_partial_months(self):
         """Test that partial months are counted correctly."""
         # From Jan 25 to Feb 5 should be 2 months (Jan and Feb)
+        # Note: Both transactions must be income (negative amounts) since month
+        # calculation now only considers income transaction dates, not expense dates
         transactions = [
             {"date": "2025-01-25", "amount": -1000, "description": "Salary"},
-            {"date": "2025-02-05", "amount": 100, "description": "Expense"},
+            {"date": "2025-02-05", "amount": -1000, "description": "Salary"},
         ]
         
         calculator = MetricsCalculator(transactions=transactions)
@@ -330,6 +332,34 @@ class TestMonthCalculationFix(unittest.TestCase):
         print(f"\n✓ Integration test passed:")
         print(f"  Monthly income: £{metrics['income'].monthly_income:.2f}")
         print(f"  Monthly housing: £{metrics['expenses'].monthly_housing:.2f}")
+    
+    def test_calculate_months_from_income_dates_only(self):
+        """Test that month calculation uses income dates, not all transaction dates."""
+        transactions = [
+            # Old expenses from August 2024
+            {"date": "2024-08-01", "amount": 50.0, "description": "Expense"},
+            {"date": "2024-11-15", "amount": 100.0, "description": "Expense"},
+            
+            # Income from March-May 2025 only
+            {"date": "2025-03-15", "amount": -1533.24, "description": "Salary"},
+            {"date": "2025-04-15", "amount": -1533.24, "description": "Salary"},
+            {"date": "2025-05-15", "amount": -1533.25, "description": "Salary"},
+            
+            # Recent expenses
+            {"date": "2025-05-18", "amount": 75.0, "description": "Expense"},
+        ]
+        
+        calculator = MetricsCalculator(transactions=transactions)
+        
+        # Should calculate 3 months from income dates (March-May)
+        # NOT 10 months from all transaction dates (August-May)
+        self.assertEqual(calculator.months_of_data, 3,
+                        "Should use income dates only, ignoring expense dates")
+        
+        print(f"\n✓ Income-only month calculation test passed:")
+        print(f"  Transaction period: August 2024 - May 2025 (10 months)")
+        print(f"  Income period: March 2025 - May 2025 (3 months)")
+        print(f"  Months used: {calculator.months_of_data} ✓")
 
 
 if __name__ == "__main__":

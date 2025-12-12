@@ -131,18 +131,21 @@ class MetricsCalculator:
     
     def _calculate_months_of_data(self, transactions: List[Dict]) -> int:
         """
-        Calculate the number of unique months covered by transactions.
+        Calculate the number of unique months covered by INCOME transactions.
         
-        This method finds the earliest and latest transaction dates and calculates
+        This method finds the earliest and latest INCOME transaction dates and calculates
         the number of unique calendar months between them (inclusive).
         
+        Uses income transactions only (negative amounts) to determine the actual
+        income period, excluding historical expenses or other non-income transactions.
+        
         For example:
-        - March 1 to March 31: 1 month
-        - March 1 to May 31: 3 months (March, April, May)
-        - Jan 15 to Dec 20: 12 months
+        - Income from March 1 to March 31: 1 month
+        - Income from March 1 to May 31: 3 months (March, April, May)
+        - Income from Jan 15 to Dec 20: 12 months
         
         Args:
-            transactions: List of transaction dictionaries with 'date' field
+            transactions: List of transaction dictionaries with 'date' and 'amount' fields
         
         Returns:
             Number of unique months (minimum 1)
@@ -150,9 +153,17 @@ class MetricsCalculator:
         if not transactions:
             return 3  # Default fallback
         
-        # Extract valid dates
-        dates = []
+        # Extract valid dates from INCOME transactions only (negative amounts)
+        income_dates = []
         for txn in transactions:
+            # Filter for income transactions (negative amounts)
+            # Note: In PLAID format, income is represented as negative amounts,
+            # expenses as positive amounts. This is the convention used throughout
+            # the transaction data.
+            amount = txn.get("amount", 0)
+            if amount >= 0:  # Skip expenses (positive) and zero amounts
+                continue
+            
             date_str = txn.get("date", "")
             if not date_str:
                 continue
@@ -160,17 +171,17 @@ class MetricsCalculator:
             try:
                 # Parse date string (format: YYYY-MM-DD)
                 date = datetime.strptime(date_str, "%Y-%m-%d")
-                dates.append(date)
+                income_dates.append(date)
             except (ValueError, TypeError):
                 # Skip invalid dates
                 continue
         
-        if not dates:
-            return 3  # Default fallback if no valid dates
+        if not income_dates:
+            return 3  # Default fallback if no valid income dates
         
-        # Find earliest and latest dates
-        earliest = min(dates)
-        latest = max(dates)
+        # Find earliest and latest INCOME dates
+        earliest = min(income_dates)
+        latest = max(income_dates)
         
         # Calculate number of unique months
         # Using year*12 + month to count unique calendar months
