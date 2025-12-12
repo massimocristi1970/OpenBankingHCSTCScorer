@@ -175,7 +175,7 @@ class HCSTCBatchProcessor:
         self,
         default_loan_amount: float = 500,
         default_loan_term: int = 4,
-        months_of_data: int = 3
+        months_of_data: Optional[int] = None
     ):
         """
         Initialize the batch processor.
@@ -183,7 +183,8 @@ class HCSTCBatchProcessor:
         Args:
             default_loan_amount: Default loan amount if not specified
             default_loan_term: Default loan term in months
-            months_of_data: Number of months of transaction data
+            months_of_data: Number of months of transaction data (optional).
+                           If not provided, will be calculated from transactions automatically.
         """
         self.default_loan_amount = default_loan_amount
         self.default_loan_term = default_loan_term
@@ -191,13 +192,19 @@ class HCSTCBatchProcessor:
         
         # Initialize components
         self.categorizer = TransactionCategorizer()
-        self.metrics_calculator = MetricsCalculator(months_of_data=months_of_data)
+        # Note: metrics_calculator will be created per-application with transactions
         self.scoring_engine = ScoringEngine()
         
-        logger.info(
-            f"Initialized batch processor: amount=£{default_loan_amount}, "
-            f"term={default_loan_term}m, data_months={months_of_data}"
-        )
+        if months_of_data is not None:
+            logger.info(
+                f"Initialized batch processor: amount=£{default_loan_amount}, "
+                f"term={default_loan_term}m, data_months={months_of_data} (manual override)"
+            )
+        else:
+            logger.info(
+                f"Initialized batch processor: amount=£{default_loan_amount}, "
+                f"term={default_loan_term}m, data_months=auto-calculated from transactions"
+            )
     
     def process_batch(
         self,
@@ -374,8 +381,15 @@ class HCSTCBatchProcessor:
         categorized = self.categorizer.categorize_transactions(transactions)
         category_summary = self.categorizer.get_category_summary(categorized)
         
+        # Create metrics calculator with automatic month calculation
+        # If months_of_data was manually set in constructor, use it; otherwise auto-calculate
+        metrics_calculator = MetricsCalculator(
+            months_of_data=self.months_of_data,
+            transactions=transactions
+        )
+        
         # Calculate metrics
-        metrics = self.metrics_calculator.calculate_all_metrics(
+        metrics = metrics_calculator.calculate_all_metrics(
             category_summary=category_summary,
             transactions=transactions,
             accounts=accounts,

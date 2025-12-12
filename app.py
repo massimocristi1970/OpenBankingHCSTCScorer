@@ -5,14 +5,15 @@ Streamlit-based batch processing application for scoring consumer loan applicati
 
 import streamlit as st
 import pandas as pd
-import plotly. express as px
-import plotly. graph_objects as go
+import plotly.express as px
+import plotly.graph_objects as go
 from datetime import datetime
+from typing import Optional
 import io
 
 from hcstc_batch_processor import HCSTCBatchProcessor, BatchResult
 from openbanking_engine.scoring.scoring_engine import Decision
-from openbanking_engine. config.scoring_config import PRODUCT_CONFIG
+from openbanking_engine.config.scoring_config import PRODUCT_CONFIG
 
 # Page configuration
 st.set_page_config(
@@ -74,13 +75,23 @@ def main():
         
         st.subheader("Data Parameters")
         
-        months_of_data = st.slider(
-            "Months of Transaction Data",
-            min_value=1,
-            max_value=12,
-            value=3,
-            help="Number of months of data in uploaded files"
+        use_auto_months = st.checkbox(
+            "Auto-calculate months from data",
+            value=True,
+            help="Automatically calculate months from transaction date range (recommended)"
         )
+        
+        if use_auto_months:
+            months_of_data = None
+            st.info("✓ Months will be calculated automatically from transaction dates")
+        else:
+            months_of_data = st.slider(
+                "Months of Transaction Data (Manual Override)",
+                min_value=1,
+                max_value=12,
+                value=3,
+                help="Manually specify number of months (overrides auto-calculation)"
+            )
         
         st.divider()
         
@@ -232,7 +243,7 @@ def process_applications(
     uploaded_files: list,
     loan_amount: float,
     loan_term: int,
-    months_of_data: int
+    months_of_data: Optional[int]
 ):
     """Process uploaded applications."""
     

@@ -177,7 +177,8 @@ def run_open_banking_scoring(
     # Prepare accounts list (empty if not provided)
     accounts = []
     
-    calculator = MetricsCalculator()
+    # Create calculator with automatic month calculation from transactions
+    calculator = MetricsCalculator(transactions=transactions)
     metrics = calculator.calculate_all_metrics(
         category_summary=category_summary,
         transactions=transactions,
