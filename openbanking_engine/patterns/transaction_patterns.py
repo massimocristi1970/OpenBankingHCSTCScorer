@@ -253,7 +253,8 @@ DEBT_PATTERNS = {
     "catalogue": {
         "keywords": [
             "VERY", "LITTLEWOODS", "STUDIO", "JD WILLIAMS", "FREEMANS",
-            "GRATTAN", "SIMPLY BE", "JACAMO", "AMBROSE WILSON", "FASHION WORLD"
+            "GRATTAN", "SIMPLY BE", "JACAMO", "AMBROSE WILSON", "FASHION WORLD",
+            "CATALOGUE PAYMENT", "CATALOG PAYMENT"
         ],
         "regex_patterns": [
             r"(?i)\bvery\s*(catalogue|account|payment)?\b",
@@ -262,6 +263,9 @@ DEBT_PATTERNS = {
             r"(?i)jd\s*williams",
             r"(?i)freemans",
             r"(?i)grattan",
+            r"(?i)(marks\s*(&|and)?\s*spencer|m&s)\s*(catalogue|catalog)",
+            r"(?i)catalogue\s*(payment|account|credit)",
+            r"(?i)catalog\s*(payment|account|credit)",
         ],
         "risk_level": "medium",
         "description": "Catalogue Credit"

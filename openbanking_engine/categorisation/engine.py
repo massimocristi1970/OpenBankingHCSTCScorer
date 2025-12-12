@@ -415,6 +415,37 @@ class TransactionCategorizer:
             is_stable=False
         )
     
+    def _check_credit_card_or_catalogue_debt(
+        self,
+        combined_text: str
+    ) -> Optional[CategoryMatch]:
+        """
+        Check if transaction matches credit card or catalogue debt patterns.
+        
+        Helper method to avoid code duplication when checking for debt patterns
+        before categorizing as groceries.
+        
+        Args:
+            combined_text: Combined description and merchant text (normalized)
+        
+        Returns:
+            CategoryMatch if debt pattern found, None otherwise
+        """
+        for subcategory, patterns in self.debt_patterns.items():
+            if subcategory in ["credit_cards", "catalogue"]:
+                match = self._match_patterns(combined_text, patterns)
+                if match:
+                    # This is a credit card or catalogue payment, not groceries
+                    return CategoryMatch(
+                        category="debt",
+                        subcategory=subcategory,
+                        confidence=match[1],
+                        description=patterns.get("description", subcategory),
+                        match_method=match[0],
+                        risk_level=patterns.get("risk_level", "medium")
+                    )
+        return None
+    
     def _categorize_expense(
         self, 
         combined_text: str, 
@@ -437,12 +468,18 @@ class TransactionCategorizer:
                 )
         
         # Check PLAID category for essential patterns (e.g., FOOD_AND_DRINK for groceries)
-        # This ensures PLAID grocery categorization overrides credit card/catalogue debt patterns
+        # CRITICAL FIX: Even when PLAID says groceries, check for credit card/catalogue first
         if plaid_category:
             plaid_upper = plaid_category.upper()
             # Check for groceries/food patterns in PLAID first
             if "GROCERY" in plaid_upper or "GROCERIES" in plaid_upper:
-                # PLAID explicitly says groceries - trust it even without keyword match
+                # Before trusting PLAID groceries, check if this is a credit card/catalogue payment
+                # (e.g., "SAINSBURYS BANK" might be categorized as GROCERIES by PLAID)
+                debt_match = self._check_credit_card_or_catalogue_debt(combined_text)
+                if debt_match:
+                    return debt_match
+                
+                # No debt match found, trust PLAID's grocery categorization
                 return CategoryMatch(
                     category="essential",
                     subcategory="groceries",
@@ -452,7 +489,15 @@ class TransactionCategorizer:
                     is_housing=False
                 )
             elif "FOOD_AND_DRINK" in plaid_upper:
-                # Check if it's actually a grocery store vs restaurant
+                # CRITICAL FIX (Issue #2): Check for credit card/catalogue FIRST
+                # before checking groceries. This handles cases like "SAINSBURYS BANK"
+                # where both grocery and credit card keywords match.
+                # Credit card/catalogue payments take precedence over groceries.
+                debt_match = self._check_credit_card_or_catalogue_debt(combined_text)
+                if debt_match:
+                    return debt_match
+                
+                # No debt match, check if it's a grocery store
                 for subcategory, patterns in self.essential_patterns.items():
                     if subcategory == "groceries":
                         match = self._match_patterns(combined_text, patterns)
@@ -465,8 +510,9 @@ class TransactionCategorizer:
                                 match_method="plaid_keyword",
                                 is_housing=False
                             )
-                # If PLAID says FOOD_AND_DRINK but no grocery keywords, assume groceries
-                # (safer than miscategorizing as debt)
+                
+                # If PLAID says FOOD_AND_DRINK but no grocery keywords and no debt match,
+                # assume groceries (safer than miscategorizing as debt)
                 return CategoryMatch(
                     category="essential",
                     subcategory="groceries",

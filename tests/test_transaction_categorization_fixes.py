@@ -220,18 +220,20 @@ class TestGroceryCategorization(unittest.TestCase):
         self.assertEqual(result.subcategory, "groceries")
     
     def test_plaid_food_and_drink_override(self):
-        """Test that PLAID FOOD_AND_DRINK overrides debt categorization."""
-        # M&S could match credit card patterns, but PLAID says it's groceries
+        """Test that credit card payments are correctly identified even with FOOD_AND_DRINK."""
+        # M&S BANK PAYMENT should be credit card debt, not groceries
+        # Even when PLAID says FOOD_AND_DRINK_GROCERIES
         result = self.categorizer.categorize_transaction(
-            description="M&S BANK PAYMENT",  # Could look like credit card
+            description="M&S BANK PAYMENT",  # This is a credit card payment
             amount=40.00,
             merchant_name="M&S",
             plaid_category="FOOD_AND_DRINK_GROCERIES"
         )
         
-        # Should be groceries, not credit_cards
-        self.assertEqual(result.category, "essential")
-        self.assertEqual(result.subcategory, "groceries")
+        # Should be debt > credit_cards (payment to credit card account)
+        # This is the correct behavior per Issue 2 requirements
+        self.assertEqual(result.category, "debt")
+        self.assertEqual(result.subcategory, "credit_cards")
 
 
 class TestEnhancedIncomeDetection(unittest.TestCase):
