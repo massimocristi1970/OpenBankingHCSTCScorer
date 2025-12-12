@@ -107,15 +107,81 @@ class RiskMetrics:
 class MetricsCalculator:
     """Calculates financial metrics from categorized transactions."""
     
-    def __init__(self, months_of_data: int = 3):
+    def __init__(self, months_of_data: Optional[int] = None, transactions: Optional[List[Dict]] = None):
         """
         Initialize the metrics calculator.
         
         Args:
-            months_of_data: Number of months of transaction data
+            months_of_data: Number of months of transaction data (optional).
+                           If not provided, will be calculated from transactions.
+            transactions: Transaction list to calculate months from (optional).
+                         Used when months_of_data is not provided.
         """
-        self.months_of_data = months_of_data
+        # If months_of_data is explicitly provided, use it
+        if months_of_data is not None:
+            self.months_of_data = months_of_data
+        # Otherwise, try to calculate from transactions
+        elif transactions is not None:
+            self.months_of_data = self._calculate_months_of_data(transactions)
+        # Fallback to default of 3 for backward compatibility
+        else:
+            self.months_of_data = 3
+        
         self.product_config = PRODUCT_CONFIG
+    
+    def _calculate_months_of_data(self, transactions: List[Dict]) -> int:
+        """
+        Calculate the number of unique months covered by transactions.
+        
+        This method finds the earliest and latest transaction dates and calculates
+        the number of unique calendar months between them (inclusive).
+        
+        For example:
+        - March 1 to March 31: 1 month
+        - March 1 to May 31: 3 months (March, April, May)
+        - Jan 15 to Dec 20: 12 months
+        
+        Args:
+            transactions: List of transaction dictionaries with 'date' field
+        
+        Returns:
+            Number of unique months (minimum 1)
+        """
+        if not transactions:
+            return 3  # Default fallback
+        
+        # Extract valid dates
+        dates = []
+        for txn in transactions:
+            date_str = txn.get("date", "")
+            if not date_str:
+                continue
+            
+            try:
+                # Parse date string (format: YYYY-MM-DD)
+                date = datetime.strptime(date_str, "%Y-%m-%d")
+                dates.append(date)
+            except (ValueError, TypeError):
+                # Skip invalid dates
+                continue
+        
+        if not dates:
+            return 3  # Default fallback if no valid dates
+        
+        # Find earliest and latest dates
+        earliest = min(dates)
+        latest = max(dates)
+        
+        # Calculate number of unique months
+        # Using year*12 + month to count unique calendar months
+        earliest_month = earliest.year * 12 + earliest.month
+        latest_month = latest.year * 12 + latest.month
+        
+        # Add 1 because both start and end months are included
+        months = latest_month - earliest_month + 1
+        
+        # Return at least 1 month
+        return max(1, months)
     
     def calculate_all_metrics(
         self,

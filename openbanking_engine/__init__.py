@@ -177,7 +177,8 @@ def run_open_banking_scoring(
     # Prepare accounts list (empty if not provided)
     accounts = []
     
-    calculator = MetricsCalculator()
+    # Create calculator with automatic month calculation from transactions
+    calculator = MetricsCalculator(transactions=transactions)
     metrics = calculator.calculate_all_metrics(
         category_summary=category_summary,
         transactions=transactions,
@@ -258,16 +259,22 @@ def run_open_banking_scoring(
             },
             "affordability": {
                 "monthly_disposable": metrics["affordability"].monthly_disposable,
-                "dti_ratio": metrics["affordability"].dti_ratio,
+                "debt_to_income_ratio": metrics["affordability"].debt_to_income_ratio,
+                "essential_ratio": metrics["affordability"].essential_ratio,
+                "disposable_ratio": metrics["affordability"].disposable_ratio,
                 "post_loan_disposable": metrics["affordability"].post_loan_disposable,
-                "post_loan_dti": metrics["affordability"].post_loan_dti,
-                "estimated_monthly_repayment": metrics["affordability"].estimated_monthly_repayment,
+                "proposed_repayment": metrics["affordability"].proposed_repayment,
+                "repayment_to_disposable_ratio": metrics["affordability"].repayment_to_disposable_ratio,
+                "is_affordable": metrics["affordability"].is_affordable,
+                "max_affordable_amount": metrics["affordability"].max_affordable_amount,
             },
             "balance": {
                 "average_balance": metrics["balance"].average_balance,
-                "min_balance": metrics["balance"].min_balance,
-                "negative_balance_days": metrics["balance"].negative_balance_days,
-                "overdraft_usage_percentage": metrics["balance"].overdraft_usage_percentage,
+                "minimum_balance": metrics["balance"].minimum_balance,
+                "maximum_balance": metrics["balance"].maximum_balance,
+                "days_in_overdraft": metrics["balance"].days_in_overdraft,
+                "overdraft_frequency": metrics["balance"].overdraft_frequency,
+                "end_of_month_average": metrics["balance"].end_of_month_average,
             },
             "risk": {
                 "gambling_total": metrics["risk"].gambling_total,
