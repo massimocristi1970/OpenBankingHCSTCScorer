@@ -114,6 +114,24 @@ INCOME_PATTERNS = {
         "is_stable": False,
         "description": "Loan Payments/Disbursements"
     },
+    "refund": {
+        "keywords": [
+            "REFUND", "REFUNDED", "RETURN", "RETURNED", 
+            "CREDIT REVERSAL", "REVERSAL", "REIMBURSEMENT",
+            "CASHBACK", "CREDIT ADJUSTMENT"
+        ],
+        "regex_patterns": [
+            r"(?i)\brefund(ed)?\b",
+            r"(?i)\breturn(ed)?\b",
+            r"(?i)credit\s*(reversal|adjustment)",
+            r"(?i)\breversal\b",
+            r"(?i)reimbursement",
+            r"(?i)cash\s*back",
+        ],
+        "weight": 1.0,
+        "is_stable": False,
+        "description": "Refunds & Returns"
+    },
 }
 
 # Transfer patterns (NOT counted as income)

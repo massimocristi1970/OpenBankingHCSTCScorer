@@ -24,6 +24,7 @@ class RecurringIncomeSource:
     transaction_indices: List[int]  # Indices in original transaction list
     confidence: float  # 0.0 to 1.0
     source_type: str  # 'salary', 'benefits', 'pension', 'unknown'
+    day_of_month_consistent: bool = False  # Whether payment day is consistent (±3 days)
 
 
 class IncomeDetector:
@@ -80,7 +81,12 @@ class IncomeDetector:
     # Minimum amount threshold for large payments (used in company payment detection)
     LARGE_PAYMENT_THRESHOLD = 500.0
     
-    def __init__(self, min_amount: float = 50.0, min_occurrences: int = 2):
+    # Thresholds for removing long number sequences and transaction IDs from descriptions
+    # These help normalize descriptions while preserving meaningful employer names
+    LONG_NUMBER_THRESHOLD = 8  # Remove number sequences with 8+ digits
+    LONG_ID_THRESHOLD = 12  # Remove alphanumeric IDs with 12+ characters
+    
+    def __init__(self, min_amount: float = 50.0, min_occurrences: int = 3):
         """
         Initialize the income detector.
         
@@ -89,7 +95,12 @@ class IncomeDetector:
                        for income detection. Transactions below this are ignored.
                        Default is £50.
             min_occurrences: Minimum number of similar transactions required to 
-                           establish a recurring pattern. Default is 2.
+                           establish a recurring pattern. Default is 3 for salary classification.
+                           
+                           **Breaking Change Note**: Changed from 2 to 3 to improve salary
+                           detection accuracy and reduce false positives. If you need the
+                           previous behavior, explicitly pass min_occurrences=2 when
+                           initializing IncomeDetector.
         """
         self.min_amount = min_amount
         self.min_occurrences = min_occurrences
@@ -159,7 +170,7 @@ class IncomeDetector:
             if len(amounts) < self.min_occurrences or len(dates) < self.min_occurrences:
                 continue
             
-            # Check if amounts are similar (within 30% variance)
+            # Check if amounts are similar
             avg_amount = sum(amounts) / len(amounts)
             
             # Guard against division by zero
@@ -167,9 +178,6 @@ class IncomeDetector:
                 continue
             
             amount_variance = max(abs(a - avg_amount) / avg_amount for a in amounts)
-            
-            if amount_variance > 0.30:  # More than 30% variance
-                continue
             
             # Calculate frequency (average days between payments)
             if len(dates) >= 2:
@@ -184,14 +192,36 @@ class IncomeDetector:
                 # Check if interval matches common pay periods
                 # Weekly: 7±2 days, Fortnightly: 14±3 days, 
                 # Monthly: 28-31 days, 4-weekly: 28±3 days
-                is_regular_interval = (
-                    (5 <= avg_interval <= 9) or      # Weekly
-                    (11 <= avg_interval <= 17) or    # Fortnightly
-                    (25 <= avg_interval <= 35)       # Monthly/4-weekly
-                )
+                is_weekly = 5 <= avg_interval <= 9
+                is_fortnightly = 11 <= avg_interval <= 17
+                is_monthly = 25 <= avg_interval <= 35
+                
+                is_regular_interval = is_weekly or is_fortnightly or is_monthly
                 
                 if not is_regular_interval:
                     continue
+                
+                # For monthly payments, check for day-of-month consistency (±3 days)
+                # This helps detect salary payments on specific days like "15th of month"
+                day_of_month_consistent = False
+                if is_monthly and len(dates_sorted) >= 3:
+                    days_of_month = [d.day for d in dates_sorted]
+                    avg_day = sum(days_of_month) / len(days_of_month)
+                    day_variance = max(abs(d - avg_day) for d in days_of_month)
+                    if day_variance <= 3:  # Within ±3 days
+                        day_of_month_consistent = True
+                
+                # Apply stricter variance threshold for salary-like patterns
+                # Salary: 5% variance for monthly with consistent day
+                # Other recurring: 30% variance
+                if is_monthly and day_of_month_consistent:
+                    # Tight variance for salary-like monthly payments
+                    if amount_variance > 0.05:  # More than 5% variance
+                        continue
+                else:
+                    # Standard variance for other recurring payments
+                    if amount_variance > 0.30:  # More than 30% variance
+                        continue
             else:
                 avg_interval = 0
             
@@ -207,7 +237,8 @@ class IncomeDetector:
                 desc_pattern, 
                 avg_amount, 
                 len(amounts),
-                avg_interval
+                avg_interval,
+                day_of_month_consistent
             )
             
             recurring_sources.append(RecurringIncomeSource(
@@ -218,7 +249,8 @@ class IncomeDetector:
                 occurrence_count=len(amounts),
                 transaction_indices=indices,
                 confidence=confidence,
-                source_type=source_type
+                source_type=source_type,
+                day_of_month_consistent=day_of_month_consistent
             ))
         
         # Sort by confidence (highest first)
@@ -231,14 +263,14 @@ class IncomeDetector:
         Normalize transaction description for grouping.
         
         Removes dates, reference numbers, and other variable parts to group
-        similar transactions together.
+        similar transactions together, while preserving employer context.
         """
         if not description:
             return ""
         
         desc = description.upper().strip()
         
-        # Remove common prefixes
+        # Remove common prefixes but preserve the core employer name
         desc = re.sub(r'^(FP-|FASTER PAYMENTS?|BGC|BACS)\s*', '', desc)
         
         # Remove dates (various formats)
@@ -247,10 +279,22 @@ class IncomeDetector:
         
         # Remove reference numbers (patterns like "REF 123456", "209074 40964700")
         desc = re.sub(r'\bREF\s*\d+\b', '', desc)
-        desc = re.sub(r'\b\d{6,}\b', '', desc)  # Long number sequences
         
-        # Remove transaction IDs
-        desc = re.sub(r'\b[A-Z0-9]{10,}\b', '', desc)
+        # Remove long number sequences BUT preserve short account numbers
+        # that might be part of employer name variations
+        desc = re.sub(rf'\b\d{{{self.LONG_NUMBER_THRESHOLD},}}\b', '', desc)
+        
+        # Remove transaction IDs (long alphanumeric sequences)
+        desc = re.sub(rf'\b[A-Z0-9]{{{self.LONG_ID_THRESHOLD},}}\b', '', desc)
+        
+        # Preserve company suffixes (LTD, LIMITED, PLC) as they indicate employer
+        # Normalize common variations to group related transactions
+        desc = re.sub(r'\bLIMITED\b', 'LTD', desc)
+        desc = re.sub(r'\bCORPORATION\b', 'CORP', desc)
+        
+        # Remove trailing "SALARY", "WAGES", "PAYMENT" keywords to group variations
+        # e.g., "BBC MONTHLY SALARY" and "BBC MONTHLY" should match
+        desc = re.sub(r'\s+(SALARY|WAGES?|PAYMENT|PAYROLL|PAY)$', '', desc)
         
         # Normalize whitespace
         desc = ' '.join(desc.split())
@@ -262,10 +306,18 @@ class IncomeDetector:
         description: str, 
         amount: float, 
         occurrence_count: int,
-        frequency_days: float
+        frequency_days: float,
+        day_of_month_consistent: bool = False
     ) -> Tuple[str, float]:
         """
         Classify income source type and calculate confidence.
+        
+        Args:
+            description: Normalized transaction description
+            amount: Average amount
+            occurrence_count: Number of occurrences
+            frequency_days: Average days between payments
+            day_of_month_consistent: Whether payment day is consistent (±3 days)
         
         Returns:
             Tuple of (source_type, confidence)
@@ -287,8 +339,10 @@ class IncomeDetector:
             # Higher confidence for weekly/fortnightly (typical salary patterns)
             if 5 <= frequency_days <= 9 or 11 <= frequency_days <= 17:
                 return ("salary", min(0.95, base_confidence + 0.25))
-            # Monthly salary
+            # Monthly salary with consistent day
             elif 25 <= frequency_days <= 35:
+                if day_of_month_consistent:
+                    return ("salary", min(0.95, base_confidence + 0.30))
                 return ("salary", min(0.95, base_confidence + 0.20))
             return ("salary", min(0.90, base_confidence + 0.15))
         
@@ -310,10 +364,18 @@ class IncomeDetector:
         if re.search(r'\b(LTD|LIMITED|PLC|CORP|CORPORATION|INC)\b', desc_upper):
             # Likely employer payment
             if 25 <= frequency_days <= 35:  # Monthly
+                if day_of_month_consistent:
+                    # Monthly payment from company with consistent day = very likely salary
+                    return ("salary", min(0.90, base_confidence + 0.25))
                 return ("salary", min(0.85, base_confidence + 0.15))
             elif 11 <= frequency_days <= 17:  # Fortnightly
                 return ("salary", min(0.85, base_confidence + 0.15))
             return ("salary", min(0.75, base_confidence + 0.10))
+        
+        # Regular payment with reasonable amount (£200+) and monthly cadence with consistent day
+        if amount >= 200 and 25 <= frequency_days <= 35 and day_of_month_consistent:
+            # Likely salary even without explicit keywords
+            return ("salary", min(0.80, base_confidence + 0.15))
         
         # Regular payment with reasonable amount (£200+) and monthly cadence
         if amount >= 200 and 25 <= frequency_days <= 35:
