@@ -81,6 +81,11 @@ class IncomeDetector:
     # Minimum amount threshold for large payments (used in company payment detection)
     LARGE_PAYMENT_THRESHOLD = 500.0
     
+    # Thresholds for removing long number sequences and transaction IDs from descriptions
+    # These help normalize descriptions while preserving meaningful employer names
+    LONG_NUMBER_THRESHOLD = 8  # Remove number sequences with 8+ digits
+    LONG_ID_THRESHOLD = 12  # Remove alphanumeric IDs with 12+ characters
+    
     def __init__(self, min_amount: float = 50.0, min_occurrences: int = 3):
         """
         Initialize the income detector.
@@ -91,6 +96,11 @@ class IncomeDetector:
                        Default is £50.
             min_occurrences: Minimum number of similar transactions required to 
                            establish a recurring pattern. Default is 3 for salary classification.
+                           
+                           **Breaking Change Note**: Changed from 2 to 3 to improve salary
+                           detection accuracy and reduce false positives. If you need the
+                           previous behavior, explicitly pass min_occurrences=2 when
+                           initializing IncomeDetector.
         """
         self.min_amount = min_amount
         self.min_occurrences = min_occurrences
@@ -270,12 +280,12 @@ class IncomeDetector:
         # Remove reference numbers (patterns like "REF 123456", "209074 40964700")
         desc = re.sub(r'\bREF\s*\d+\b', '', desc)
         
-        # Remove long number sequences (6+ digits) BUT preserve short account numbers
+        # Remove long number sequences BUT preserve short account numbers
         # that might be part of employer name variations
-        desc = re.sub(r'\b\d{8,}\b', '', desc)  # Only remove very long sequences
+        desc = re.sub(rf'\b\d{{{self.LONG_NUMBER_THRESHOLD},}}\b', '', desc)
         
         # Remove transaction IDs (long alphanumeric sequences)
-        desc = re.sub(r'\b[A-Z0-9]{12,}\b', '', desc)  # Only remove very long IDs
+        desc = re.sub(rf'\b[A-Z0-9]{{{self.LONG_ID_THRESHOLD},}}\b', '', desc)
         
         # Preserve company suffixes (LTD, LIMITED, PLC) as they indicate employer
         # Normalize common variations to group related transactions
