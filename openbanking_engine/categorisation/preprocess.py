@@ -1,75 +1,133 @@
 """
-Transaction Preprocessing for HCSTC Scoring Engine.
-
-Handles transaction normalization, internal transfer detection, and PFC mapping.
-Future enhancement: Extract preprocessing logic from TransactionCategorizer into reusable functions.
+Preprocessing utilities for transaction categorization.
+Handles text normalization, internal transfer detection, and PFC mapping.
 """
 
-from typing import Dict, List, Optional, Tuple
-from datetime import datetime, timedelta
+from typing import Optional, Dict, Tuple
 
 
-def normalize_text(text: str) -> str:
+# HCSTC Lender Canonical Name Mappings
+# Maps variations of lender names to a single canonical identifier
+HCSTC_LENDER_CANONICAL_NAMES = {
+    "LENDING STREAM": "LENDING_STREAM",
+    "LENDINGSTREAM": "LENDING_STREAM",
+    "DRAFTY": "DRAFTY",
+    "MR LENDER": "MR_LENDER",
+    "MRLENDER": "MR_LENDER",
+    "MONEYBOAT": "MONEYBOAT",
+    "CREDITSPRING": "CREDITSPRING",
+    "CASHFLOAT": "CASHFLOAT",
+    "QUIDMARKET": "QUIDMARKET",
+    "QUID MARKET": "QUIDMARKET",
+    "LOANS 2 GO": "LOANS_2_GO",
+    "LOANS2GO": "LOANS_2_GO",
+    "CASHASAP": "CASHASAP",
+    "POLAR CREDIT": "POLAR_CREDIT",
+    "118 118 MONEY": "118_118_MONEY",
+    "118118 MONEY": "118_118_MONEY",
+    "118118MONEY": "118_118_MONEY",
+    "THE MONEY PLATFORM": "THE_MONEY_PLATFORM",
+    "MONEY PLATFORM": "THE_MONEY_PLATFORM",
+    "FAST LOAN UK": "FAST_LOAN_UK",
+    "FASTLOAN": "FAST_LOAN_UK",
+    "CONDUIT": "CONDUIT",
+    "SALAD MONEY": "SALAD_MONEY",
+    "FAIR FINANCE": "FAIR_FINANCE",
+}
+
+# Pre-computed sorted patterns (longest first) for efficient matching
+# This avoids sorting on every call to normalize_hcstc_lender
+HCSTC_LENDER_PATTERNS_SORTED = sorted(
+    HCSTC_LENDER_CANONICAL_NAMES.items(),
+    key=lambda x: len(x[0]),
+    reverse=True
+)
+
+
+def normalize_text(text: Optional[str]) -> str:
     """
-    Normalize transaction text for pattern matching.
+    Normalize text for matching.
     
     Args:
-        text: Raw transaction description
+        text: Raw text to normalize
         
     Returns:
         Normalized uppercase text
     """
     if not text:
         return ""
-    return str(text).upper().strip()
+    # Convert to uppercase for matching
+    return text.upper().strip()
 
 
-def detect_internal_transfers(
-    transactions: List[Dict],
-    amount_tolerance: float = 0.01,
-    date_tolerance_days: int = 1
-) -> List[Tuple[int, int]]:
+def normalize_hcstc_lender(merchant_name: str) -> Optional[str]:
     """
-    Detect potential internal transfers using naive matching.
-    
-    Matches transactions with:
-    - Similar amounts (within tolerance)
-    - Similar descriptions (fuzzy match)
-    - Dates within tolerance
-    - Opposite directions (credit vs debit)
+    Normalize HCSTC lender name to canonical form.
     
     Args:
-        transactions: List of transaction dicts with 'amount', 'description', 'date'
-        amount_tolerance: Max difference in absolute amounts
-        date_tolerance_days: Max days between matching transactions
+        merchant_name: Raw merchant/transaction name
         
     Returns:
-        List of (index1, index2) tuples representing matched pairs
+        Canonical lender name if recognized, None otherwise
     """
-    # Placeholder implementation
-    # In future, this could be extracted from TransactionCategorizer
-    return []
-
-
-def apply_pfc_mapping(
-    plaid_category: Optional[str],
-    pfc_mapping: Dict[str, Dict[str, str]]
-) -> Optional[Tuple[str, str]]:
-    """
-    Apply PFC (Plaid Personal Finance Category) mapping.
-    
-    Args:
-        plaid_category: PLAID category string
-        pfc_mapping: Dictionary mapping PLAID categories to engine categories
-        
-    Returns:
-        Tuple of (category, subcategory) or None if no mapping found
-    """
-    if not plaid_category or not pfc_mapping:
+    if not merchant_name:
         return None
+        
+    upper_name = merchant_name.upper()
     
-    mapping = pfc_mapping.get(plaid_category)
-    if mapping:
-        return (mapping.get('category'), mapping.get('subcategory'))
+    # Use pre-sorted patterns (longest first) to ensure most specific match
+    # This prevents "LENDING" from matching "MR LENDER" before "LENDING STREAM"
+    for pattern, canonical in HCSTC_LENDER_PATTERNS_SORTED:
+        if pattern in upper_name:
+            return canonical
     
     return None
+
+
+def combine_description_merchant(description: str, merchant_name: Optional[str]) -> Tuple[str, str, str]:
+    """
+    Combine description and merchant name for categorization.
+    
+    Args:
+        description: Transaction description
+        merchant_name: Optional merchant name
+        
+    Returns:
+        Tuple of (normalized_description, normalized_merchant, combined_text)
+    """
+    text = normalize_text(description)
+    merchant_text = normalize_text(merchant_name) if merchant_name else ""
+    combined_text = f"{text} {merchant_text}".strip()
+    
+    return text, merchant_text, combined_text
+
+
+def is_internal_transfer(text: str, transfer_keywords: list) -> bool:
+    """
+    Check if transaction text indicates an internal transfer.
+    
+    Args:
+        text: Normalized transaction text
+        transfer_keywords: List of transfer keywords to check
+        
+    Returns:
+        True if text matches internal transfer keywords
+    """
+    for keyword in transfer_keywords:
+        if keyword in text:
+            return True
+    return False
+
+
+def map_pfc_to_category(pfc_code: str, pfc_mapping: Dict) -> Optional[Dict]:
+    """
+    Map PFC code to category information.
+    
+    Args:
+        pfc_code: Personal Finance Category code
+        pfc_mapping: PFC mapping dictionary
+        
+    Returns:
+        Category information dict or None if not found
+    """
+    return pfc_mapping.get(pfc_code)

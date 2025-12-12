@@ -14,7 +14,7 @@ try:
 except ImportError:
     RAPIDFUZZ_AVAILABLE = False
 
-from ..patterns import (
+from ..patterns.transaction_patterns import (
     INCOME_PATTERNS,
     TRANSFER_PATTERNS,
     DEBT_PATTERNS,
@@ -23,7 +23,7 @@ from ..patterns import (
     POSITIVE_PATTERNS,
 )
 
-from ..income import IncomeDetector
+from ..income.income_detector import IncomeDetector
 
 
 # HCSTC Lender Canonical Name Mappings

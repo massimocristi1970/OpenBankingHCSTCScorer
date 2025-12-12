@@ -3,7 +3,6 @@ Transaction categorization patterns for HCSTC Loan Scoring.
 Patterns for UK consumer lending based on PLAID format transaction data.
 """
 
-
 # Income Categories (Credits - negative amounts)
 INCOME_PATTERNS = {
     "salary": {
@@ -543,4 +542,3 @@ POSITIVE_PATTERNS = {
         "description": "Savings Activity"
     },
 }
-
