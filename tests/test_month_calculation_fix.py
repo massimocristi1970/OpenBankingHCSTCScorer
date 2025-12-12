@@ -66,7 +66,8 @@ class TestMonthCalculationFix(unittest.TestCase):
     def test_calculate_months_partial_months(self):
         """Test that partial months are counted correctly."""
         # From Jan 25 to Feb 5 should be 2 months (Jan and Feb)
-        # Both need to be income transactions for month calculation
+        # Note: Both transactions must be income (negative amounts) since month
+        # calculation now only considers income transaction dates, not expense dates
         transactions = [
             {"date": "2025-01-25", "amount": -1000, "description": "Salary"},
             {"date": "2025-02-05", "amount": -1000, "description": "Salary"},

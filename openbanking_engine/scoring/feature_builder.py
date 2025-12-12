@@ -156,7 +156,10 @@ class MetricsCalculator:
         # Extract valid dates from INCOME transactions only (negative amounts)
         income_dates = []
         for txn in transactions:
-            # Filter for income transactions (negative amounts in PLAID format)
+            # Filter for income transactions (negative amounts)
+            # Note: In PLAID format, income is represented as negative amounts,
+            # expenses as positive amounts. This is the convention used throughout
+            # the transaction data.
             amount = txn.get("amount", 0)
             if amount >= 0:  # Skip expenses (positive) and zero amounts
                 continue
