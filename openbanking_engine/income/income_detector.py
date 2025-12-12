@@ -375,7 +375,19 @@ class IncomeDetector:
         # Regular payment with reasonable amount (£200+) and monthly cadence with consistent day
         if amount >= 200 and 25 <= frequency_days <= 35 and day_of_month_consistent:
             # Likely salary even without explicit keywords
-            return ("salary", min(0.80, base_confidence + 0.15))
+            # Behavioral analysis shows tight variance + consistent day = salary pattern
+            return ("salary", min(0.95, base_confidence + 0.30))
+        
+        # Regular fortnightly payment with reasonable amount (£200+)
+        # Fortnightly is a common UK salary pattern
+        if amount >= 200 and 11 <= frequency_days <= 17:
+            # Likely salary even without explicit keywords
+            return ("salary", min(0.90, base_confidence + 0.20))
+        
+        # Regular weekly payment with reasonable amount (£200+)
+        # Weekly is less common for salary but still used
+        if amount >= 200 and 5 <= frequency_days <= 9:
+            return ("salary", min(0.85, base_confidence + 0.15))
         
         # Regular payment with reasonable amount (£200+) and monthly cadence
         if amount >= 200 and 25 <= frequency_days <= 35:
