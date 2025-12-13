@@ -155,9 +155,9 @@ class TransactionCategorizer:
         is_credit = amount < 0
         
         if is_credit:
-            return self._categorize_income(combined_text, text, amount, plaid_category, plaid_category_primary)
+            return self._categorize_income(combined_text, text, amount, plaid_category, plaid_category_primary, merchant_name)
         else:
-            return self._categorize_expense(combined_text, text, plaid_category)
+            return self._categorize_expense(combined_text, text, plaid_category, plaid_category_primary, merchant_name)
     
     def _normalize_text(self, text: Optional[str]) -> str:
         """Normalize text for matching."""
@@ -195,7 +195,8 @@ class TransactionCategorizer:
         description: str,
         amount: float,
         plaid_category: Optional[str],
-        plaid_category_primary: Optional[str] = None
+        plaid_category_primary: Optional[str] = None,
+        merchant_name: Optional[str] = None
     ) -> CategoryMatch:
         """Categorize an income transaction (credit)."""
         
@@ -333,26 +334,48 @@ class TransactionCategorizer:
                 )
         
         # STEP 4: Check for transfers (only if NOT identified as income above)
-        if self._is_plaid_transfer(plaid_category_primary, plaid_category, description):
+        # Use multi-signal transfer detection system
+        transfer_score, transfer_signals = self._check_transfer_signals(
+            description=description,
+            plaid_category_primary=plaid_category_primary,
+            plaid_category_detailed=plaid_category,
+            merchant_name=merchant_name
+        )
+        
+        if transfer_score >= 70:
             return CategoryMatch(
                 category="transfer",
                 subcategory="internal",
-                confidence=0.95,
-                description="Internal Transfer",
-                match_method="plaid",
+                confidence=min(0.95, 0.70 + (transfer_score - 70) / 100),
+                description=f"Internal Transfer ({', '.join(transfer_signals)})",
+                match_method="multi_signal",
                 weight=0.0,  # Not counted as income
                 is_stable=False
             )
         
-        # Check if it's a transfer based on keywords (fallback)
-        if self._is_transfer(combined_text):
+        # Low confidence PLAID transfer (score 30-69): fallback to keyword patterns
+        # This handles cases where PLAID might be over-categorizing
+        if 30 <= transfer_score < 70:
+            # Only treat as transfer if keywords also match
+            if self._is_transfer(combined_text):
+                return CategoryMatch(
+                    category="transfer",
+                    subcategory="internal",
+                    confidence=0.9,
+                    description="Internal Transfer (keyword fallback)",
+                    match_method="keyword",
+                    weight=0.0,
+                    is_stable=False
+                )
+        # If no PLAID signal but strong keyword match, still treat as transfer
+        elif transfer_score < 30 and self._is_transfer(combined_text):
             return CategoryMatch(
                 category="transfer",
                 subcategory="internal",
                 confidence=0.9,
                 description="Internal Transfer",
                 match_method="keyword",
-                weight=0.0,  # Not counted as income
+                weight=0.0,
                 is_stable=False
             )
         
@@ -404,11 +427,57 @@ class TransactionCategorizer:
         self, 
         combined_text: str, 
         description: str,
-        plaid_category: Optional[str]
+        plaid_category: Optional[str],
+        plaid_category_primary: Optional[str] = None,
+        merchant_name: Optional[str] = None
     ) -> CategoryMatch:
         """Categorize an expense transaction (debit)."""
         
-        # Check risk patterns first (highest priority)
+        # NEW: Check for transfers FIRST (before risk patterns)
+        # This prevents TRANSFER_OUT transactions from being miscategorized as expenses
+        transfer_score, transfer_signals = self._check_transfer_signals(
+            description=description,
+            plaid_category_primary=plaid_category_primary,
+            plaid_category_detailed=plaid_category,
+            merchant_name=merchant_name
+        )
+        
+        if transfer_score >= 70:
+            return CategoryMatch(
+                category="transfer",
+                subcategory="internal",
+                confidence=min(0.95, 0.70 + (transfer_score - 70) / 100),
+                description=f"Internal Transfer ({', '.join(transfer_signals)})",
+                match_method="multi_signal",
+                weight=0.0,
+                is_stable=False
+            )
+        
+        # Low confidence PLAID transfer (score 30-69): fallback to keyword patterns
+        if 30 <= transfer_score < 70:
+            if self._is_transfer(combined_text):
+                return CategoryMatch(
+                    category="transfer",
+                    subcategory="internal",
+                    confidence=0.9,
+                    description="Internal Transfer (keyword fallback)",
+                    match_method="keyword",
+                    weight=0.0,
+                    is_stable=False
+                )
+        # If no PLAID signal but strong keyword match, still treat as transfer
+        elif transfer_score < 30 and self._is_transfer(combined_text):
+            return CategoryMatch(
+                category="transfer",
+                subcategory="internal",
+                confidence=0.9,
+                description="Internal Transfer",
+                match_method="keyword",
+                weight=0.0,
+                is_stable=False
+            )
+        
+        # Check risk patterns first (highest priority after transfers)
         for subcategory, patterns in self.risk_patterns.items():
             match = self._match_patterns(combined_text, patterns)
             if match:
@@ -539,6 +608,86 @@ class TransactionCategorizer:
                 return True
         
         return False
+    
+    def _check_transfer_signals(
+        self,
+        description: str,
+        plaid_category_primary: Optional[str] = None,
+        plaid_category_detailed: Optional[str] = None,
+        merchant_name: Optional[str] = None
+    ) -> Tuple[int, List[str]]:
+        """
+        Multi-signal transfer detection with confidence scoring.
+        
+        Implements additive scoring system to determine transfer confidence:
+        - PLAID primary = TRANSFER_IN/OUT: +30 points
+        - Description contains "To Mr/Mrs/Ms [Name]": +40 points
+        - Contains "Sent from [App]" (Revolut/Monzo/Wise/Starling): +35 points
+        - Contains "SortCodeAccountNumber:" or "Sort Code": +25 points
+        - Merchant is known financial app: +20 points
+        - Contains transfer keywords (existing logic): +15 points
+        
+        Decision Logic:
+        - Score ≥ 70: High confidence transfer
+        - Score 30-69: Low confidence (fallback to keyword patterns)
+        - Score < 30: Not a transfer
+        
+        Args:
+            description: Transaction description/name
+            plaid_category_primary: PLAID primary category
+            plaid_category_detailed: PLAID detailed category
+            merchant_name: Merchant name
+        
+        Returns:
+            Tuple of (score, signals_detected)
+        """
+        score = 0
+        signals = []
+        
+        # Normalize inputs
+        desc_upper = description.upper() if description else ""
+        merchant_upper = merchant_name.upper() if merchant_name else ""
+        plaid_primary_upper = plaid_category_primary.upper() if plaid_category_primary else ""
+        plaid_detailed_upper = plaid_category_detailed.upper() if plaid_category_detailed else ""
+        
+        # Signal 1: PLAID primary = TRANSFER_IN/OUT (+30 points)
+        if "TRANSFER_IN" in plaid_primary_upper or "TRANSFER_OUT" in plaid_primary_upper:
+            score += 30
+            signals.append("PLAID_TRANSFER")
+        
+        # Signal 2: Description contains "To Mr/Mrs/Ms [Name]" (+40 points)
+        # Match proper name patterns (Title + Name with letters and spaces)
+        if re.search(r'\bTO\s+(MR|MRS|MS|MISS|DR)\s+[A-Z][A-Z\s]+\b', desc_upper):
+            score += 40
+            signals.append("TO_PERSON_NAME")
+        
+        # Signal 3: Contains "Sent from [App]" (+35 points)
+        sent_from_match = re.search(r'SENT FROM\s+(REVOLUT|MONZO|WISE|STARLING)', desc_upper)
+        if sent_from_match:
+            score += 35
+            signals.append("SENT_FROM_APP")
+        
+        # Signal 4: Contains SortCodeAccountNumber or Sort Code (+25 points)
+        if "SORTCODEACCOUNTNUMBER" in desc_upper.replace(" ", "") or "SORT CODE" in desc_upper:
+            score += 25
+            signals.append("SORT_CODE")
+        
+        # Signal 5: Merchant is known financial app (+20 points)
+        # Only add this signal if we haven't already detected "Sent from [App]" to avoid double-counting
+        if not sent_from_match:
+            known_fintech_apps = ["REVOLUT", "MONZO", "WISE", "STARLING", "CHASE"]
+            for app in known_fintech_apps:
+                if app in merchant_upper or app in desc_upper:
+                    score += 20
+                    signals.append("FINTECH_APP")
+                    break  # Early termination once we find a match
+        
+        # Signal 6: Contains transfer keywords from existing logic (+15 points)
+        if self._is_transfer(desc_upper):
+            score += 15
+            signals.append("TRANSFER_KEYWORDS")
+        
+        return score, signals
     
     def _contains_salary_keywords(self, text: str) -> bool:
         """
@@ -921,10 +1070,11 @@ class TransactionCategorizer:
                 amount, 
                 transaction_index,
                 plaid_category, 
-                plaid_category_primary
+                plaid_category_primary,
+                merchant_name
             )
         else:
-            return self._categorize_expense(combined_text, text, plaid_category)
+            return self._categorize_expense(combined_text, text, plaid_category, plaid_category_primary, merchant_name)
     
     def _categorize_income_from_batch(
         self,
@@ -933,7 +1083,8 @@ class TransactionCategorizer:
         amount: float,
         transaction_index: int,
         plaid_category: Optional[str],
-        plaid_category_primary: Optional[str] = None
+        plaid_category_primary: Optional[str] = None,
+        merchant_name: Optional[str] = None
     ) -> CategoryMatch:
         """
         Categorize an income transaction using cached batch patterns.
@@ -1062,25 +1213,45 @@ class TransactionCategorizer:
                 )
         
         # Check for transfers (only if NOT identified as income above)
-        if self._is_plaid_transfer(plaid_category_primary, plaid_category, description):
+        # Use multi-signal transfer detection system
+        transfer_score, transfer_signals = self._check_transfer_signals(
+            description=description,
+            plaid_category_primary=plaid_category_primary,
+            plaid_category_detailed=plaid_category,
+            merchant_name=merchant_name
+        )
+        
+        if transfer_score >= 70:
             return CategoryMatch(
                 category="transfer",
                 subcategory="internal",
-                confidence=0.95,
-                description="Internal Transfer",
-                match_method="plaid",
+                confidence=min(0.95, 0.70 + (transfer_score - 70) / 100),
+                description=f"Internal Transfer ({', '.join(transfer_signals)})",
+                match_method="batch_multi_signal",
                 weight=0.0,
                 is_stable=False
             )
         
-        # Check if it's a transfer based on keywords (fallback)
-        if self._is_transfer(combined_text):
+        # Low confidence PLAID transfer (score 30-69): fallback to keyword patterns
+        if 30 <= transfer_score < 70:
+            if self._is_transfer(combined_text):
+                return CategoryMatch(
+                    category="transfer",
+                    subcategory="internal",
+                    confidence=0.9,
+                    description="Internal Transfer (keyword fallback)",
+                    match_method="batch_keyword",
+                    weight=0.0,
+                    is_stable=False
+                )
+        # If no PLAID signal but strong keyword match, still treat as transfer
+        elif transfer_score < 30 and self._is_transfer(combined_text):
             return CategoryMatch(
                 category="transfer",
                 subcategory="internal",
                 confidence=0.9,
                 description="Internal Transfer",
-                match_method="keyword",
+                match_method="batch_keyword",
                 weight=0.0,
                 is_stable=False
             )
