@@ -1215,7 +1215,12 @@ class TransactionCategorizer:
                     pass
             
             if category in summary and subcategory in summary.get(category, {}):
-                summary[category][subcategory]["total"] += (amount * match. weight)
+                # Apply weight ONLY for income (to discount uncertain sources)
+                # For expenses, debt, risk, etc., always use full amount for accurate affordability
+                if category == "income":
+                    summary[category][subcategory]["total"] += (amount * match.weight)
+                else:
+                    summary[category][subcategory]["total"] += amount
                 summary[category][subcategory]["count"] += 1
                 
                 # Track distinct HCSTC lenders (all time and 90 days)
