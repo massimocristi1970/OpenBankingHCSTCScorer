@@ -656,12 +656,14 @@ class TransactionCategorizer:
             signals.append("PLAID_TRANSFER")
         
         # Signal 2: Description contains "To Mr/Mrs/Ms [Name]" (+40 points)
-        if re.search(r'\bTO\s+(MR|MRS|MS|MISS|DR)\s+[A-Z]+', desc_upper):
+        # Match proper name patterns (Title + Name with letters and spaces)
+        if re.search(r'\bTO\s+(MR|MRS|MS|MISS|DR)\s+[A-Z][A-Z\s]+\b', desc_upper):
             score += 40
             signals.append("TO_PERSON_NAME")
         
         # Signal 3: Contains "Sent from [App]" (+35 points)
-        if re.search(r'SENT FROM\s+(REVOLUT|MONZO|WISE|STARLING)', desc_upper):
+        sent_from_match = re.search(r'SENT FROM\s+(REVOLUT|MONZO|WISE|STARLING)', desc_upper)
+        if sent_from_match:
             score += 35
             signals.append("SENT_FROM_APP")
         
@@ -671,11 +673,14 @@ class TransactionCategorizer:
             signals.append("SORT_CODE")
         
         # Signal 5: Merchant is known financial app (+20 points)
-        known_fintech_apps = ["REVOLUT", "MONZO", "WISE", "STARLING", "CHASE"]
-        if any(app in merchant_upper or app in desc_upper for app in known_fintech_apps):
-            if "FINTECH_APP" not in signals:  # Avoid double-counting with Signal 3
-                score += 20
-                signals.append("FINTECH_APP")
+        # Only add this signal if we haven't already detected "Sent from [App]" to avoid double-counting
+        if not sent_from_match:
+            known_fintech_apps = ["REVOLUT", "MONZO", "WISE", "STARLING", "CHASE"]
+            for app in known_fintech_apps:
+                if app in merchant_upper or app in desc_upper:
+                    score += 20
+                    signals.append("FINTECH_APP")
+                    break  # Early termination once we find a match
         
         # Signal 6: Contains transfer keywords from existing logic (+15 points)
         if self._is_transfer(desc_upper):
