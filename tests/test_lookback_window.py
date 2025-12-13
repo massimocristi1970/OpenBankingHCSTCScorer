@@ -147,10 +147,12 @@ class TestLookbackWindow(unittest.TestCase):
         self.assertAlmostEqual(metrics_3m["income"].monthly_income, 2000, places=0,
                               msg=f"3-month lookback should give £2000/month, got £{metrics_3m['income'].monthly_income:.2f}")
         
-        # 6-month lookback: Note that 6 months (180 days) from May 20 = Nov 21,
-        # so excludes Nov 20 transaction. Includes 5 transactions (Dec, Jan, Mar, Apr, May)
-        # £8000 / 6 months = £1333.33/month
-        # This demonstrates that a longer lookback smooths out income variations
+        # 6-month lookback uses 180 days from most recent date (May 20)
+        # Cutoff is Nov 21, which excludes Nov 20 transaction
+        # Includes 5 of 6 transactions (Dec, Jan, Mar, Apr, May)
+        # Total: £1000 + £1000 + £2000 + £2000 + £2000 = £8000
+        # Divided by 6 months = £1333.33/month
+        # This demonstrates that a longer lookback smooths income variations
         self.assertLess(metrics_6m["income"].monthly_income, metrics_3m["income"].monthly_income,
                        "6-month lookback should show lower average due to older lower-paying job")
         

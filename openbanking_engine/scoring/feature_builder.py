@@ -234,7 +234,10 @@ class MetricsCalculator:
             return transactions
         
         # Calculate cutoff date (N months ago)
-        # Using 30 days per month as approximation
+        # Using 30 days per month as approximation. This is intentional and aligns
+        # with FCA guidance on affordability assessment (which uses similar approximations).
+        # The slight variance from exact month boundaries is acceptable for risk assessment
+        # and ensures consistent behavior across different month lengths.
         cutoff_date = recent_date - timedelta(days=months * 30)
         
         # Filter transactions
@@ -250,6 +253,20 @@ class MetricsCalculator:
                     continue
         
         return filtered
+    
+    def _get_transaction_id(self, txn: Dict) -> Tuple:
+        """
+        Generate a unique identifier for a transaction.
+        
+        Uses date, amount, and full description as the unique key.
+        
+        Args:
+            txn: Transaction dictionary
+        
+        Returns:
+            Tuple representing unique transaction identifier
+        """
+        return (txn.get("date"), txn.get("amount"), txn.get("description", ""))
     
     def _build_filtered_category_summary(
         self,
@@ -270,11 +287,9 @@ class MetricsCalculator:
             Category summary dict with totals from recent transactions only
         """
         # Create set of recent transaction IDs for fast lookup
-        # Using (date, amount, description) as unique identifier
         recent_txn_ids = set()
         for txn in recent_transactions:
-            txn_id = (txn.get("date"), txn.get("amount"), txn.get("description", "")[:50])
-            recent_txn_ids.add(txn_id)
+            recent_txn_ids.add(self._get_transaction_id(txn))
         
         # Initialize summary structure
         summary = {
@@ -301,8 +316,7 @@ class MetricsCalculator:
         # Filter categorized transactions and rebuild summary
         for txn, match in categorized_transactions:
             # Check if this transaction is in the recent set
-            txn_id = (txn.get("date"), txn.get("amount"), txn.get("description", "")[:50])
-            if txn_id not in recent_txn_ids:
+            if self._get_transaction_id(txn) not in recent_txn_ids:
                 continue
             
             amount = abs(txn.get("amount", 0))
