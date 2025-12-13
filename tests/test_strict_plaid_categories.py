@@ -2,7 +2,7 @@
 Test suite for strict PLAID detailed categories that must ALWAYS be respected.
 
 Tests that specific PLAID detailed categories (TRANSFER_IN_ACCOUNT_TRANSFER,
-TRANSFER_OUT_ACCOUNT_TRANSFER, TRANSFER_IN_CASH_ADVANCES_AND_LOANS) are 
+TRANSFER_OUT_ACCOUNT_TRANSFER, TRANSFER_IN_CASH_ADVANCES_AND_LOANS) are
 NEVER overridden by keyword matching or behavioral detection.
 
 Addresses the issue where:
@@ -59,7 +59,10 @@ class TestStrictPlaidCategories(unittest.TestCase):
         with TRANSFER_IN_ACCOUNT_TRANSFER was being categorized as income/other.
         """
         result = self.categorizer.categorize_transaction(
-            description="MR VISHANT KHANNA - From POCKET CHANGE PIONEERS LTD - TiPJAR tipjar.tips/4YHJST - IBAN: GB29REVO00997044058991",
+            description=(
+                "MR VISHANT KHANNA - From POCKET CHANGE PIONEERS LTD - "
+                "TiPJAR tipjar.tips/4YHJST - IBAN: GB29REVO00997044058991"
+            ),
             amount=-73.56,
             plaid_category="TRANSFER_IN_ACCOUNT_TRANSFER",
             plaid_category_primary="TRANSFER_IN"
@@ -99,7 +102,10 @@ class TestStrictPlaidCategories(unittest.TestCase):
         was being categorized as expense/other.
         """
         result = self.categorizer.categorize_transaction(
-            description="To Mr Vishant Khanna - Sent from Revolut - SortCodeAccountNumber: 60837132003331",
+            description=(
+                "To Mr Vishant Khanna - Sent from Revolut - "
+                "SortCodeAccountNumber: 60837132003331"
+            ),
             amount=7.16,  # Positive = debit (money out)
             merchant_name="Revolut",
             plaid_category="TRANSFER_OUT_ACCOUNT_TRANSFER",
@@ -117,7 +123,10 @@ class TestStrictPlaidCategories(unittest.TestCase):
         TRANSFER_OUT_ACCOUNT_TRANSFER with larger amount.
         """
         result = self.categorizer.categorize_transaction(
-            description="To Mr Vishant Khanna - Sent from Revolut - SortCodeAccountNumber: 60837132003331",
+            description=(
+                "To Mr Vishant Khanna - Sent from Revolut - "
+                "SortCodeAccountNumber: 60837132003331"
+            ),
             amount=150,
             merchant_name="Revolut",
             plaid_category="TRANSFER_OUT_ACCOUNT_TRANSFER",
