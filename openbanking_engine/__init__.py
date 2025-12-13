@@ -178,13 +178,15 @@ def run_open_banking_scoring(
     accounts = []
     
     # Create calculator with automatic month calculation from transactions
-    calculator = MetricsCalculator(transactions=transactions)
+    # Use lookback_months=3 (default) for income/expense calculations
+    calculator = MetricsCalculator(lookback_months=3, transactions=transactions)
     metrics = calculator.calculate_all_metrics(
         category_summary=category_summary,
         transactions=transactions,
         accounts=accounts,
         loan_amount=requested_amount,
-        loan_term=requested_term
+        loan_term=requested_term,
+        categorized_transactions=categorized
     )
     
     # Build categorized transaction list for response
