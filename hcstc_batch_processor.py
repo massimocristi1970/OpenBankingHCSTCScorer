@@ -394,7 +394,8 @@ class HCSTCBatchProcessor:
             transactions=transactions,
             accounts=accounts,
             loan_amount=loan_amount,
-            loan_term=loan_term
+            loan_term=loan_term,
+            categorized_transactions=categorized
         )
         
         # Generate application reference from filename
