@@ -189,6 +189,63 @@ class TransactionCategorizer:
         
         return None
     
+    def _check_strict_plaid_categories(
+        self,
+        plaid_category_detailed: Optional[str]
+    ) -> Optional[CategoryMatch]:
+        """
+        Check for strict PLAID detailed categories that must ALWAYS be respected.
+        These categories override any keyword matching or behavioral detection.
+        
+        Args:
+            plaid_category_detailed: The detailed PLAID category
+            
+        Returns:
+            CategoryMatch if strict category found, None otherwise
+        """
+        if not plaid_category_detailed:
+            return None
+        
+        detailed_upper = plaid_category_detailed.upper()
+        
+        # TRANSFER_IN_ACCOUNT_TRANSFER -> transfer > internal (ALWAYS)
+        if detailed_upper == "TRANSFER_IN_ACCOUNT_TRANSFER":
+            return CategoryMatch(
+                category="transfer",
+                subcategory="internal",
+                confidence=0.98,
+                description="Internal Transfer",
+                match_method="plaid_strict",
+                weight=0.0,
+                is_stable=False
+            )
+        
+        # TRANSFER_OUT_ACCOUNT_TRANSFER -> transfer > external (ALWAYS)
+        if detailed_upper == "TRANSFER_OUT_ACCOUNT_TRANSFER":
+            return CategoryMatch(
+                category="transfer",
+                subcategory="external",
+                confidence=0.98,
+                description="External Transfer",
+                match_method="plaid_strict",
+                weight=0.0,
+                is_stable=False
+            )
+        
+        # TRANSFER_IN_CASH_ADVANCES_AND_LOANS -> income > loans (ALWAYS)
+        if detailed_upper == "TRANSFER_IN_CASH_ADVANCES_AND_LOANS":
+            return CategoryMatch(
+                category="income",
+                subcategory="loans",
+                confidence=0.98,
+                description="Loan Payments/Disbursements",
+                match_method="plaid_strict",
+                weight=0.0,
+                is_stable=False
+            )
+        
+        return None
+    
     def _categorize_income(
         self, 
         combined_text: str, 
@@ -199,7 +256,12 @@ class TransactionCategorizer:
     ) -> CategoryMatch:
         """Categorize an income transaction (credit)."""
         
-        # STEP 0: Check if this is a known expense service that should NEVER be income
+        # STEP 0A: Check strict PLAID categories FIRST (before any other logic)
+        strict_match = self._check_strict_plaid_categories(plaid_category)
+        if strict_match:
+            return strict_match
+        
+        # STEP 0B: Check if this is a known expense service that should NEVER be income
         # This prevents false positives from keyword matching (e.g., "PAYPAL PAYMENT", "CLEARPAY")
         for service in self.KNOWN_EXPENSE_SERVICES:
             if service in combined_text:
@@ -408,7 +470,12 @@ class TransactionCategorizer:
     ) -> CategoryMatch:
         """Categorize an expense transaction (debit)."""
         
-        # Check risk patterns first (highest priority)
+        # STEP 1: Check strict PLAID categories FIRST
+        strict_match = self._check_strict_plaid_categories(plaid_category)
+        if strict_match:
+            return strict_match
+        
+        # STEP 2: Check risk patterns (highest priority)
         for subcategory, patterns in self.risk_patterns.items():
             match = self._match_patterns(combined_text, patterns)
             if match:
@@ -941,7 +1008,12 @@ class TransactionCategorizer:
         Internal method that uses the optimized is_likely_income_from_batch()
         which leverages pre-computed recurring patterns.
         """
-        # STEP 0: Check if this is a known expense service (same as non-batch)
+        # STEP 0A: Check strict PLAID categories FIRST (before any other logic)
+        strict_match = self._check_strict_plaid_categories(plaid_category)
+        if strict_match:
+            return strict_match
+        
+        # STEP 0B: Check if this is a known expense service (same as non-batch)
         for service in self.KNOWN_EXPENSE_SERVICES:
             if service in combined_text:
                 if plaid_category_primary:
@@ -1137,6 +1209,7 @@ class TransactionCategorizer:
                 "benefits": {"total": 0.0, "count": 0},
                 "pension": {"total": 0.0, "count": 0},
                 "gig_economy": {"total": 0.0, "count": 0},
+                "loans": {"total": 0.0, "count": 0},
                 "other": {"total": 0.0, "count": 0},
             },
             "debt": {
@@ -1196,7 +1269,10 @@ class TransactionCategorizer:
             "positive": {
                 "savings": {"total": 0.0, "count": 0},
             },
-            "transfer": {"total": 0.0, "count": 0},
+            "transfer": {
+                "internal": {"total": 0.0, "count": 0},
+                "external": {"total": 0.0, "count": 0},
+            },
             "other": {"total": 0.0, "count": 0},
         }
         
@@ -1269,8 +1345,15 @@ class TransactionCategorizer:
                         summary[category][subcategory]["count_90d"] += 1
             
             elif category == "transfer":
-                summary["transfer"]["total"] += amount
-                summary["transfer"]["count"] += 1
+                if subcategory in summary["transfer"]:
+                    summary["transfer"][subcategory]["total"] += amount
+                    summary["transfer"][subcategory]["count"] += 1
+                else:
+                    # Fallback for any unexpected subcategory
+                    if "other" not in summary["transfer"]:
+                        summary["transfer"]["other"] = {"total": 0.0, "count": 0}
+                    summary["transfer"]["other"]["total"] += amount
+                    summary["transfer"]["other"]["count"] += 1
             else:
                 summary["other"]["total"] += amount
                 summary["other"]["count"] += 1
