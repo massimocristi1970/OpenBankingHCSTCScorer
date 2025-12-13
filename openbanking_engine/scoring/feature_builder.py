@@ -107,16 +107,20 @@ class RiskMetrics:
 class MetricsCalculator:
     """Calculates financial metrics from categorized transactions."""
     
-    def __init__(self, months_of_data: Optional[int] = None, transactions: Optional[List[Dict]] = None):
+    def __init__(self, lookback_months: int = 3, months_of_data: Optional[int] = None, transactions: Optional[List[Dict]] = None):
         """
         Initialize the metrics calculator.
         
         Args:
+            lookback_months: Number of months to look back for income/expense calculations (default 3).
+                           This determines the window for calculating monthly averages.
             months_of_data: Number of months of transaction data (optional).
                            If not provided, will be calculated from transactions.
             transactions: Transaction list to calculate months from (optional).
                          Used when months_of_data is not provided.
         """
+        self.lookback_months = lookback_months
+        
         # If months_of_data is explicitly provided, use it
         if months_of_data is not None:
             self.months_of_data = months_of_data
@@ -194,29 +198,171 @@ class MetricsCalculator:
         # Return at least 1 month
         return max(1, months)
     
+    def _filter_recent_transactions(self, transactions: List[Dict], months: int) -> List[Dict]:
+        """
+        Filter transactions to only include the last N months.
+        
+        This method finds the most recent transaction date and filters to only include
+        transactions within N months (approximately N * 30 days) from that date.
+        
+        Used for income and expense calculations to provide accurate recent monthly averages
+        while avoiding dilution from old sporadic transactions.
+        
+        Args:
+            transactions: Full transaction list
+            months: Number of months to look back
+        
+        Returns:
+            Filtered transaction list containing only recent transactions
+        """
+        if not transactions:
+            return []
+        
+        # Find most recent transaction date
+        recent_date = None
+        for txn in transactions:
+            date_str = txn.get("date", "")
+            if date_str:
+                try:
+                    date = datetime.strptime(date_str, "%Y-%m-%d")
+                    if recent_date is None or date > recent_date:
+                        recent_date = date
+                except ValueError:
+                    continue
+        
+        if recent_date is None:
+            return transactions
+        
+        # Calculate cutoff date (N months ago)
+        # Using 30 days per month as approximation
+        cutoff_date = recent_date - timedelta(days=months * 30)
+        
+        # Filter transactions
+        filtered = []
+        for txn in transactions:
+            date_str = txn.get("date", "")
+            if date_str:
+                try:
+                    date = datetime.strptime(date_str, "%Y-%m-%d")
+                    if date >= cutoff_date:
+                        filtered.append(txn)
+                except ValueError:
+                    continue
+        
+        return filtered
+    
+    def _build_filtered_category_summary(
+        self,
+        categorized_transactions: List[Tuple[Dict, 'CategoryMatch']],
+        recent_transactions: List[Dict]
+    ) -> Dict:
+        """
+        Build a category summary from only the recent transactions.
+        
+        This is used to calculate accurate income and expense totals from the filtered
+        time period without including old sporadic transactions.
+        
+        Args:
+            categorized_transactions: Full list of (transaction, CategoryMatch) tuples
+            recent_transactions: Filtered list of recent transactions
+        
+        Returns:
+            Category summary dict with totals from recent transactions only
+        """
+        # Create set of recent transaction IDs for fast lookup
+        # Using (date, amount, description) as unique identifier
+        recent_txn_ids = set()
+        for txn in recent_transactions:
+            txn_id = (txn.get("date"), txn.get("amount"), txn.get("description", "")[:50])
+            recent_txn_ids.add(txn_id)
+        
+        # Initialize summary structure
+        summary = {
+            "income": {
+                "salary": {"total": 0.0, "count": 0},
+                "benefits": {"total": 0.0, "count": 0},
+                "pension": {"total": 0.0, "count": 0},
+                "gig_economy": {"total": 0.0, "count": 0},
+                "other": {"total": 0.0, "count": 0},
+            },
+            "essential": {
+                "rent": {"total": 0.0, "count": 0},
+                "mortgage": {"total": 0.0, "count": 0},
+                "council_tax": {"total": 0.0, "count": 0},
+                "utilities": {"total": 0.0, "count": 0},
+                "communications": {"total": 0.0, "count": 0},
+                "insurance": {"total": 0.0, "count": 0},
+                "transport": {"total": 0.0, "count": 0},
+                "groceries": {"total": 0.0, "count": 0},
+                "childcare": {"total": 0.0, "count": 0},
+            },
+        }
+        
+        # Filter categorized transactions and rebuild summary
+        for txn, match in categorized_transactions:
+            # Check if this transaction is in the recent set
+            txn_id = (txn.get("date"), txn.get("amount"), txn.get("description", "")[:50])
+            if txn_id not in recent_txn_ids:
+                continue
+            
+            amount = abs(txn.get("amount", 0))
+            category = match.category
+            subcategory = match.subcategory
+            
+            # Only track income and essential expenses in filtered summary
+            if category in ["income", "essential"] and subcategory in summary.get(category, {}):
+                summary[category][subcategory]["total"] += (amount * match.weight)
+                summary[category][subcategory]["count"] += 1
+        
+        return summary
+    
     def calculate_all_metrics(
         self,
         category_summary: Dict,
         transactions: List[Dict],
         accounts: List[Dict],
         loan_amount: float = 500,
-        loan_term: int = 4
+        loan_term: int = 4,
+        categorized_transactions: Optional[List[Tuple[Dict, 'CategoryMatch']]] = None
     ) -> Dict:
         """
         Calculate all metrics from categorized transactions.
         
+        This method applies different time windows for different metric types:
+        - Income/Expense metrics: Use recent transactions (last N months) for accurate monthly averages
+        - Risk metrics: Use full transaction history to capture all historical risk patterns
+        
         Args:
-            category_summary: Summary from TransactionCategorizer
-            transactions: Raw transaction list
+            category_summary: Summary from TransactionCategorizer (based on full history)
+            transactions: Raw transaction list (full history)
             accounts: Account information list
             loan_amount: Requested loan amount
             loan_term: Requested loan term in months
+            categorized_transactions: Optional list of (transaction, CategoryMatch) tuples
+                                     Used to rebuild category summary for filtered period
         
         Returns:
             Dictionary containing all metric objects
         """
-        income_metrics = self.calculate_income_metrics(category_summary, transactions)
-        expense_metrics = self.calculate_expense_metrics(category_summary)
+        # Filter transactions to last N months for income/expense calculations
+        # This gives accurate monthly averages without dilution from old sporadic transactions
+        recent_transactions = self._filter_recent_transactions(transactions, self.lookback_months)
+        
+        # Build filtered category summary for income/expense calculations if categorized_transactions provided
+        if categorized_transactions is not None:
+            filtered_category_summary = self._build_filtered_category_summary(
+                categorized_transactions, recent_transactions
+            )
+        else:
+            # Fallback: use full category_summary (backward compatibility)
+            filtered_category_summary = category_summary
+        
+        # Calculate income and expenses using recent transactions only
+        income_metrics = self.calculate_income_metrics(filtered_category_summary, recent_transactions)
+        expense_metrics = self.calculate_expense_metrics(filtered_category_summary, recent_transactions)
+        
+        # Use FULL transaction history for debt and risk metrics
+        # This captures all historical risk patterns (HCSTC, debt collection, gambling, etc.)
         debt_metrics = self.calculate_debt_metrics(category_summary)
         balance_metrics = self.calculate_balance_metrics(transactions, accounts)
         risk_metrics = self.calculate_risk_metrics(category_summary, income_metrics)
@@ -243,10 +389,19 @@ class MetricsCalculator:
         category_summary: Dict,
         transactions: List[Dict]
     ) -> IncomeMetrics:
-        """Calculate income-related metrics."""
+        """
+        Calculate income-related metrics from recent transactions.
+        
+        Args:
+            category_summary: Category summary (should be from filtered transactions)
+            transactions: Recent transactions list (for stability/regularity calculation)
+        
+        Returns:
+            IncomeMetrics with monthly income averages
+        """
         income_data = category_summary.get("income", {})
         
-        # Calculate totals
+        # Calculate totals (these are already from filtered transactions)
         salary_total = income_data.get("salary", {}).get("total", 0)
         benefits_total = income_data.get("benefits", {}).get("total", 0)
         pension_total = income_data.get("pension", {}).get("total", 0)
@@ -255,11 +410,15 @@ class MetricsCalculator:
         
         total_income = salary_total + benefits_total + pension_total + gig_total + other_total
         
-        # Monthly calculations
-        monthly_stable = (salary_total + benefits_total + pension_total) / self.months_of_data
-        monthly_gig = gig_total / self.months_of_data
-        monthly_other = other_total / self.months_of_data
-        monthly_income = total_income / self.months_of_data
+        # Calculate actual months in the filtered period
+        # Use lookback_months as the period since we're working with filtered data
+        actual_months = self.lookback_months
+        
+        # Monthly calculations - divide by ACTUAL months in recent period
+        monthly_stable = (salary_total + benefits_total + pension_total) / actual_months
+        monthly_gig = gig_total / actual_months
+        monthly_other = other_total / actual_months
+        monthly_income = total_income / actual_months
         
         # Effective income (gig weighted at 70%, other at 100%)
         effective_monthly = monthly_stable + (monthly_gig * 0.7) + monthly_other
@@ -299,9 +458,9 @@ class MetricsCalculator:
             has_verifiable_income=has_verifiable,
             income_sources=income_sources,
             monthly_income_breakdown={
-                "salary": salary_total / self.months_of_data,
-                "benefits": benefits_total / self.months_of_data,
-                "pension": pension_total / self.months_of_data,
+                "salary": salary_total / actual_months,
+                "benefits": benefits_total / actual_months,
+                "pension": pension_total / actual_months,
                 "gig_economy": monthly_gig,
                 "other": monthly_other,
             }
@@ -396,20 +555,37 @@ class MetricsCalculator:
         else:
             return 20.0
     
-    def calculate_expense_metrics(self, category_summary: Dict) -> ExpenseMetrics:
-        """Calculate expense-related metrics."""
+    def calculate_expense_metrics(
+        self, 
+        category_summary: Dict,
+        transactions: Optional[List[Dict]] = None
+    ) -> ExpenseMetrics:
+        """
+        Calculate expense-related metrics from recent transactions.
+        
+        Args:
+            category_summary: Category summary (should be from filtered transactions)
+            transactions: Recent transactions list (for calculating actual months)
+        
+        Returns:
+            ExpenseMetrics with monthly expense averages
+        """
         essential_data = category_summary.get("essential", {})
         
-        # Get monthly averages
-        rent = essential_data.get("rent", {}).get("total", 0) / self.months_of_data
-        mortgage = essential_data.get("mortgage", {}).get("total", 0) / self.months_of_data
-        council_tax = essential_data.get("council_tax", {}).get("total", 0) / self.months_of_data
-        utilities = essential_data.get("utilities", {}).get("total", 0) / self.months_of_data
-        transport = essential_data.get("transport", {}).get("total", 0) / self.months_of_data
-        groceries = essential_data.get("groceries", {}).get("total", 0) / self.months_of_data
-        communications = essential_data.get("communications", {}).get("total", 0) / self.months_of_data
-        insurance = essential_data.get("insurance", {}).get("total", 0) / self.months_of_data
-        childcare = essential_data.get("childcare", {}).get("total", 0) / self.months_of_data
+        # Calculate actual months in the filtered period
+        # Use lookback_months as the period since we're working with filtered data
+        actual_months = self.lookback_months
+        
+        # Get monthly averages based on actual months in filtered period
+        rent = essential_data.get("rent", {}).get("total", 0) / actual_months
+        mortgage = essential_data.get("mortgage", {}).get("total", 0) / actual_months
+        council_tax = essential_data.get("council_tax", {}).get("total", 0) / actual_months
+        utilities = essential_data.get("utilities", {}).get("total", 0) / actual_months
+        transport = essential_data.get("transport", {}).get("total", 0) / actual_months
+        groceries = essential_data.get("groceries", {}).get("total", 0) / actual_months
+        communications = essential_data.get("communications", {}).get("total", 0) / actual_months
+        insurance = essential_data.get("insurance", {}).get("total", 0) / actual_months
+        childcare = essential_data.get("childcare", {}).get("total", 0) / actual_months
         
         # Housing is rent OR mortgage (not both)
         housing = max(rent, mortgage)
