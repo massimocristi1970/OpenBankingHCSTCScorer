@@ -9,6 +9,8 @@ from datetime import datetime, timedelta
 from collections import defaultdict
 import statistics
 
+from openbanking_engine.categorisation.engine import CategoryMatch
+
 from ..config.scoring_config import PRODUCT_CONFIG
 
 
@@ -270,19 +272,19 @@ class MetricsCalculator:
     
     def _build_filtered_category_summary(
         self,
-        categorized_transactions: List[Tuple[Dict, 'CategoryMatch']],
+        categorized_transactions: List[Tuple[Dict, CategoryMatch]],
         recent_transactions: List[Dict]
     ) -> Dict:
         """
         Build a category summary from only the recent transactions.
-        
+    
         This is used to calculate accurate income and expense totals from the filtered
         time period without including old sporadic transactions.
-        
+    
         Args:
-            categorized_transactions: Full list of (transaction, CategoryMatch) tuples
-            recent_transactions: Filtered list of recent transactions
-        
+        categorized_transactions: Full list of (transaction, CategoryMatch) tuples
+        recent_transactions:  Filtered list of recent transactions
+    
         Returns:
             Category summary dict with totals from recent transactions only
         """
@@ -290,7 +292,7 @@ class MetricsCalculator:
         recent_txn_ids = set()
         for txn in recent_transactions:
             recent_txn_ids.add(self._get_transaction_id(txn))
-        
+    
         # Initialize summary structure
         summary = {
             "income": {
@@ -301,33 +303,48 @@ class MetricsCalculator:
                 "other": {"total": 0.0, "count": 0},
             },
             "essential": {
-                "rent": {"total": 0.0, "count": 0},
-                "mortgage": {"total": 0.0, "count": 0},
-                "council_tax": {"total": 0.0, "count": 0},
-                "utilities": {"total": 0.0, "count": 0},
+                "rent": {"total":  0.0, "count":  0},
+                "mortgage":  {"total": 0.0, "count": 0},
+                "council_tax": {"total":  0.0, "count":  0},
+                "utilities":  {"total": 0.0, "count": 0},
                 "communications": {"total": 0.0, "count": 0},
                 "insurance": {"total": 0.0, "count": 0},
                 "transport": {"total": 0.0, "count": 0},
-                "groceries": {"total": 0.0, "count": 0},
+                "groceries": {"total":  0.0, "count":  0},
                 "childcare": {"total": 0.0, "count": 0},
             },
+            "expense": {  # ADD THIS
+                "other": {"total": 0.0, "count": 0},
+                "food_dining": {"total": 0.0, "count": 0},
+            },
+            "debt": {
+                "hcstc_payday": {"total": 0.0, "count": 0, "distinct_lenders": set(), "distinct_lenders_90d": set()},
+                "other_loans": {"total": 0.0, "count": 0},
+                "credit_cards": {"total": 0.0, "count": 0},
+                "bnpl": {"total": 0.0, "count": 0},
+                "catalogue": {"total": 0.0, "count": 0},
+            },
         }
-        
+    
         # Filter categorized transactions and rebuild summary
         for txn, match in categorized_transactions:
             # Check if this transaction is in the recent set
-            if self._get_transaction_id(txn) not in recent_txn_ids:
+            if self._get_transaction_id(txn) not in recent_txn_ids: 
                 continue
-            
+        
             amount = abs(txn.get("amount", 0))
             category = match.category
             subcategory = match.subcategory
-            
-            # Only track income and essential expenses in filtered summary
-            if category in ["income", "essential"] and subcategory in summary.get(category, {}):
-                summary[category][subcategory]["total"] += (amount * match.weight)
-                summary[category][subcategory]["count"] += 1
         
+            # Track income and ALL expense categories in filtered summary
+            if category in ["income", "essential", "expense", "debt"] and subcategory in summary.get(category, {}):
+                # For income, apply weight; for expenses, use full amount
+                if category == "income":
+                    summary[category][subcategory]["total"] += (amount * match.weight)
+                else:
+                    summary[category][subcategory]["total"] += amount
+                summary[category][subcategory]["count"] += 1
+    
         return summary
     
     def calculate_all_metrics(
@@ -576,20 +593,22 @@ class MetricsCalculator:
     ) -> ExpenseMetrics:
         """
         Calculate expense-related metrics from recent transactions.
-        
+    
         Args:
             category_summary: Category summary (should be from filtered transactions)
             transactions: Recent transactions list (for calculating actual months)
-        
+    
         Returns:
             ExpenseMetrics with monthly expense averages
         """
         essential_data = category_summary.get("essential", {})
-        
+        debt_data = category_summary.get("debt", {})  # ADD THIS LINE
+        expense_data = category_summary.get("expense", {})  # ADD THIS
+    
         # Calculate actual months in the filtered period
         # Use lookback_months as the period since we're working with filtered data
         actual_months = self.lookback_months
-        
+    
         # Get monthly averages based on actual months in filtered period
         rent = essential_data.get("rent", {}).get("total", 0) / actual_months
         mortgage = essential_data.get("mortgage", {}).get("total", 0) / actual_months
@@ -600,16 +619,28 @@ class MetricsCalculator:
         communications = essential_data.get("communications", {}).get("total", 0) / actual_months
         insurance = essential_data.get("insurance", {}).get("total", 0) / actual_months
         childcare = essential_data.get("childcare", {}).get("total", 0) / actual_months
-        
+    
+        # Add other expenses that aren't in "essential" category
+        other_expenses = expense_data.get("other", {}).get("total", 0) / actual_months
+        food_dining = expense_data.get("food_dining", {}).get("total", 0) / actual_months
+
+        # Get monthly averages - debt category
+        hcstc = debt_data.get("hcstc_payday", {}).get("total", 0) / actual_months
+        other_loans = debt_data.get("other_loans", {}).get("total", 0) / actual_months
+        credit_cards = debt_data.get("credit_cards", {}).get("total", 0) / actual_months
+        bnpl = debt_data.get("bnpl", {}).get("total", 0) / actual_months
+        catalogue = debt_data.get("catalogue", {}).get("total", 0) / actual_months
+    
         # Housing is rent OR mortgage (not both)
         housing = max(rent, mortgage)
-        
-        # Total essential costs
+    
+        # Total essential costs (including other expenses)
         essential_total = (
             housing + council_tax + utilities + transport + 
-            groceries + communications + insurance + childcare
+            groceries + communications + insurance + childcare +
+            other_expenses + food_dining  # ADD THESE
         )
-        
+    
         return ExpenseMetrics(
             monthly_housing=housing,
             monthly_council_tax=council_tax,
@@ -622,13 +653,16 @@ class MetricsCalculator:
             monthly_essential_total=essential_total,
             essential_breakdown={
                 "housing": housing,
-                "council_tax": council_tax,
+                "council_tax":  council_tax,
                 "utilities": utilities,
-                "transport": transport,
-                "groceries": groceries,
-                "communications": communications,
+                "transport":  transport,
+                "groceries":  groceries,
+                "communications":  communications,
                 "insurance": insurance,
                 "childcare": childcare,
+                "other_expenses": other_expenses,  # ADD THIS
+                "food_dining": food_dining,  # ADD THIS
+                "debt_payments": hcstc + other_loans + credit_cards + bnpl + catalogue,
             }
         )
     
