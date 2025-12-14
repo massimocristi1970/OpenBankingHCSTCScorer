@@ -189,6 +189,11 @@ class TransactionCategorizer:
         
         return None
     
+        print("STRICT HIT repr:", repr(plaid_category_detailed))
+        detailed_upper = str(plaid_category_detailed).strip().upper()
+        print("STRICT HIT normalized:", detailed_upper)
+
+    
     def _check_strict_plaid_categories(
         self,
         plaid_category_detailed: Optional[str]
@@ -533,6 +538,15 @@ class TransactionCategorizer:
                     match_method=match[0],
                     risk_level=patterns.get("risk_level", "medium")
                 )
+            
+        # IMPORTANT: Use PLAID category fallback BEFORE checking positive patterns
+        # This prevents "positive" keyword collisions (e.g., CHIP vs Chipotle)
+        # This preserves high-confidence PLAID categorizations (e.g., gambling, restaurants)
+        # Only fall back to generic expense/other if PLAID also doesn't have a match
+        if plaid_category:
+            plaid_match = self._match_plaid_category(plaid_category, is_income=False)
+            if plaid_match:
+                return plaid_match
         
         # Check positive patterns
         for subcategory, patterns in self.positive_patterns.items():
@@ -546,15 +560,7 @@ class TransactionCategorizer:
                     match_method=match[0]
                 )
         
-        # IMPORTANT: Use PLAID category as fallback BEFORE defaulting to generic expense
-        # This preserves high-confidence PLAID categorizations (e.g., gambling, restaurants)
-        # Only fall back to generic expense/other if PLAID also doesn't have a match
-        if plaid_category:
-            plaid_match = self._match_plaid_category(plaid_category, is_income=False)
-            if plaid_match:
-                # If PLAID has high confidence (>= 0.85), trust it over our generic default
-                return plaid_match
-        
+                
         # Unknown expense (only reached if no patterns matched AND no PLAID category)
         return CategoryMatch(
             category="expense",
