@@ -61,7 +61,7 @@ def main():
             "Requested Loan Amount (£)",
             min_value=PRODUCT_CONFIG["min_loan_amount"],
             max_value=PRODUCT_CONFIG["max_loan_amount"],
-            value=500,
+            value=350,
             step=50,
             help="Loan amount between £200 and £1,500"
         )
