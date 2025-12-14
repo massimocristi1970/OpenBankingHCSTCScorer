@@ -149,31 +149,35 @@ INCOME_PATTERNS = {
         "is_stable": False,
         "description": "Refunds / Chargebacks (Not Income)"
     },
+}
+
+TRANSFER_PATTERNS = {
+    "keywords": [
+        "OWN ACCOUNT", "INTERNAL TRANSFER", "INTERNAL TFR", "BETWEEN ACCOUNTS",
+        "SELF TRANSFER", "ACCOUNT TRANSFER", "TRANSFER BETWEEN",
+        "FROM SAVINGS", "TO SAVINGS", "FROM CURRENT", "TO CURRENT"
+    ],
+    "regex_patterns": [
+        r"(?i)\bown\s*account\b",
+        r"(?i)\bbetween\s*accounts\b",
+        r"(?i)\bself\s*transfer\b",
+        r"(?i)\binternal\s*(transfer|tfr|xfer)\b",
+        r"(?i)\baccount\s*transfer\b|\btransfer\s*between\b",
+        r"(?i)\b(move(d)?|transfer(red)?)\b.*\b(from|to)\b.*\b(savings|current)\b",
+        r"(?i)\b(from|to)\b\s*(savings|current)\b.*\b(transfer|tfr|xfer|moved?)\b",
+        r"(?i)\b(faster\s*payment|fps|fp)\b.*\b(transfer|tfr|xfer)\b",
+
+        # WARNING: see note below about standing order / so
+        r"(?i)\bstanding\s*order\b",
+    ],
+    "weight": 0.0,
+    "is_stable": False,
+    "description": "Internal / Own-Account Transfers (Not Income)"
+    }
 
 
-    "transfer": {
-        "keywords": [
-            "OWN ACCOUNT", "INTERNAL TRANSFER", "INTERNAL TFR", "BETWEEN ACCOUNTS",
-            "SELF TRANSFER", "ACCOUNT TRANSFER", "TRANSFER BETWEEN",
-            "FROM SAVINGS", "TO SAVINGS", "FROM CURRENT", "TO CURRENT"
-        ],
-        "regex_patterns": [
-            r"(?i)\bown\s*account\b",
-            r"(?i)\bbetween\s*accounts\b",
-            r"(?i)\bself\s*transfer\b",
-            r"(?i)\binternal\s*(transfer|tfr|xfer)\b",
-            r"(?i)\baccount\s*transfer\b|\btransfer\s*between\b",
-            r"(?i)\b(move(d)?|transfer(red)?)\b.*\b(from|to)\b.*\b(savings|current)\b",
-            r"(?i)\b(from|to)\b\s*(savings|current)\b.*\b(transfer|tfr|xfer|moved?)\b",
-            r"(?i)\b(faster\s*payment|fps|fp)\b.*\b(transfer|tfr|xfer)\b",
-            r"(?i)\bstanding\s*order\b|\bso\b",
-        ],
-        "weight": 0.0,
-        "is_stable": False,
-        "description": "Internal / Own-Account Transfers (Not Income)"
-    },
-
-"hcstc_payday": {
+DEBT_PATTERNS = {
+    "hcstc_payday": {
     "keywords": [
         "LENDING STREAM", "DRAFTY", "MR LENDER", "MONEYBOAT",
         "CREDITSPRING", "CASHFLOAT", "QUIDMARKET", "LOANS 2 GO",
