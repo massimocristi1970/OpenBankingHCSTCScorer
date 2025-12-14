@@ -194,46 +194,36 @@ class TransactionCategorizer:
         self,
         plaid_category_detailed: Optional[str]
     ) -> Optional[CategoryMatch]:
-        """
-        Check for strict PLAID detailed categories that must ALWAYS be respected.
-        These categories override any keyword matching or behavioral detection.
-        
-        Args:
-            plaid_category_detailed: The detailed PLAID category
-            
-        Returns:
-            CategoryMatch if strict category found, None otherwise
-        """
+
         if not plaid_category_detailed:
             return None
-        
+
         detailed_upper = str(plaid_category_detailed).strip().upper()
-        
-        # TRANSFER_IN_ACCOUNT_TRANSFER -> transfer > internal (ALWAYS)
-        if detailed_upper == "TRANSFER_IN_ACCOUNT_TRANSFER":
+
+        # === ALL TRANSFER IN → INCOME / OTHER (COUNTED) ===
+        if detailed_upper.startswith("TRANSFER_IN"):
             return CategoryMatch(
-                category="transfer",
-                subcategory="internal",
+                category="income",
+                subcategory="other",
                 confidence=0.98,
-                description="Internal Transfer",
+                description="Plaid Transfer In",
                 match_method="plaid_strict",
-                weight=0.0,
+                weight=1.0,
                 is_stable=False
             )
-        
-        # TRANSFER_OUT_ACCOUNT_TRANSFER -> transfer > external (ALWAYS)
-        if detailed_upper == "TRANSFER_OUT_ACCOUNT_TRANSFER":
+
+        # === ALL TRANSFER OUT → EXPENSE / OTHER (COUNTED) ===
+        if detailed_upper.startswith("TRANSFER_OUT"):
             return CategoryMatch(
-                category="transfer",
-                subcategory="external",
+                category="expense",
+                subcategory="other",
                 confidence=0.98,
-                description="External Transfer",
+                description="Plaid Transfer Out",
                 match_method="plaid_strict",
-                weight=0.0,
+                weight=1.0,
                 is_stable=False
             )
-        
-        # TRANSFER_IN_CASH_ADVANCES_AND_LOANS -> income > loans (ALWAYS)
+        # Loan disbursements still excluded
         if detailed_upper == "TRANSFER_IN_CASH_ADVANCES_AND_LOANS":
             return CategoryMatch(
                 category="income",
@@ -244,7 +234,6 @@ class TransactionCategorizer:
                 weight=0.0,
                 is_stable=False
             )
-        
         return None
     
     def _categorize_income(
@@ -270,17 +259,8 @@ class TransactionCategorizer:
                 # If PLAID says it's a transfer or loan, trust that
                 if plaid_category_primary:
                     plaid_primary_upper = plaid_category_primary.upper()
-                    if "TRANSFER" in plaid_primary_upper:
-                        return CategoryMatch(
-                            category="transfer",
-                            subcategory="internal",
-                            confidence=0.90,
-                            description="Internal Transfer",
-                            match_method="plaid",
-                            weight=0.0,
-                            is_stable=False
-                        )
-                    # CRITICAL: Check for LOAN_PAYMENTS to prevent loan disbursements from being income
+
+                    # CRITICAL: Exclude loan disbursements from income
                     if "LOAN_PAYMENTS" in plaid_primary_upper:
                         return CategoryMatch(
                             category="income",
@@ -291,17 +271,30 @@ class TransactionCategorizer:
                             weight=0.0,
                             is_stable=False
                         )
-                # Otherwise default to other income with low confidence
-                # (could be a refund or reimbursement)
-                return CategoryMatch(
-                    category="income",
-                    subcategory="other",
-                    confidence=0.5,
-                    description="Other Income",
-                    match_method="known_service_exclusion",
-                    weight=1.0,
-                    is_stable=False
-                )
+
+                    # Your requested behaviour: Plaid TRANSFER_* counts as income/other
+                    if "TRANSFER" in plaid_primary_upper:
+                        return CategoryMatch(
+                            category="income",
+                            subcategory="other",
+                            confidence=0.90,
+                            description="Plaid Transfer In",
+                            match_method="plaid",
+                            weight=1.0,
+                            is_stable=False
+                    )
+
+            # Otherwise default (refund/reimbursement etc.)
+            return CategoryMatch(
+            category="income",
+            subcategory="other",
+            confidence=0.5,
+            description="Other Income",
+            match_method="known_service_exclusion",
+            weight=1.0,
+            is_stable=False
+        )
+
         
         # STEP 1: Check PLAID categories for high-confidence loan/transfer indicators
         # BEFORE applying keyword-based income detection
@@ -396,26 +389,26 @@ class TransactionCategorizer:
                 )
         
         # STEP 4: Check for transfers (only if NOT identified as income above)
-        if self._is_plaid_transfer(plaid_category_primary, plaid_category, description):
+        if self._is_plaid_transfer(...):
             return CategoryMatch(
                 category="transfer",
                 subcategory="internal",
                 confidence=0.95,
                 description="Internal Transfer",
                 match_method="plaid",
-                weight=0.0,  # Not counted as income
+                weight=0.0,
                 is_stable=False
             )
         
         # Check if it's a transfer based on keywords (fallback)
-        if self._is_transfer(combined_text):
+        if self._is_transfer(...):
             return CategoryMatch(
                 category="transfer",
                 subcategory="internal",
                 confidence=0.9,
                 description="Internal Transfer",
                 match_method="keyword",
-                weight=0.0,  # Not counted as income
+                weight=0.0,
                 is_stable=False
             )
         
@@ -476,21 +469,7 @@ class TransactionCategorizer:
         if strict_match:
             return strict_match
         
-                # STEP 1B: Detect transfers on EXPENSE side (debits) so they don't inflate monthly spend
-        # Prefer Plaid signals first (highest confidence)
-        if plaid_category:
-            plaid_upper = str(plaid_category).strip().upper()
-            if "TRANSFER" in plaid_upper:
-                return CategoryMatch(
-                    category="transfer",
-                    subcategory="internal",
-                    confidence=0.95,
-                    description="Internal Transfer",
-                    match_method="plaid",
-                    weight=0.0,
-                    is_stable=False
-                )
-
+        
         # Fallback to keyword/regex transfer detection
         # IMPORTANT: do NOT treat "standing order" alone as a transfer (rent/bills are often standing orders)
         if self._is_transfer(combined_text) and not re.search(r"(?i)\bstanding\s*order\b", combined_text):
@@ -883,7 +862,6 @@ class TransactionCategorizer:
                 or txn.get("plaid_category_primary")
             )
 
-            
             # Handle nested PLAID category if present
             if "personal_finance_category" in txn:
                 pfc = txn.get("personal_finance_category", {})
@@ -1179,7 +1157,7 @@ class TransactionCategorizer:
                     is_stable=patterns.get("is_stable", False)
                 )
         
-        # Check for transfers (only if NOT identified as income above)
+        # STEP 4: Check for transfers (only if NOT identified as income above)
         if self._is_plaid_transfer(plaid_category_primary, plaid_category, description):
             return CategoryMatch(
                 category="transfer",
@@ -1190,7 +1168,7 @@ class TransactionCategorizer:
                 weight=0.0,
                 is_stable=False
             )
-        
+
         # Check if it's a transfer based on keywords (fallback)
         if self._is_transfer(combined_text):
             return CategoryMatch(
@@ -1201,7 +1179,7 @@ class TransactionCategorizer:
                 match_method="keyword",
                 weight=0.0,
                 is_stable=False
-            )
+            )  
         
         # Unknown income (default with low weight)
         return CategoryMatch(
