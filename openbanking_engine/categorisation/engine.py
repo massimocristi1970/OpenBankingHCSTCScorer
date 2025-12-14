@@ -206,7 +206,7 @@ class TransactionCategorizer:
         if not plaid_category_detailed:
             return None
         
-        detailed_upper = plaid_category_detailed.upper()
+        detailed_upper = str(plaid_category_detailed).strip().upper()
         
         # TRANSFER_IN_ACCOUNT_TRANSFER -> transfer > internal (ALWAYS)
         if detailed_upper == "TRANSFER_IN_ACCOUNT_TRANSFER":
