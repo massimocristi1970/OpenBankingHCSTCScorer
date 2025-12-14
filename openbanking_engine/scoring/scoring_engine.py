@@ -103,8 +103,8 @@ class ScoringEngine:
     def score_application(
         self,
         metrics: Dict,
-        requested_amount: float = 500,
-        requested_term: int = 4,
+        requested_amount: float = 350,
+        requested_term: int = 6,
         application_ref: str = ""
     ) -> ScoringResult:
         """

@@ -189,11 +189,7 @@ class TransactionCategorizer:
         
         return None
     
-        print("STRICT HIT repr:", repr(plaid_category_detailed))
-        detailed_upper = str(plaid_category_detailed).strip().upper()
-        print("STRICT HIT normalized:", detailed_upper)
-
-    
+            
     def _check_strict_plaid_categories(
         self,
         plaid_category_detailed: Optional[str]
