@@ -843,8 +843,16 @@ class TransactionCategorizer:
             description = txn.get("name", "")
             amount = txn.get("amount", 0)
             merchant_name = txn.get("merchant_name")
-            plaid_category = txn.get("personal_finance_category.detailed")
-            plaid_category_primary = txn.get("personal_finance_category.primary")
+            plaid_category = (
+                txn.get("personal_finance_category.detailed")
+                or txn.get("plaid_category_detailed")
+            )
+
+            plaid_category_primary = (
+                txn.get("personal_finance_category.primary")
+                or txn.get("plaid_category_primary")
+            )
+
             
             # Handle nested PLAID category if present
             if "personal_finance_category" in txn:
@@ -917,8 +925,16 @@ class TransactionCategorizer:
                 description = txn.get("name", "")
                 amount = txn.get("amount", 0)
                 merchant_name = txn.get("merchant_name")
-                plaid_category = txn.get("personal_finance_category.detailed")
-                plaid_category_primary = txn.get("personal_finance_category.primary")
+                plaid_category = (
+                    txn.get("personal_finance_category.detailed")
+                    or txn.get("plaid_category_detailed")
+                )
+
+                plaid_category_primary = (
+                    txn.get("personal_finance_category.primary")
+                    or txn.get("plaid_category_primary")
+        )
+
                 
                 # Handle nested PLAID category if present
                 if "personal_finance_category" in txn:
