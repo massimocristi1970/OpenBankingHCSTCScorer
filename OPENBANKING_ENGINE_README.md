@@ -336,6 +336,334 @@ python -m unittest test_plaid_categorization_preservation
 5. **Collaboration**: Team members can work on different modules independently
 6. **Professional**: Industry-standard package structure
 
+## Scoring System Documentation
+
+### Overview - 175 Point Scale
+
+The HCSTC scoring system evaluates loan applications on a **175-point scale** (previously 100 points, rescaled by 1.75x). The system balances affordability, income quality, account conduct, and risk indicators to make responsible lending decisions.
+
+**Decision Thresholds:**
+- **APPROVE**: 70-175 points - Auto-approved for requested amount/term
+- **REFER**: 45-69 points - Manual underwriter review required  
+- **DECLINE**: 0-44 points - Automatic rejection
+
+### Score Breakdown (175 Points Maximum)
+
+#### 1. Income Quality (45 points max)
+
+Evaluates the stability and reliability of income sources.
+
+**Base Income Score (0-25 points):**
+- £2000+ monthly: 25 points
+- £1500-2000 monthly: 20 points
+- £1000-1500 monthly: 15 points
+- £500-1000 monthly: 10 points
+- £0-500 monthly: 0 points
+
+**Stable Income Bonus (+10 points):**
+- Awarded for stable income sources with weight 1.0
+- Includes: salary, benefits, pension
+- Excludes: gig economy (weight 0.7), loans (weight 0.0)
+
+**Income Consistency (+10 points):**
+- Measures variance in income amounts over time
+- Low variance (< 10%): 10 points
+- Medium variance (10-20%): 5 points
+- High variance (> 20%): 0 points
+
+#### 2. Affordability (50 points max)
+
+Assesses ability to repay the loan without financial hardship.
+
+**DTI Ratio Score (0-25 points):**
+- < 20% DTI: 25 points
+- 20-30% DTI: 20 points
+- 30-40% DTI: 15 points
+- 40-50% DTI: 10 points
+- 50-60% DTI: 5 points
+- > 60% DTI: 0 points
+
+**Disposable Income Score (0-25 points):**
+Based on monthly disposable income (after expenses, before loan):
+- £500+ disposable: 25 points
+- £400-500 disposable: 20 points
+- £300-400 disposable: 15 points
+- £200-300 disposable: 10 points
+- £100-200 disposable: 5 points
+- < £100 disposable: 0 points
+
+#### 3. Account Conduct (35 points max)
+
+Evaluates banking behavior and financial management.
+
+**Clean Conduct Baseline:**
+- No failed payments: 35 points (baseline)
+- No bank charges: 35 points (baseline)
+- No overdraft issues: 35 points (baseline)
+
+**Penalties Applied:**
+- Failed payment (last 45 days): -5 points each
+- Bank charge (last 90 days): -3 points each
+- Frequent overdraft usage: -10 points
+- Minimum score: 0 points (cannot go negative)
+
+#### 4. Debt Profile (25 points max)
+
+Examines existing credit commitments and HCSTC exposure.
+
+**HCSTC Lender Count (0-15 points):**
+- No HCSTC lenders: 15 points
+- 1 HCSTC lender: 10 points
+- 2 HCSTC lenders: 5 points
+- 3+ HCSTC lenders: 0 points
+
+**Credit Diversity Bonus (+10 points):**
+- Awarded for managed credit without excess
+- Requires: active credit, no excessive borrowing
+- Indicates responsible credit management
+
+#### 5. Risk Factors (20 points max)
+
+Evaluates high-risk financial behaviors.
+
+**No Gambling Activity (+10 points):**
+- No gambling in last 90 days: 10 points
+- Gambling present: 0-10 points (sliding scale)
+- > 15% of income on gambling: Hard decline
+
+**No Debt Collection Activity (+10 points):**
+- No DCA activity: 10 points
+- Active debt collection: 0 points
+- 4+ DCAs: Hard decline
+
+**Savings Activity Bonus (+5 points):**
+- Evidence of savings behavior: +5 bonus points
+- Optional enhancement to total score
+
+### Hard Decline Rules
+
+These rules trigger **instant rejection** regardless of score:
+
+1. **Minimum Income**: Monthly income < £1,000
+2. **No Verified Income**: No identifiable income source and income < £300
+3. **Excessive HCSTC**: 7+ active HCSTC lenders in last 90 days
+4. **Gambling Threshold**: Gambling > 15% of monthly income
+5. **Insufficient Affordability**: Post-loan disposable income < £0 (after 10% expense buffer)
+6. **Failed Payments**: 6+ failed payments in last 45 days
+7. **Debt Collection**: 4+ distinct debt collection agencies
+8. **DTI Too High**: Projected DTI > 75% with new loan
+
+### Mandatory Referral Rules
+
+These trigger manual review (not automatic decline):
+
+1. **Bank Charges**: 3+ bank charges in last 90 days
+2. **New Credit Providers**: 5+ new credit providers in last 90 days
+3. **Score in REFER range**: 45-69 points
+
+### Affordability Calculation Details
+
+#### Monthly Income Calculation
+```
+Weighted Income = Σ (Transaction Amount × Income Weight)
+Monthly Income = Weighted Income / Months of Data
+
+Income Weights:
+- Salary, Benefits, Pension: 1.0 (100%)
+- Gig Economy: 0.7 (70%)
+- Other (unverified): 0.5-1.0 (50-100%)
+- Loans, Transfers: 0.0 (0%, excluded)
+```
+
+#### Monthly Expense Calculation
+```
+Monthly Expenses = (Total Debt Payments + Essential Expenses) / Months
+
+Essential Expenses Include:
+- Rent/Mortgage (housing costs)
+- Council Tax
+- Utilities (gas, electric, water)
+- Communications (phone, internet, TV licence)
+- Transport (fuel, public transport, parking)
+- Groceries (food shopping)
+- Insurance premiums
+- Childcare costs
+
+Debt Payments Include:
+- HCSTC/payday loan payments
+- Credit card payments
+- BNPL payments
+- Catalogue credit payments
+- Other loan payments
+```
+
+#### Loan Repayment Calculation (FCA Compliant)
+```
+Daily Interest Rate: 0.8% (FCA cap)
+Total Cost Cap: 100% of loan amount (FCA cap)
+
+Monthly Repayment = Loan Amount × (1 + Total Cost) / Term Months
+Example: £500 loan for 3 months = £500 × 2.0 / 3 = £333.33/month
+```
+
+#### Disposable Income & DTI
+```
+Expense Shock Buffer: 10% (multiplier: 1.1)
+Buffered Expenses = Monthly Expenses × 1.1
+
+Monthly Disposable = Monthly Income - Buffered Expenses
+Post-Loan Disposable = Monthly Disposable - Monthly Loan Repayment
+
+DTI Ratio = (Total Debt Payments / Gross Income) × 100
+Projected DTI = ((Total Debt + New Loan Payment) / Gross Income) × 100
+```
+
+### Product Parameters
+
+**Loan Amounts:**
+- Minimum: £200
+- Maximum: £1,500
+- Available in £50 increments
+
+**Loan Terms:**
+- Available terms: 3, 4, 5, or 6 months
+- Equal monthly installments
+- No early repayment penalties
+
+**Interest & Fees:**
+- Daily interest rate: 0.8% per day (FCA maximum)
+- Total cost cap: 100% of loan amount (FCA maximum)
+- No hidden fees or charges
+- Transparent pricing
+
+**Score-Based Loan Limits:**
+- Score 149+: Max £1,500 over 6 months
+- Score 123-148: Max £1,200 over 6 months
+- Score 105-122: Max £800 over 5 months
+- Score 88-104: Max £500 over 4 months
+- Score 70-87: Max £300 over 3 months
+
+**Example Calculations:**
+
+| Loan Amount | Term | Daily Interest | Total Cost Cap | Total Repayable | Monthly Payment |
+|-------------|------|----------------|----------------|-----------------|-----------------|
+| £200        | 3 mo | 0.8%          | £200 (100%)    | £400            | £133.33         |
+| £500        | 3 mo | 0.8%          | £500 (100%)    | £1,000          | £333.33         |
+| £800        | 5 mo | 0.8%          | £800 (100%)    | £1,600          | £320.00         |
+| £1,200      | 6 mo | 0.8%          | £1,200 (100%)  | £2,400          | £400.00         |
+| £1,500      | 6 mo | 0.8%          | £1,500 (100%)  | £3,000          | £500.00         |
+
+### FCA Compliance Features
+
+The scoring system implements FCA responsible lending requirements:
+
+**1. Price Cap Enforcement**
+- Daily interest capped at 0.8% (FCA maximum)
+- Total cost capped at 100% of loan amount
+- No charges for late payment beyond cost cap
+- Transparent, standardized pricing
+
+**2. Affordability Assessment**
+- Comprehensive income verification
+- Essential expense consideration
+- 10% expense shock buffer for resilience
+- Post-loan disposable income check
+- DTI ratio monitoring and limits
+
+**3. Income Verification**
+- Stable income sources prioritized (weight 1.0)
+- PLAID category integration for verification
+- Employment income preferred over gig economy
+- Loan disbursements excluded (weight 0.0)
+- Minimum income thresholds enforced
+
+**4. Responsible Lending Checks**
+- Gambling activity monitoring (hard decline at >15%)
+- Debt spiral detection (7+ HCSTC lenders)
+- Failed payment history review (45-day window)
+- Debt collection agency checks
+- Bank charge monitoring
+
+**5. Forbearance & Support**
+- Clear decline reasons provided
+- Referral to manual review when appropriate
+- No risk-based pricing (fixed rate product)
+- Consumer protection compliance
+
+**6. Creditworthiness Assessment**
+- Multi-factor scoring (not just credit score)
+- Account conduct evaluation
+- Behavioral analysis of banking patterns
+- 90-day transaction history analysis
+- Comprehensive risk assessment
+
+### Decision Examples
+
+#### Example 1: APPROVE - Strong Applicant
+```
+Monthly Income: £2,100 (salary, stable)
+Monthly Expenses: £950 (rent, utilities, groceries)
+Existing Debt: £200/month (credit card)
+Requested Loan: £500 for 3 months
+
+Scoring:
+- Income Quality: 35 points (25 base + 10 stable)
+- Affordability: 45 points (20 DTI + 25 disposable)
+- Account Conduct: 35 points (clean record)
+- Debt Profile: 25 points (15 no HCSTC + 10 diversity)
+- Risk Factors: 20 points (10 no gambling + 10 no DCA)
+
+Total Score: 160 points
+Decision: APPROVE
+Max Approved: £1,500 over 6 months
+```
+
+#### Example 2: REFER - Marginal Applicant
+```
+Monthly Income: £1,400 (benefits, stable)
+Monthly Expenses: £850
+Existing Debt: £250/month (1 HCSTC lender, credit card)
+Bank Charges: 2 in last 90 days
+Requested Loan: £400 for 3 months
+
+Scoring:
+- Income Quality: 25 points (15 base + 10 stable)
+- Affordability: 30 points (15 DTI + 15 disposable)
+- Account Conduct: 29 points (35 - 6 penalties)
+- Debt Profile: 20 points (10 one HCSTC + 10 diversity)
+- Risk Factors: 20 points (10 no gambling + 10 no DCA)
+
+Total Score: 124 points → Adjusted to 62 after review
+Decision: REFER (manual review for bank charges)
+Recommendation: Review banking behavior, consider lower amount
+```
+
+#### Example 3: DECLINE - High Risk
+```
+Monthly Income: £900 (gig economy, unstable)
+Monthly Expenses: £650
+Existing Debt: £380/month (3 HCSTC lenders)
+Failed Payments: 4 in last 45 days
+Gambling: £85/month (9.4% of income)
+Requested Loan: £500 for 3 months
+
+Hard Decline Triggers:
+- Monthly income < £1,000
+- 3+ HCSTC lenders (borderline)
+- 4 failed payments in 45 days
+
+Scoring (for reference):
+- Income Quality: 10 points
+- Affordability: 10 points
+- Account Conduct: 15 points (20 penalty applied)
+- Debt Profile: 5 points
+- Risk Factors: 5 points
+
+Total Score: 45 points (but hard declined)
+Decision: DECLINE
+Reasons: Multiple failed payments, insufficient income, high HCSTC exposure
+```
+
 ## Future Enhancements
 
 Potential areas for extension:
@@ -347,10 +675,4 @@ Potential areas for extension:
 5. **API Layer**: REST API wrapper for the scoring engine
 6. **Caching**: Add caching for frequently accessed patterns and configs
 
-## Support
 
-For questions or issues with the new module structure:
-1. Review this README
-2. Check the example_openbanking_usage.py for code examples
-3. Run existing tests to validate setup
-4. Refer to inline documentation in module files

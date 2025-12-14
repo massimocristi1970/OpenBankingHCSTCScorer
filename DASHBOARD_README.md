@@ -246,50 +246,252 @@ Confidence scores indicate how certain the categorization engine is about its cl
 
 **Focus on low confidence transactions** - these are the most likely to need rule adjustments.
 
-### Match Methods
+## Transaction Categorization Engine
 
-The `match_method` field explains how the transaction was categorized:
+### How Categorization Works
 
-- **`keyword`**: Matched against keyword patterns in categorization rules
-- **`regex`**: Matched using regular expressions
-- **`fuzzy`**: Fuzzy string matching (similarity score)
-- **`plaid`**: Categorized based on PLAID's personal_finance_category
-- **`behavioral_*`**: Detected through behavioral analysis (recurring patterns, keywords)
-  - `behavioral_recurring_income`: Recurring pattern detected
-  - `behavioral_salary_keywords`: Payroll keywords found
-  - `behavioral_benefit_keywords`: Benefits keywords found
-  - `behavioral_plaid_income_category`: PLAID marked as income
+The categorization engine uses a **multi-step pipeline** to accurately classify banking transactions. Each transaction is processed through several stages to determine its category, subcategory, and confidence level:
 
-### Categories
+**Pipeline Steps:**
+1. **Text Normalization** - Transaction descriptions are normalized (uppercase, trimmed)
+2. **HCSTC Lender Canonicalization** - Known lender variations are mapped to canonical names
+3. **Strict PLAID Category Checks** - High-confidence PLAID categories processed first (TRANSFER_IN/OUT, loan disbursements)
+4. **Known Expense Service Filtering** - Payment processors and BNPL services excluded from income
+5. **PLAID Income Category Validation** - INCOME_WAGES checked first for employment income
+6. **Pattern-Based Matching** - Sequential matching: keyword → regex → fuzzy
+7. **Transfer Detection** - Multi-signal transfer detection with confidence scoring
+8. **Fallback Categorization** - Default categories for unmatched transactions
 
-The dashboard categorizes transactions into these main categories:
+### Match Methods Explained
 
-**Income Categories:**
-- `income/salary`: Employment income, wages, salaries
-- `income/benefits`: Government benefits (Universal Credit, DWP, etc.)
-- `income/pension`: Pension and retirement income
-- `income/gig_economy`: Gig economy platforms (Uber, Deliveroo, etc.) - 70% weight
-- `income/investment`: Investment returns, dividends
-- `income/other`: Other income sources
+The `match_method` field indicates how a transaction was categorized:
 
-**Expense Categories:**
-- `debt/hcstc`: High-cost short-term credit lenders
-- `debt/credit_card`: Credit card payments
-- `debt/other_loans`: Other loan payments
-- `essential/housing`: Rent, mortgage, housing costs
-- `essential/utilities`: Utilities, phone, internet
-- `essential/groceries`: Grocery shopping
-- `essential/transport`: Transportation costs
-- `risk/gambling`: Gambling transactions (critical risk)
-- `risk/crypto`: Cryptocurrency transactions (critical risk)
-- Other categories...
+- **`keyword`** - Exact keyword match in transaction description
+- **`regex`** - Regular expression pattern match for flexible matching
+- **`fuzzy`** - Fuzzy string matching using rapidfuzz (similarity threshold: 80%)
+- **`plaid`** - Categorized based on PLAID's personal_finance_category mapping
+- **`plaid_strict`** - High-confidence PLAID categories (TRANSFER_IN/OUT, loans)
+- **`plaid_income_wages`** - PLAID INCOME_WAGES detection (employment income)
+- **`behavioral_*`** - (Deprecated) Recurring pattern detection methods
+- **`known_service_exclusion`** - Known expense services excluded from income (e.g., PayPal, Klarna)
+
+### Category Hierarchy & Details
+
+#### 📥 Income Categories (Negative Amounts - Credits)
+
+**`salary`** - Employment Income
+- Weight: 1.0 (100% counted)
+- Stable: Yes
+- Examples: "SALARY FROM ACME LTD", "PAYROLL BACS", "MONTHLY WAGES", "NET PAY"
+- Keywords: SALARY, WAGES, PAYROLL, PAYSLIP, NET PAY, PAYE
+- Risk: None
+
+**`benefits`** - Government Benefits
+- Weight: 1.0 (100% counted)
+- Stable: Yes
+- Examples: "UNIVERSAL CREDIT DWP", "CHILD BENEFIT", "PIP PAYMENT", "JSA"
+- Keywords: UNIVERSAL CREDIT, DWP, CHILD BENEFIT, PIP, DLA, ESA, JSA, PENSION CREDIT
+- Risk: None
+
+**`pension`** - Retirement Income
+- Weight: 1.0 (100% counted)
+- Stable: Yes
+- Examples: "STATE PENSION", "ANNUITY PAYMENT", "PENSION DRAWDOWN"
+- Keywords: STATE PENSION, ANNUITY, PENSION PAYMENT, OCCUPATIONAL PENSION
+- Risk: None
+
+**`gig_economy`** - Gig Economy Income
+- Weight: 0.7 (70% counted for affordability)
+- Stable: No (irregular income)
+- Examples: "UBER PAYOUT", "DELIVEROO EARNINGS", "AMAZON FLEX", "ETSY SETTLEMENT"
+- Keywords: UBER, DELIVEROO, JUST EAT, BOLT, FIVERR, UPWORK, AMAZON FLEX, ETSY, EBAY
+- Risk: Income instability
+
+**`loans`** - Loan Disbursements
+- Weight: 0.0 (NOT counted as income)
+- Stable: No
+- Examples: "ZOPA LOAN DISBURSEMENT", "PERSONAL LOAN PAYOUT", "LENDABLE TRANSFER"
+- Keywords: LOAN DISBURSEMENT, LOAN PAYOUT, ZOPA, LENDABLE
+- PLAID: TRANSFER_IN_CASH_ADVANCES_AND_LOANS
+- Risk: Debt increase
+
+**`other`** - Other Income Sources
+- Weight: 0.5-1.0 (depending on verification)
+- Stable: No
+- Examples: Unverified transfers, miscellaneous credits
+- Risk: Unverified income
+
+#### 💳 Debt Categories (Positive Amounts - Debits)
+
+**`hcstc_payday`** - HCSTC/Payday Lenders
+- Risk Level: Very High / Critical
+- Examples: "LENDING STREAM", "DRAFTY", "MONEYBOAT", "CASHFLOAT", "QUIDMARKET"
+- Keywords: 30+ known HCSTC lenders (Lending Stream, Drafty, Mr Lender, etc.)
+- Impact: High debt indicator, triggers hard decline at 7+ lenders
+
+**`credit_cards`** - Credit Card Payments
+- Risk Level: Low-Medium
+- Examples: "VANQUIS PAYMENT", "BARCLAYCARD", "CAPITAL ONE", "AMEX"
+- Keywords: VANQUIS, AQUA, CAPITAL ONE, BARCLAYCARD, AMEX, MBNA
+- Impact: Managed credit, factored into DTI ratio
+
+**`bnpl`** - Buy Now Pay Later
+- Risk Level: High
+- Examples: "KLARNA", "CLEARPAY", "ZILCH", "MONZO FLEX", "PAYPAL PAY IN 3"
+- Keywords: KLARNA, CLEARPAY, ZILCH, PAYPAL PAY IN 3/4, LAYBUY
+- Impact: Credit utilization indicator
+
+**`catalogue`** - Catalogue Credit
+- Risk Level: Medium
+- Examples: "VERY.COM", "LITTLEWOODS", "JD WILLIAMS", "FREEMANS"
+- Keywords: VERY, LITTLEWOODS, JD WILLIAMS, SIMPLY BE, JACAMO
+- Impact: Sub-prime credit indicator
+
+**`other_loans`** - Other Loan Payments
+- Risk Level: Medium
+- Examples: "ZOPA REPAYMENT", "CAR FINANCE", "PERSONAL LOAN PAYMENT"
+- Keywords: ZOPA, NOVUNA, CAR FINANCE, LOAN REPAYMENT
+- Impact: Debt servicing costs, DTI ratio
+
+#### 🏠 Essential Expense Categories
+
+**`rent`** - Rental Payments
+- Housing: Yes
+- Examples: "RENT TO LANDLORD", "LETTING AGENT", "HOUSING ASSOCIATION"
+- Keywords: LANDLORD, LETTING AGENT, TENANCY, COUNCIL RENT
+- Impact: Essential expense, housing cost
+
+**`mortgage`** - Mortgage Payments
+- Housing: Yes
+- Examples: "MORTGAGE PAYMENT", "HOME LOAN", "NATIONWIDE MORTGAGE"
+- Keywords: MORTGAGE, HOME LOAN, MTG
+- Impact: Essential expense, housing cost
+
+**`council_tax`** - Council Tax
+- Examples: "COUNCIL TAX", "CITY COUNCIL TAX"
+- Keywords: COUNCIL TAX, CTAX
+- Impact: Essential expense
+
+**`utilities`** - Gas, Electric, Water
+- Examples: "BRITISH GAS", "EDF ENERGY", "THAMES WATER", "OCTOPUS ENERGY"
+- Keywords: Energy suppliers, water companies, utility bills
+- Impact: Essential expense
+
+**`communications`** - Phone, Internet, TV
+- Examples: "VIRGIN MEDIA", "VODAFONE", "BT BROADBAND", "SKY TV", "TV LICENCE"
+- Keywords: Telecoms providers, broadband, mobile networks
+- Impact: Essential expense
+
+**`transport`** - Car, Fuel, Public Transport
+- Examples: "SHELL FUEL", "TFL OYSTER", "TRAINLINE", "CONGESTION CHARGE"
+- Keywords: SHELL, ESSO, TFL, NATIONAL RAIL, parking
+- Impact: Essential expense
+
+**`groceries`** - Food Shopping
+- Examples: "TESCO STORES", "SAINSBURY'S", "ASDA", "MORRISONS", "ALDI", "LIDL"
+- Keywords: Major supermarkets (excluding their banking services)
+- Impact: Essential expense
+
+**`insurance`** - Insurance Premiums
+- Examples: "AVIVA", "DIRECT LINE", "CAR INSURANCE", "HOME INSURANCE"
+- Keywords: Insurance providers, premium payments
+- Impact: Essential expense
+
+**`childcare`** - Childcare Costs
+- Examples: "CHILDCARE PAYMENT", "CHILDMINDER", "NURSERY FEES", "AFTER SCHOOL CLUB"
+- Keywords: CHILDCARE, CHILDMINDER, NURSERY, PRESCHOOL
+- Impact: Essential expense
+
+#### ⚠️ Risk Categories
+
+**`gambling`** - Gambling Transactions
+- Risk Level: Critical
+- Examples: "BET365", "WILLIAM HILL", "LADBROKES", "BETFAIR", "SKYBET"
+- Keywords: 20+ gambling operators and betting brands
+- Impact: Hard decline at >15% of income, critical risk flag
+
+**`bank_charges`** - Overdraft/Unpaid Fees
+- Risk Level: High
+- Examples: "UNPAID ITEM CHARGE", "OVERDRAFT FEE", "RETURNED DD FEE"
+- Keywords: Unpaid charges, NSF fees, overdraft charges
+- Impact: Account conduct penalty, mandatory referral at 3+
+
+**`failed_payments`** - Failed Direct Debits
+- Risk Level: Critical
+- Examples: "UNPAID DIRECT DEBIT", "RETURNED DD", "BOUNCED PAYMENT"
+- Keywords: Unpaid DD, returned payments, failed debits
+- Impact: Hard decline at 6+ in 45 days
+
+**`debt_collection`** - Debt Collection Agencies
+- Risk Level: Severe/Critical
+- Examples: "LOWELL", "CABOT", "INTRUM", "ARROW GLOBAL", "LINK FINANCIAL"
+- Keywords: DCAs, debt collectors, recovery agencies
+- Impact: Hard decline at 4+ distinct DCAs
+
+#### ✅ Positive Categories
+
+**`savings`** - Savings Activity
+- Examples: "SAVINGS TRANSFER", "ISA", "MONEYBOX", "PLUM", "PREMIUM BONDS"
+- Keywords: SAVINGS, ISA, INVESTMENT, savings apps
+- Impact: Positive indicator (+5 bonus points)
+
+#### 🔄 Transfer Categories
+
+**`internal`** - Internal Transfers
+- Weight: 0.0 (excluded from income/expense calculations)
+- Examples: "OWN ACCOUNT TRANSFER", "BETWEEN ACCOUNTS", "FROM SAVINGS TO CURRENT"
+- Keywords: OWN ACCOUNT, INTERNAL TRANSFER, SELF TRANSFER
+- PLAID: TRANSFER_IN_ACCOUNT_TRANSFER, TRANSFER_OUT_ACCOUNT_TRANSFER
+- Impact: Excluded (not counted)
+
+### Confidence Scoring
+
+Confidence scores indicate certainty of categorization:
+
+- **High (≥ 0.80 / 80%)**: Strong match, likely correct (PLAID strict, exact keyword match)
+- **Medium (0.60-0.79 / 60-79%)**: Reasonable match (regex, fuzzy match above threshold)
+- **Low (< 0.60 / < 60%)**: Weak match, may be miscategorized (fuzzy below threshold, fallback)
+
+**Focus on low confidence transactions** - these are most likely to need rule adjustments.
+
+### PLAID Category Integration
+
+The system prioritizes PLAID categories in this order:
+
+1. **Strict PLAID Categories** (checked first):
+   - `TRANSFER_IN_ACCOUNT_TRANSFER` → income/internal (weight: 0.0)
+   - `TRANSFER_OUT_ACCOUNT_TRANSFER` → expense/internal (weight: 0.0)
+   - `TRANSFER_IN_CASH_ADVANCES_AND_LOANS` → income/loans (weight: 0.0)
+
+2. **High-Confidence PLAID Categories**:
+   - `INCOME_WAGES` → income/salary (weight: 1.0, stable)
+   - `LOAN_PAYMENTS` → income/loans (weight: 0.0)
+
+3. **Pattern Matching Fallback**:
+   - If PLAID categories don't match strict rules, keyword/regex/fuzzy matching is used
+   - PLAID provides additional context but doesn't override strict rules
+
+### Income Detection Methodology
+
+The system uses a **PLAID-first approach** for income detection:
+
+1. **Check PLAID INCOME_WAGES first** - Most reliable indicator of employment income
+2. **Known expense service filtering** - Excludes PayPal, Klarna, BNPL services
+3. **Strict PLAID category preservation** - Loans and transfers handled before keywords
+4. **Keyword-based detection** - Salary keywords (SALARY, PAYROLL, WAGES, etc.)
+5. **Regex pattern matching** - Flexible patterns for payroll variations
+6. **Fuzzy matching** - Similarity scoring for close matches
+7. **Default categorization** - Fallback to "other" with lower weight
 
 ### Risk Levels
 
-Some transactions are flagged with risk levels:
-- **Critical**: Gambling, cryptocurrency (high concern)
-- **High**: HCSTC lenders, payday loans
-- **Medium**: Other loans, credit utilization
+Transactions are flagged with risk levels for underwriting:
+
+- **Critical**: Gambling, failed payments, debt collection (immediate concern)
+- **Very High**: HCSTC lenders at high counts
+- **High**: Bank charges, BNPL usage
+- **Medium**: Other loans, catalogue credit
+- **Low**: Credit cards (managed credit)
 
 ## Troubleshooting
 
@@ -423,13 +625,7 @@ Possible improvements for future versions:
 - Rule suggestion engine based on miscategorizations
 - Integration with main Streamlit app
 
-## Support
 
-For issues or questions:
-1. Check this documentation
-2. Review the JSON file format requirements
-3. Check browser console for error messages
-4. Verify all dependencies are installed
 
 ## Technical Details
 
