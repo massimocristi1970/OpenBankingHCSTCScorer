@@ -476,6 +476,34 @@ class TransactionCategorizer:
         if strict_match:
             return strict_match
         
+                # STEP 1B: Detect transfers on EXPENSE side (debits) so they don't inflate monthly spend
+        # Prefer Plaid signals first (highest confidence)
+        if plaid_category:
+            plaid_upper = str(plaid_category).strip().upper()
+            if "TRANSFER" in plaid_upper:
+                return CategoryMatch(
+                    category="transfer",
+                    subcategory="internal",
+                    confidence=0.95,
+                    description="Internal Transfer",
+                    match_method="plaid",
+                    weight=0.0,
+                    is_stable=False
+                )
+
+        # Fallback to keyword/regex transfer detection
+        # IMPORTANT: do NOT treat "standing order" alone as a transfer (rent/bills are often standing orders)
+        if self._is_transfer(combined_text) and not re.search(r"(?i)\bstanding\s*order\b", combined_text):
+            return CategoryMatch(
+                category="transfer",
+                subcategory="internal",
+                confidence=0.90,
+                description="Internal Transfer",
+                match_method="keyword",
+                weight=0.0,
+                is_stable=False
+            )
+        
         # STEP 2: Check risk patterns (highest priority)
         for subcategory, patterns in self.risk_patterns.items():
             match = self._match_patterns(combined_text, patterns)

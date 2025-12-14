@@ -41,6 +41,12 @@ class ExpenseMetrics:
     monthly_insurance: float = 0.0
     monthly_childcare: float = 0.0
     monthly_essential_total: float = 0.0
+
+    # Optional: current month-to-date spend trend (not included in the base averages)
+    mtd_total_spend: float = 0.0
+    mtd_spend_vs_3m_avg_ratio: float = 0.0
+    mtd_spend_flag: str = ""
+
     essential_breakdown: Dict = field(default_factory=dict)
 
 
@@ -202,60 +208,229 @@ class MetricsCalculator:
     
     def _filter_recent_transactions(self, transactions: List[Dict], months: int) -> List[Dict]:
         """
-        Filter transactions to only include the last N months.
-        
-        This method finds the most recent transaction date and filters to only include
-        transactions within N months (approximately N * 30 days) from that date.
-        
-        Used for income and expense calculations to provide accurate recent monthly averages
-        while avoiding dilution from old sporadic transactions.
-        
+        Filter transactions to only include the last N *complete* calendar months.
+
+        Important: This intentionally EXCLUDES the current (possibly partial) month.
+        Example: If the most recent transaction is on 2025-12-14 and months=3,
+        this returns all transactions dated in Sep/Oct/Nov 2025 only.
+
+        This prevents overstating expenses (and sometimes income) by accidentally
+        including a partial month but still dividing totals by N months.
+
         Args:
             transactions: Full transaction list
-            months: Number of months to look back
-        
+            months: Number of complete calendar months to include
+
         Returns:
-            Filtered transaction list containing only recent transactions
+            Filtered transaction list for the last N complete calendar months
         """
         if not transactions:
             return []
-        
+
         # Find most recent transaction date
         recent_date = None
         for txn in transactions:
             date_str = txn.get("date", "")
             if date_str:
                 try:
-                    date = datetime.strptime(date_str, "%Y-%m-%d")
-                    if recent_date is None or date > recent_date:
-                        recent_date = date
+                    d = datetime.strptime(date_str, "%Y-%m-%d")
+                    if recent_date is None or d > recent_date:
+                        recent_date = d
                 except ValueError:
                     continue
-        
+
         if recent_date is None:
             return transactions
-        
-        # Calculate cutoff date (N months ago)
-        # Using 30 days per month as approximation. This is intentional and aligns
-        # with FCA guidance on affordability assessment (which uses similar approximations).
-        # The slight variance from exact month boundaries is acceptable for risk assessment
-        # and ensures consistent behavior across different month lengths.
-        cutoff_date = recent_date - timedelta(days=months * 30)
-        
-        # Filter transactions
-        filtered = []
+
+        # End boundary = first day of the current month (exclude current partial month)
+        end_boundary = recent_date.replace(day=1)
+
+        # Start boundary = first day of the month 'months' back from end_boundary
+        # (e.g. if end_boundary is 2025-12-01 and months=3 -> start_boundary 2025-09-01)
+        y, mth = end_boundary.year, end_boundary.month
+        mth -= months
+        while mth <= 0:
+            mth += 12
+            y -= 1
+        start_boundary = end_boundary.replace(year=y, month=mth, day=1)
+
+        filtered: List[Dict] = []
+        for txn in transactions:
+            date_str = txn.get("date", "")
+            if not date_str:
+                continue
+            try:
+                d = datetime.strptime(date_str, "%Y-%m-%d")
+            except ValueError:
+                continue
+
+            if start_boundary <= d < end_boundary:
+                filtered.append(txn)
+
+        return filtered
+    
+    def _filter_last_complete_calendar_months(self, transactions: List[Dict], months: int) -> List[Dict]:
+        """
+        Return transactions in the last N COMPLETE calendar months (excluding the month
+        of the latest transaction, because it may be partial).
+        Example: latest txn is 2025-05-18 -> complete months are Apr, Mar, Feb for months=3.
+        """
+        if not transactions:
+            return []
+
+        # Find latest transaction date
+        max_date = None
+        for txn in transactions:
+            d = txn.get("date")
+            if not d:
+                continue
+            try:
+                dt = datetime.strptime(d, "%Y-%m-%d")
+            except ValueError:
+                continue
+            if (max_date is None) or (dt > max_date):
+                max_date = dt
+        if max_date is None:
+            return []
+
+        # Anchor is the first day of the latest txn month (we EXCLUDE this month)
+        anchor_start = max_date.replace(day=1)
+
+        # Compute earliest month start = anchor_start minus `months` months
+        y = anchor_start.year
+        m = anchor_start.month - months
+        while m <= 0:
+            m += 12
+            y -= 1
+        earliest_start = anchor_start.replace(year=y, month=m, day=1)
+
+        filtered: List[Dict] = []
+        for txn in transactions:
+            d = txn.get("date")
+            if not d:
+                continue
+            try:
+                dt = datetime.strptime(d, "%Y-%m-%d")
+            except ValueError:
+                continue
+
+            # Keep txns within [earliest_start, anchor_start)
+            if earliest_start <= dt < anchor_start:
+                filtered.append(txn)
+
+        return filtered
+    
+    def _filter_last_n_income_months(
+        self,
+        categorized_transactions: List[Tuple[Dict, "CategoryMatch"]],
+        months: int
+    ) -> List[Dict]:
+        """
+        Return INCOME transactions from the most recent N calendar months that contain income.
+
+        This avoids dividing by N months when the most recent month has income but a filter excluded it,
+        and ensures we only select months that actually have income.
+
+        Args:
+            categorized_transactions: List of (txn, CategoryMatch)
+            months: number of income months to include
+
+        Returns:
+            List of transaction dicts (income only) within the selected months
+        """
+        if not categorized_transactions or months <= 0:
+            return []
+
+        income_months = set()
+
+        # 1) Identify which calendar months contain income
+        for txn, match in categorized_transactions:
+            try:
+                if getattr(match, "category", None) != "income":
+                    continue
+
+                amt = txn.get("amount", 0)
+                # In your convention: income = negative amounts
+                if amt is None or float(amt) >= 0:
+                    continue
+
+                date_str = txn.get("date")
+                if not date_str:
+                    continue
+                dt = datetime.strptime(date_str, "%Y-%m-%d")
+                income_months.add((dt.year, dt.month))
+            except Exception:
+                continue
+
+        if not income_months:
+            return []
+
+        # 2) Take the most recent N income months
+        selected_months = sorted(income_months, reverse=True)[:months]
+        selected_months = set(selected_months)
+
+        # 3) Return only income transactions that fall in those months
+        filtered_income_txns: List[Dict] = []
+        for txn, match in categorized_transactions:
+            try:
+                if getattr(match, "category", None) != "income":
+                    continue
+                amt = txn.get("amount", 0)
+                if amt is None or float(amt) >= 0:
+                    continue
+
+                date_str = txn.get("date")
+                if not date_str:
+                    continue
+                dt = datetime.strptime(date_str, "%Y-%m-%d")
+
+                if (dt.year, dt.month) in selected_months:
+                    filtered_income_txns.append(txn)
+            except Exception:
+                continue
+
+        return filtered_income_txns
+    
+    def _filter_month_to_date_transactions(self, transactions: List[Dict]) -> List[Dict]:
+        """
+        Filter transactions to the current month-to-date based on the most recent transaction date.
+
+        This is used ONLY for the optional MTD spend trend flag (not for the main monthly averages).
+        """
+        if not transactions:
+            return []
+
+        recent_date = None
         for txn in transactions:
             date_str = txn.get("date", "")
             if date_str:
                 try:
-                    date = datetime.strptime(date_str, "%Y-%m-%d")
-                    if date >= cutoff_date:
-                        filtered.append(txn)
+                    d = datetime.strptime(date_str, "%Y-%m-%d")
+                    if recent_date is None or d > recent_date:
+                        recent_date = d
                 except ValueError:
                     continue
-        
+
+        if recent_date is None:
+            return []
+
+        start_of_month = recent_date.replace(day=1)
+
+        filtered: List[Dict] = []
+        for txn in transactions:
+            date_str = txn.get("date", "")
+            if not date_str:
+                continue
+            try:
+                d = datetime.strptime(date_str, "%Y-%m-%d")
+            except ValueError:
+                continue
+
+            if start_of_month <= d <= recent_date:
+                filtered.append(txn)
+
         return filtered
-    
+
     def _get_transaction_id(self, txn: Dict) -> Tuple:
         """
         Generate a unique identifier for a transaction.
@@ -376,22 +551,56 @@ class MetricsCalculator:
             Dictionary containing all metric objects
         """
         # Filter transactions to last N months for income/expense calculations
-        # This gives accurate monthly averages without dilution from old sporadic transactions
         recent_transactions = self._filter_recent_transactions(transactions, self.lookback_months)
-        
-        # Build filtered category summary for income/expense calculations if categorized_transactions provided
+
+        # Month-to-date transactions for the optional trend flag (NOT used in averages)
+        mtd_transactions = self._filter_month_to_date_transactions(transactions)
+
+        # Build filtered category summaries separately:
+        # - expenses: last N COMPLETE calendar months (avoids partial-month inflation)
+        # - income: most recent N months that actually contain income (avoids dropping partial-month salary)
         if categorized_transactions is not None:
-            filtered_category_summary = self._build_filtered_category_summary(
-                categorized_transactions, recent_transactions
+            expense_transactions = self._filter_last_complete_calendar_months(
+                transactions, self.lookback_months
+            )
+
+            income_transactions = self._filter_last_n_income_months(
+                categorized_transactions, self.lookback_months
+            )
+
+            filtered_category_summary_expense = self._build_filtered_category_summary(
+                categorized_transactions, expense_transactions
+            )
+            filtered_category_summary_income = self._build_filtered_category_summary(
+                categorized_transactions, income_transactions
+            )
+
+            # Optional MTD category summary (for trend flag logic later)
+            mtd_category_summary = self._build_filtered_category_summary(
+                categorized_transactions, mtd_transactions
             )
         else:
-            # Fallback: use full category_summary (backward compatibility)
-            filtered_category_summary = category_summary
-        
-        # Calculate income and expenses using recent transactions only
-        income_metrics = self.calculate_income_metrics(filtered_category_summary, recent_transactions)
-        expense_metrics = self.calculate_expense_metrics(filtered_category_summary, recent_transactions)
-        
+            # Fallback: no categorized txns provided
+            expense_transactions = recent_transactions
+            income_transactions = recent_transactions
+            filtered_category_summary_expense = category_summary
+            filtered_category_summary_income = category_summary
+            mtd_category_summary = None
+
+        # Calculate income and expenses using their own windows
+        income_metrics = self.calculate_income_metrics(
+            filtered_category_summary_income,
+            income_transactions
+        )
+
+        expense_metrics = self.calculate_expense_metrics(
+            filtered_category_summary_expense,
+            expense_transactions,
+            mtd_category_summary=mtd_category_summary,
+            mtd_transactions=mtd_transactions,
+        )
+
+                   
         # Use FULL transaction history for debt and risk metrics
         # This captures all historical risk patterns (HCSTC, debt collection, gambling, etc.)
         debt_metrics = self.calculate_debt_metrics(category_summary)
@@ -413,6 +622,9 @@ class MetricsCalculator:
             "affordability": affordability_metrics,
             "balance": balance_metrics,
             "risk": risk_metrics,
+            "mtd_category_summary": mtd_category_summary,
+            "mtd_transactions": mtd_transactions,
+
         }
     
     def calculate_income_metrics(
@@ -589,7 +801,9 @@ class MetricsCalculator:
     def calculate_expense_metrics(
         self, 
         category_summary: Dict,
-        transactions: Optional[List[Dict]] = None
+        transactions: Optional[List[Dict]] = None,
+        mtd_category_summary: Optional[Dict] = None,
+        mtd_transactions: Optional[List[Dict]] = None,
     ) -> ExpenseMetrics:
         """
         Calculate expense-related metrics from recent transactions.
@@ -602,8 +816,8 @@ class MetricsCalculator:
             ExpenseMetrics with monthly expense averages
         """
         essential_data = category_summary.get("essential", {})
-        debt_data = category_summary.get("debt", {})  # ADD THIS LINE
-        expense_data = category_summary.get("expense", {})  # ADD THIS
+        debt_data = category_summary.get("debt", {})
+        expense_data = category_summary.get("expense", {})
     
         # Calculate actual months in the filtered period
         # Use lookback_months as the period since we're working with filtered data
@@ -638,9 +852,43 @@ class MetricsCalculator:
         essential_total = (
             housing + council_tax + utilities + transport + 
             groceries + communications + insurance + childcare +
-            other_expenses + food_dining  # ADD THESE
+            other_expenses + food_dining
         )
     
+        # --- Optional month-to-date (MTD) spend trend flag (NOT part of the averages) ---
+        mtd_total_spend = 0.0
+        mtd_ratio = 0.0
+        mtd_flag = ""
+
+        try:
+            # Baseline: average monthly spend over the lookback window (3 complete months)
+            discretionary_total_period = 0.0
+            for sub, data in category_summary.get("expense", {}).items():
+                discretionary_total_period += abs(float(data.get("total", 0.0)))
+
+            monthly_discretionary = discretionary_total_period / max(self.lookback_months, 1)
+            baseline_monthly_spend = essential_total + monthly_discretionary
+
+            if mtd_category_summary:
+                # MTD spend uses the same "spend" basket, excluding debt/transfers
+                for cat in ("essential", "expense", "risk"):
+                    for sub, data in mtd_category_summary.get(cat, {}).items():
+                        mtd_total_spend += abs(float(data.get("total", 0.0)))
+
+                if baseline_monthly_spend > 0:
+                    mtd_ratio = mtd_total_spend / baseline_monthly_spend
+
+                # Simple, explainable flag
+                if mtd_ratio >= 1.25:
+                    mtd_flag = "MTD spending running HIGH vs 3-month average"
+                elif mtd_ratio <= 0.75 and mtd_total_spend > 0:
+                    mtd_flag = "MTD spending running LOW vs 3-month average"
+        except Exception:
+            # Never fail expense metrics because of the optional trend flag
+            mtd_total_spend = 0.0
+            mtd_ratio = 0.0
+            mtd_flag = ""
+            
         return ExpenseMetrics(
             monthly_housing=housing,
             monthly_council_tax=council_tax,
@@ -651,6 +899,9 @@ class MetricsCalculator:
             monthly_insurance=insurance,
             monthly_childcare=childcare,
             monthly_essential_total=essential_total,
+            mtd_total_spend=mtd_total_spend,
+            mtd_spend_vs_3m_avg_ratio=mtd_ratio,
+            mtd_spend_flag=mtd_flag,
             essential_breakdown={
                 "housing": housing,
                 "council_tax":  council_tax,
@@ -660,8 +911,8 @@ class MetricsCalculator:
                 "communications":  communications,
                 "insurance": insurance,
                 "childcare": childcare,
-                "other_expenses": other_expenses,  # ADD THIS
-                "food_dining": food_dining,  # ADD THIS
+                "other_expenses": other_expenses,
+                "food_dining": food_dining,
                 "debt_payments": hcstc + other_loans + credit_cards + bnpl + catalogue,
             }
         )
