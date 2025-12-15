@@ -120,6 +120,10 @@ SCORING_CONFIG = {
             "description": "Maximum debt-to-income ratio including new loan"
         },
     },
+
+    # Backwards-compatibility alias (some code expects this key)
+    "hard_decline_rules": {},
+
     
     # Loan amount determination by score (thresholds scaled by 1.75x)
     "score_based_limits": [
