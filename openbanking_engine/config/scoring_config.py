@@ -4,99 +4,133 @@ Contains scoring weights, thresholds, and decision rules.
 """
 
 # Scoring Configuration
-# NOTE: All point values have been rescaled by 1.75x (70/40) to shift passing threshold from ≥40 to ≥70
-# Maximum possible score is now 175 (previously 100)
+# Maximum possible score is 100
 SCORING_CONFIG = {
     # Score ranges and decisions
     "score_ranges": {
-        "approve": {"min": 70, "max": 175, "decision": "APPROVE"},
-        "refer": {"min": 45, "max": 69, "decision": "REFER"},
-        "decline": {"min": 0, "max": 44, "decision": "DECLINE"},
+        "approve": {"min": 40, "max": 100, "decision": "APPROVE"},
+        "refer": {"min": 26, "max": 39, "decision": "REFER"},
+        "decline": {"min": 0, "max": 25, "decision": "DECLINE"},
     },
     
-    # Scoring weights (total = 175, previously 100)
+    # Scoring weights (total = 100)
     "weights": {
         "affordability": {
-            "total": 78.75,  # Previously 45
-            "dti_ratio": 31.5,  # Previously 18
-            "disposable_income": 26.25,  # Previously 15
-            "post_loan_affordability": 21,  # Previously 12
+            "total": 45,  
+            "dti_ratio": 18,  
+            "disposable_income": 15,  
+            "post_loan_affordability": 12,  
         },
         "income_quality": {
-            "total": 43.75,  # Previously 25
-            "income_stability": 21,  # Previously 12
-            "income_regularity": 14,  # Previously 8
-            "income_verification": 8.75,  # Previously 5
+            "total": 25,  
+            "income_stability": 12,  
+            "income_regularity": 8,    
+            "income_verification": 5,  
         },
         "account_conduct": {
-            "total": 35,  # Previously 20
-            "failed_payments": 14,  # Previously 8
-            "overdraft_usage": 12.25,  # Previously 7
-            "balance_management": 8.75,  # Previously 5
+            "total": 20,  
+            "failed_payments": 8,  
+            "overdraft_usage": 7,  
+            "balance_management": 5,  
         },
         "risk_indicators": {
-            "total": 17.5,  # Previously 10
-            "gambling_activity": 8.75,  # Previously 5
-            "hcstc_history": 8.75,  # Previously 5
+            "total": 10,  
+            "gambling_activity": 5,  
+            "hcstc_history": 5,  
         },
     },
     
-    # Thresholds for scoring (all point values scaled by 1.75x)
+    # Thresholds for scoring 
     "thresholds": {
         "dti_ratio": [
-            {"max": 15, "points": 31.5},  # Previously 18
-            {"max": 25, "points": 26.25},  # Previously 15
-            {"max": 35, "points": 21},  # Previously 12
-            {"max": 45, "points": 14},  # Previously 8
-            {"max": 55, "points": 7},  # Previously 4
+            {"max": 30, "points": 18},
+            {"max": 40, "points": 15},
+            {"max": 50, "points": 12},
+            {"max": 60, "points": 8},
+            {"max": 70, "points": 4},
             {"max": 100, "points": 0},
         ],
+
         "disposable_income": [
-            {"min": 400, "points": 26.25},  # Previously 15
-            {"min": 300, "points": 22.75},  # Previously 13
-            {"min": 200, "points": 17.5},  # Previously 10
-            {"min": 100, "points": 10.5},  # Previously 6
-            {"min": 50, "points": 5.25},  # Previously 3
+            {"min": 200, "points": 15},  
+            {"min": 150, "points": 13},  
+            {"min": 100, "points": 10},  # Previously 10
+            {"min": 50, "points": 6},  # Previously 6
+            {"min": 25, "points": 3},  # Previously 3
             {"min": 0, "points": 0},
         ],
         "income_stability": [
-            {"min": 90, "points": 21},  # Previously 12
-            {"min": 75, "points": 17.5},  # Previously 10
-            {"min": 60, "points": 12.25},  # Previously 7
-            {"min": 40, "points": 7},  # Previously 4
+            {"min": 90, "points": 12},  # Previously 12
+            {"min": 75, "points": 10},  # Previously 10
+            {"min": 60, "points": 7},  # Previously 7
+            {"min": 40, "points": 4},  # Previously 4
             {"min": 0, "points": 0},
         ],
         "gambling_percentage": [
-            {"max": 0, "points": 8.75},  # Previously 5
-            {"max": 2, "points": 5.25},  # Previously 3
+            {"max": 0, "points": 5},  # Previously 5
+            {"max": 2, "points": 3},  # Previously 3
             {"max": 5, "points": 0},
-            {"max": 10, "points": -5.25},  # Previously -3
-            {"max": 100, "points": -8.75},  # Previously -5
+            {"max": 10, "points": -3},  # Previously -3
+            {"max": 100, "points": -5},  # Previously -5
         ],
     },
     
-    # Hard decline rules
-    "hard_decline_rules": {
-        "min_monthly_income": 1000,
-        "max_active_hcstc_lenders": 6,  # 7+ triggers decline (in last 90 days) - adjusted for HCSTC market
-        "max_gambling_percentage": 15,
-        "min_post_loan_disposable": 0,  # Changed from £30 - allows tighter affordability with expense buffer
-        "max_failed_payments": 5,  # 6+ triggers decline (in last 45 days) - adjusted for HCSTC market
-        "max_dca_count": 3,  # 4+ triggers decline
-        "max_dti_with_new_loan": 75,  # Adjusted from 70 - more realistic for HCSTC market
-        "hcstc_lookback_days": 90,  # Days to look back for HCSTC lenders
-        "failed_payment_lookback_days": 45,  # Days to look back for failed payments
+    # Rule configurations - easily toggle between DECLINE and REFER
+    "rules": {
+        "min_monthly_income": {
+            "threshold": 1500,
+            "action": "REFER",  # Change to "REFER" to make it a soft rule
+            "description": "Minimum monthly income required"
+        },
+        "no_verifiable_income": {
+            "threshold": 300,
+            "action": "REFER",
+            "description": "No verifiable income source and income below threshold"
+        },
+        "max_active_hcstc_lenders": {
+            "threshold": 6,  # 7+ triggers action
+            "action": "DECLINE",  # Change to "REFER" for manual review instead
+            "lookback_days": 90,
+            "description": "Maximum active HCSTC lenders in lookback period"
+        },
+        "max_gambling_percentage": {
+            "threshold": 15,
+                "action": "REFER",  # Change to "DECLINE" to make it harder
+        "description": "Maximum percentage of income spent on gambling"
+        },
+        "min_post_loan_disposable": {
+            "threshold": 0,
+            "action": "REFER",  # Change to "REFER" for manual affordability review
+            "description": "Minimum disposable income after loan payment"
+        },
+        "max_failed_payments": {
+            "threshold": 999,  # effectively disables rule-triggered REFER
+            "action": "REFER",  # Change to "DECLINE" to be stricter
+            "lookback_days": 45,
+            "description": "Maximum failed payments in lookback period"
+        },
+        "max_dca_count": {
+            "threshold":  4,  # 4+ triggers action
+            "action": "REFER",  # Change to "REFER" for case-by-case review
+            "description": "Maximum distinct debt collection agencies"
+        },
+        "max_dti_with_new_loan": {
+            "threshold":  85,
+            "action": "REFER",  # Change to "REFER" if you want manual DTI reviews
+            "description": "Maximum debt-to-income ratio including new loan"
+        },
     },
     
     # Loan amount determination by score (thresholds scaled by 1.75x)
     "score_based_limits": [
-        {"min_score": 149, "max_amount": 1500, "max_term": 6},  # Previously 85
-        {"min_score": 123, "max_amount": 1200, "max_term": 6},  # Previously 70
-        {"min_score": 105, "max_amount": 800, "max_term": 5},   # Previously 60
-        {"min_score": 88, "max_amount": 500, "max_term": 4},    # Previously 50
-        {"min_score": 70, "max_amount": 300, "max_term": 3},    # Previously 40
-        {"min_score": 0, "max_amount": 0, "max_term": 0},
+        {"min_score": 75, "max_amount": 1500, "max_term": 6},
+        {"min_score": 65, "max_amount": 1200, "max_term": 6},
+        {"min_score": 55, "max_amount": 800,  "max_term": 5},
+        {"min_score": 45, "max_amount": 500,  "max_term": 4},
+        {"min_score": 35, "max_amount": 300,  "max_term": 3},
+        {"min_score": 0,  "max_amount": 0,    "max_term": 0},
     ],
+
     
     # Mandatory referral rules (not automatic declines)
     "mandatory_referral_rules": {
