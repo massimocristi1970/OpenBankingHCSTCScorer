@@ -95,11 +95,11 @@ SCORING_CONFIG = {
         },
         "max_gambling_percentage": {
             "threshold": 15,
-                "action": "REFER",  # Change to "DECLINE" to make it harder
-        "description": "Maximum percentage of income spent on gambling"
+            "action": "REFER",  # Change to "DECLINE" to make it harder
+            "description": "Maximum percentage of income spent on gambling"
         },
         "min_post_loan_disposable": {
-            "threshold": 0,
+            "threshold": 50,
             "action": "REFER",  # Change to "REFER" for manual affordability review
             "description": "Minimum disposable income after loan payment"
         },
@@ -153,6 +153,6 @@ PRODUCT_CONFIG = {
     "daily_interest_rate": 0.008,  # 0.8% per day (FCA cap)
     "total_cost_cap": 1.0,  # 100% total cost cap
     "min_disposable_buffer": 50,  # Minimum £50 post-loan disposable
-    "max_repayment_to_disposable": 0.70,  # Max 70% of disposable
+    "max_repayment_to_disposable": 1.0,  # Not included in scoring, just a product rule
     "expense_shock_buffer": 1.1,  # 10% buffer on expenses for resilience assessment
 }

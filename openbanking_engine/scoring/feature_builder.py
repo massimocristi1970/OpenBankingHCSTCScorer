@@ -432,18 +432,11 @@ class MetricsCalculator:
         return filtered
 
     def _get_transaction_id(self, txn: Dict) -> Tuple:
-        """
-        Generate a unique identifier for a transaction.
-        
-        Uses date, amount, and full description as the unique key.
-        
-        Args:
-            txn: Transaction dictionary
-        
-        Returns:
-            Tuple representing unique transaction identifier
-        """
-        return (txn.get("date"), txn.get("amount"), txn.get("description", ""))
+        # Use fields that actually exist consistently in your pipeline.
+        # Your engine uses txn["name"] as the primary description field.
+        desc = txn.get("name") or txn.get("description") or ""
+        merchant = txn.get("merchant_name") or ""
+        return (txn.get("date"), txn.get("amount"), desc, merchant)
     
     def _build_filtered_category_summary(
         self,
@@ -475,8 +468,10 @@ class MetricsCalculator:
                 "benefits": {"total": 0.0, "count": 0},
                 "pension": {"total": 0.0, "count": 0},
                 "gig_economy": {"total": 0.0, "count": 0},
+                "loans": {"total": 0.0, "count": 0},
                 "other": {"total": 0.0, "count": 0},
             },
+
             "essential": {
                 "rent": {"total":  0.0, "count":  0},
                 "mortgage":  {"total": 0.0, "count": 0},
@@ -656,6 +651,20 @@ class MetricsCalculator:
         # Calculate actual months in the filtered period
         # Use lookback_months as the period since we're working with filtered data
         actual_months = self.lookback_months
+
+        def _count_unique_months(self, transactions: List[Dict]) -> int:
+            months = set()
+            for txn in transactions:
+                date_str = txn.get("date")
+                if not date_str:
+                    continue
+                try:
+                    dt = datetime.strptime(date_str, "%Y-%m-%d")
+                    months.add((dt.year, dt.month))
+                except ValueError:
+                    continue
+            return max(1, len(months))
+
         
         # Monthly calculations - divide by ACTUAL months in recent period
         monthly_stable = (salary_total + benefits_total + pension_total) / actual_months
@@ -1012,22 +1021,32 @@ class MetricsCalculator:
         
         # Post-loan disposable
         post_loan_disposable = monthly_disposable - proposed_repayment
-        
-        # Repayment-to-disposable ratio
+
+        print(
+            f"[AFFORDABILITY] "
+            f"Income £{effective_income:.2f} | "
+            f"Expenses £{buffered_expenses:.2f} | "
+            f"Debt £{debt_payments:.2f} | "
+            f"Repayment £{proposed_repayment:.2f} | "
+            f"Post-loan £{post_loan_disposable:.2f}"
+        )
+
+
+        # Repayment-to-disposable ratio (MI / reporting ONLY)
         if monthly_disposable > 0:
             repayment_to_disp = (proposed_repayment / monthly_disposable) * 100
         else:
             repayment_to_disp = 100.0
-        
-        # Is affordable check
+
+        # Minimum disposable buffer (single source of truth)
         min_buffer = self.product_config["min_disposable_buffer"]
-        max_repayment_ratio = self.product_config["max_repayment_to_disposable"] * 100
-        
+
+        # Affordability decision
+        # NOTE: repayment_to_disp is NOT used here
         is_affordable = (
-            post_loan_disposable >= min_buffer and
-            repayment_to_disp <= max_repayment_ratio
+            post_loan_disposable >= min_buffer
         )
-        
+
         # Calculate max affordable amount
         max_affordable = self._calculate_max_affordable_amount(
             monthly_disposable=monthly_disposable,

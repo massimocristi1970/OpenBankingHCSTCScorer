@@ -3,16 +3,22 @@ Transaction Categorizer for HCSTC Loan Scoring.
 Categorizes UK consumer banking transactions for affordability assessment.
 """
 
+from pydoc import text
 import re
 from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
+from openbanking_engine import patterns
+
 try:
-    from rapidfuzz import fuzz
+    from rapidfuzz import fuzz as _fuzz
     RAPIDFUZZ_AVAILABLE = True
 except ImportError:
+    _fuzz = None
     RAPIDFUZZ_AVAILABLE = False
+
+
 
 from ..patterns.transaction_patterns import (
     INCOME_PATTERNS,
@@ -200,15 +206,18 @@ class TransactionCategorizer:
 
         detailed_upper = str(plaid_category_detailed).strip().upper()
 
-        # === ALL TRANSFER IN → INCOME / OTHER (COUNTED) ===
+        # === TRANSFER IN → HOLDING CATEGORY (NOT INCOME BY DEFAULT) ===
+        # Plaid often labels true income (e.g., salary via Faster Payments) as TRANSFER_IN.
+        # We therefore treat TRANSFER_IN as a holding state and allow the IncomeDetector
+        # to reclassify it into income where appropriate.
         if detailed_upper.startswith("TRANSFER_IN"):
             return CategoryMatch(
-                category="income",
-                subcategory="other",
+                category="transfer",
+                subcategory="in",
                 confidence=0.98,
                 description="Plaid Transfer In",
                 match_method="plaid_strict",
-                weight=1.0,
+                weight=0.0,
                 is_stable=False
             )
 
@@ -223,6 +232,7 @@ class TransactionCategorizer:
                 weight=1.0,
                 is_stable=False
             )
+
         # Loan disbursements still excluded
         if detailed_upper == "TRANSFER_IN_CASH_ADVANCES_AND_LOANS":
             return CategoryMatch(
@@ -234,6 +244,7 @@ class TransactionCategorizer:
                 weight=0.0,
                 is_stable=False
             )
+
         return None
     
     def _categorize_income(
@@ -248,52 +259,61 @@ class TransactionCategorizer:
         
         # STEP 0A: Check strict PLAID categories FIRST (before any other logic)
         strict_match = self._check_strict_plaid_categories(plaid_category)
+
+        # IMPORTANT:
+        # - Some Plaid TRANSFER_IN entries are genuine income (e.g. salary via Faster Payments)
+        # - Treat TRANSFER_IN as a holding category and allow IncomeDetector to reclassify it
+        transfer_fallback = None
         if strict_match:
-            return strict_match
+            if strict_match.category != "transfer":
+                return strict_match
+            transfer_fallback = strict_match
+
         
-        # STEP 0B: Check if this is a known expense service that should NEVER be income
-        # This prevents false positives from keyword matching (e.g., "PAYPAL PAYMENT", "CLEARPAY")
+        # STEP 0B: Known expense services should not be treated as income
+        matched_service = None
         for service in self.KNOWN_EXPENSE_SERVICES:
             if service in combined_text:
-                # This is a known expense service - check if it's actually a refund/credit
-                # If PLAID says it's a transfer or loan, trust that
-                if plaid_category_primary:
-                    plaid_primary_upper = plaid_category_primary.upper()
+                matched_service = service
+                break
+        if matched_service:
+            if plaid_category_primary:
+                plaid_primary_upper = plaid_category_primary.upper()
 
-                    # CRITICAL: Exclude loan disbursements from income
-                    if "LOAN_PAYMENTS" in plaid_primary_upper:
-                        return CategoryMatch(
-                            category="income",
-                            subcategory="loans",
-                            confidence=0.95,
-                            description="Loan Payments/Disbursements",
-                            match_method="plaid",
-                            weight=0.0,
-                            is_stable=False
-                        )
-
-                    # Your requested behaviour: Plaid TRANSFER_* counts as income/other
-                    if "TRANSFER" in plaid_primary_upper:
-                        return CategoryMatch(
-                            category="income",
-                            subcategory="other",
-                            confidence=0.90,
-                            description="Plaid Transfer In",
-                            match_method="plaid",
-                            weight=1.0,
-                            is_stable=False
+                # Exclude loan disbursements from income
+                if "LOAN_PAYMENTS" in plaid_primary_upper:
+                    return CategoryMatch(
+                        category="income",
+                        subcategory="loans",
+                        confidence=0.95,
+                        description="Loan Payments/Disbursements",
+                        match_method="plaid",
+                        weight=0.0,
+                        is_stable=False
                     )
 
-            # Otherwise default (refund/reimbursement etc.)
+                # Treat transfers as transfers (not income)
+                if "TRANSFER" in plaid_primary_upper:
+                    return CategoryMatch(
+                    category="transfer",
+                    subcategory="internal",
+                    confidence=0.90,
+                    description="Plaid Transfer",
+                    match_method="plaid",
+                    weight=0.0,
+                    is_stable=False
+                )
+
+            # Refund/credit from a known expense service
             return CategoryMatch(
-            category="income",
-            subcategory="other",
-            confidence=0.5,
-            description="Other Income",
-            match_method="known_service_exclusion",
-            weight=1.0,
-            is_stable=False
-        )
+                category="income",
+                subcategory="other",
+                confidence=0.50,
+                description="Other Income",
+                match_method="known_service_exclusion",
+                weight=1.0,
+                is_stable=False
+            )
 
         
         # STEP 1: Check PLAID categories for high-confidence loan/transfer indicators
@@ -367,7 +387,7 @@ class TransactionCategorizer:
                     match_method=f"plaid_{reason}",
                     # Weight 0.5 for unverifiable income (vs 1.0 for stable salary)
                     # This reflects that non-salary income is less reliable for affordability
-                    weight=0.5,
+                    weight=1.0,
                     is_stable=False
                 )
         
@@ -389,7 +409,7 @@ class TransactionCategorizer:
                 )
         
         # STEP 4: Check for transfers (only if NOT identified as income above)
-        if self._is_plaid_transfer(...):
+        if self._is_plaid_transfer(plaid_category_primary, plaid_category, description):
             return CategoryMatch(
                 category="transfer",
                 subcategory="internal",
@@ -401,17 +421,22 @@ class TransactionCategorizer:
             )
         
         # Check if it's a transfer based on keywords (fallback)
-        if self._is_transfer(...):
+        if self._is_transfer(combined_text):
             return CategoryMatch(
                 category="transfer",
                 subcategory="internal",
-                confidence=0.9,
+                confidence=0.90,
                 description="Internal Transfer",
                 match_method="keyword",
                 weight=0.0,
                 is_stable=False
             )
         
+        # If we have a transfer fallback (e.g., Plaid TRANSFER_IN), keep it aside.
+        # We still run income detection below (promotion/recurrence/keywords).
+        # Only return transfer_fallback at the VERY end if nothing identifies income.
+        pass
+
         # STEP 5: Unknown income (default with low weight)
         return CategoryMatch(
             category="income",
@@ -419,9 +444,7 @@ class TransactionCategorizer:
             confidence=0.5,
             description="Other Income",
             match_method="default",
-            # Weight 0.5 for unverifiable income (vs 1.0 for stable salary)
-            # This reflects that unknown income sources are less reliable for affordability
-            weight=0.5,
+            weight=1.0,
             is_stable=False
         )
     
@@ -714,13 +737,11 @@ class TransactionCategorizer:
                 return ("regex", 0.90)
         
         # Try fuzzy matching if available
-        if RAPIDFUZZ_AVAILABLE:
+        if RAPIDFUZZ_AVAILABLE and _fuzz is not None:
             for keyword in patterns.get("keywords", []):
-                # Use token_set_ratio for better matching with extra words
-                score = fuzz.token_set_ratio(keyword.upper(), text)
+                score = _fuzz.token_set_ratio(keyword.upper(), text)
                 if score >= self.FUZZY_THRESHOLD:
                     return ("fuzzy", score / 100.0)
-        
         return None
     
     def _match_plaid_category(
@@ -924,6 +945,8 @@ class TransactionCategorizer:
         # Step 1: Analyze batch for recurring income patterns
         # This populates the income detector's cache with recurring sources
         self.income_detector.analyze_batch(transactions)
+        self._current_batch_transactions = transactions
+
         
         try:
             # Step 2: Categorize each transaction using cached patterns
@@ -941,7 +964,7 @@ class TransactionCategorizer:
                 plaid_category_primary = (
                     txn.get("personal_finance_category.primary")
                     or txn.get("plaid_category_primary")
-        )
+                )
 
                 
                 # Handle nested PLAID category if present
@@ -970,6 +993,8 @@ class TransactionCategorizer:
         finally:
             # Step 3: Clean up cache to avoid memory leaks
             self.income_detector.clear_batch_cache()
+            self._current_batch_transactions = None
+
     
     def _categorize_transaction_from_batch(
         self,
@@ -1034,8 +1059,15 @@ class TransactionCategorizer:
         """
         # STEP 0A: Check strict PLAID categories FIRST (before any other logic)
         strict_match = self._check_strict_plaid_categories(plaid_category)
+
+        # IMPORTANT: Treat Plaid TRANSFER_IN as a holding category.
+        # Allow batch IncomeDetector logic below to promote true income where appropriate.
+        transfer_fallback = None
         if strict_match:
-            return strict_match
+            if strict_match.category != "transfer":
+                return strict_match
+            transfer_fallback = strict_match
+
         
         # STEP 0B: Check if this is a known expense service (same as non-batch)
         for service in self.KNOWN_EXPENSE_SERVICES:
@@ -1072,7 +1104,7 @@ class TransactionCategorizer:
                     weight=1.0,
                     is_stable=False
                 )
-        
+               
         # STEP 1: Check PLAID categories for loan/transfer indicators (same as non-batch)
         if plaid_category or plaid_category_primary:
             plaid_cat_upper = (plaid_category or "").upper()
@@ -1103,13 +1135,15 @@ class TransactionCategorizer:
         
         # SIMPLIFIED: Use same logic as non-batch (Pragmatic Fix)
         # Just delegate to simplified income detector
-        is_income, confidence, reason = self.income_detector.is_likely_income_from_batch(
+        is_income, confidence, reason = self.income_detector.is_likely_income(
             description=description,
             amount=amount,
-            transaction_index=transaction_index,
             plaid_category_primary=plaid_category_primary,
-            plaid_category_detailed=plaid_category
+            plaid_category_detailed=plaid_category,
+            all_transactions=getattr(self, "_current_batch_transactions", None),
+            current_txn_index=transaction_index
         )
+
         
         # If PLAID identifies as income with high confidence, trust it
         if is_income and confidence >= 0.85:
@@ -1137,7 +1171,7 @@ class TransactionCategorizer:
                     confidence=0.7,
                     description="Other Income",
                     match_method=f"batch_plaid_{reason}",
-                    weight=0.5,  # Lower weight for uncertain income
+                    weight=1.0,  # Lower weight for uncertain income
                     is_stable=False
                 )
         
@@ -1181,6 +1215,10 @@ class TransactionCategorizer:
                 is_stable=False
             )  
         
+        # If Plaid told us TRANSFER_IN and nothing else promoted it to income, keep it as transfer
+        if transfer_fallback:
+            return transfer_fallback
+        
         # Unknown income (default with low weight)
         return CategoryMatch(
             category="income",
@@ -1188,7 +1226,7 @@ class TransactionCategorizer:
             confidence=0.5,
             description="Other Income",
             match_method="default",
-            weight=0.5,  # Lower weight for unverifiable income
+            weight=1.0,  
             is_stable=False
         )
     
