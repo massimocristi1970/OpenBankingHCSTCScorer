@@ -313,11 +313,39 @@ class TransactionCategorizer:
 
         detailed_upper = str(plaid_category_detailed).strip().upper()
 
+        # Check specific TRANSFER_IN categories BEFORE generic TRANSFER_IN
+        # This ensures more specific matches take precedence
+        
+        # Loan disbursements are NOT income (weight=0.0)
+        if detailed_upper == "TRANSFER_IN_CASH_ADVANCES_AND_LOANS":
+            return CategoryMatch(
+                category="income",
+                subcategory="loans",
+                confidence=0.98,
+                description="Loan Payments/Disbursements",
+                match_method="plaid_strict",
+                weight=0.0,
+                is_stable=False
+            )
+
         # === TRANSFER IN → HOLDING CATEGORY (NOT INCOME BY DEFAULT) ===
         # Plaid often labels true income (e.g., salary via Faster Payments) as TRANSFER_IN.
         # We therefore treat TRANSFER_IN as a holding state and allow the IncomeDetector
         # to reclassify it into income where appropriate.
+        # EXCEPT: Explicit account transfers should remain as transfers
         if detailed_upper.startswith("TRANSFER_IN"):
+            # Explicit account transfers should NOT be promoted to income
+            if "ACCOUNT_TRANSFER" in detailed_upper:
+                return CategoryMatch(
+                    category="transfer",
+                    subcategory="internal",
+                    confidence=0.98,
+                    description="Account Transfer",
+                    match_method="plaid_strict",
+                    weight=0.0,
+                    is_stable=False
+                )
+            # Generic TRANSFER_IN is a holding category for potential income promotion
             return CategoryMatch(
                 category="transfer",
                 subcategory="in",
@@ -328,8 +356,20 @@ class TransactionCategorizer:
                 is_stable=False
             )
 
-        # === ALL TRANSFER OUT → EXPENSE / OTHER (COUNTED) ===
+        # === TRANSFER OUT → HANDLE ACCOUNT TRANSFERS SPECIALLY ===
         if detailed_upper.startswith("TRANSFER_OUT"):
+            # Explicit account transfers should be categorized as transfers, not expenses
+            if "ACCOUNT_TRANSFER" in detailed_upper:
+                return CategoryMatch(
+                    category="transfer",
+                    subcategory="external",
+                    confidence=0.98,
+                    description="Account Transfer Out",
+                    match_method="plaid_strict",
+                    weight=0.0,
+                    is_stable=False
+                )
+            # Other TRANSFER_OUT (e.g., payments) are expenses
             return CategoryMatch(
                 category="expense",
                 subcategory="other",
@@ -337,18 +377,6 @@ class TransactionCategorizer:
                 description="Plaid Transfer Out",
                 match_method="plaid_strict",
                 weight=1.0,
-                is_stable=False
-            )
-
-        # Loan disbursements still excluded
-        if detailed_upper == "TRANSFER_IN_CASH_ADVANCES_AND_LOANS":
-            return CategoryMatch(
-                category="income",
-                subcategory="loans",
-                confidence=0.98,
-                description="Loan Payments/Disbursements",
-                match_method="plaid_strict",
-                weight=0.0,
                 is_stable=False
             )
 
@@ -370,9 +398,14 @@ class TransactionCategorizer:
         # IMPORTANT:
         # - Some Plaid TRANSFER_IN entries are genuine income (e.g. salary via Faster Payments)
         # - Treat TRANSFER_IN as a holding category and allow IncomeDetector to reclassify it
+        # - EXCEPT: Explicit account transfers (TRANSFER_IN_ACCOUNT_TRANSFER) should remain as transfers
         transfer_fallback = None
         if strict_match:
             if strict_match.category != "transfer":
+                return strict_match
+            # If it's an explicit account transfer, return immediately (do not promote)
+            # Check subcategory to determine if it's an account transfer
+            if strict_match.subcategory == "internal":
                 return strict_match
             transfer_fallback = strict_match
 
