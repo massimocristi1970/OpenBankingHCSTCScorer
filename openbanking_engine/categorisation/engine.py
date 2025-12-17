@@ -82,6 +82,7 @@ class CategoryMatch:
     weight: float = 1.0
     is_stable: bool = False
     is_housing: bool = False
+    debug_rationale: Optional[str] = None  # Optional debug information
 
 
 class TransactionCategorizer:
@@ -118,8 +119,12 @@ class TransactionCategorizer:
         "VISA DIRECT PAYMENT", "BARCLAYS CASHBACK",
     }
     
-    def __init__(self):
-        """Initialize the categorizer with pattern dictionaries."""
+    def __init__(self, debug_mode: bool = False):
+        """Initialize the categorizer with pattern dictionaries.
+        
+        Args:
+            debug_mode: If True, emit detailed rationale for categorization decisions
+        """
         self.income_patterns = INCOME_PATTERNS
         self.transfer_patterns = TRANSFER_PATTERNS
         self.debt_patterns = DEBT_PATTERNS
@@ -127,6 +132,7 @@ class TransactionCategorizer:
         self.risk_patterns = RISK_PATTERNS
         self.positive_patterns = POSITIVE_PATTERNS
         self.income_detector = IncomeDetector()
+        self.debug_mode = debug_mode
     
     def categorize_transaction(
         self, 
@@ -171,6 +177,107 @@ class TransactionCategorizer:
             return ""
         # Convert to uppercase for matching
         return text.upper().strip()
+    
+    def _build_debug_rationale(self, match_type: str, details: str = "") -> Optional[str]:
+        """Build debug rationale string if debug mode is enabled.
+        
+        Args:
+            match_type: Type of match (e.g., 'plaid_detailed', 'keyword', 'transfer_pairing')
+            details: Additional details about the match
+        
+        Returns:
+            Debug rationale string if debug_mode is True, None otherwise
+        """
+        if not self.debug_mode:
+            return None
+        
+        if details:
+            return f"{match_type}: {details}"
+        return match_type
+    
+    def _find_transfer_pair(
+        self, 
+        transactions: List[Dict], 
+        current_idx: int,
+        amount: float,
+        description: str,
+        date_str: str
+    ) -> Optional[Dict]:
+        """Find potential transfer pair for this transaction (debit/credit matching).
+        
+        Args:
+            transactions: Full list of transactions
+            current_idx: Index of current transaction
+            amount: Transaction amount
+            description: Transaction description
+            date_str: Transaction date string (YYYY-MM-DD)
+        
+        Returns:
+            Matching transaction dict if found, None otherwise
+        """
+        if not transactions or not date_str:
+            return None
+        
+        try:
+            from datetime import datetime, timedelta
+            current_date = datetime.strptime(date_str, "%Y-%m-%d")
+        except (ValueError, TypeError):
+            return None
+        
+        # Normalize description for comparison
+        norm_desc = self._normalize_text(description)
+        if len(norm_desc) < 3:  # Too short to match reliably
+            return None
+        
+        # Look for opposite-signed transaction within 1-2 days
+        for i, txn in enumerate(transactions):
+            if i == current_idx:
+                continue
+            
+            txn_amount = txn.get("amount", 0)
+            # Look for opposite sign
+            if (amount < 0 and txn_amount >= 0) or (amount >= 0 and txn_amount < 0):
+                # Check amount similarity (within 5-10%)
+                abs_amount = abs(amount)
+                abs_txn_amount = abs(txn_amount)
+                if abs_amount == 0:
+                    continue
+                
+                amount_diff = abs(abs_amount - abs_txn_amount) / abs_amount
+                if amount_diff > 0.10:  # More than 10% different
+                    continue
+                
+                # Check date proximity (within 1-2 days)
+                txn_date_str = txn.get("date", "")
+                if not txn_date_str:
+                    continue
+                
+                try:
+                    txn_date = datetime.strptime(txn_date_str, "%Y-%m-%d")
+                    days_diff = abs((current_date - txn_date).days)
+                    if days_diff > 2:
+                        continue
+                except (ValueError, TypeError):
+                    continue
+                
+                # Check description overlap
+                txn_desc = self._normalize_text(txn.get("name", ""))
+                if len(txn_desc) < 3:
+                    continue
+                
+                # Simple overlap check: find common words
+                desc_words = set(norm_desc.split())
+                txn_words = set(txn_desc.split())
+                if not desc_words or not txn_words:
+                    continue
+                
+                common_words = desc_words.intersection(txn_words)
+                # Require at least 30% overlap
+                overlap_ratio = len(common_words) / min(len(desc_words), len(txn_words))
+                if overlap_ratio >= 0.30:
+                    return txn
+        
+        return None
     
     def _normalize_hcstc_lender(self, merchant_name: str) -> Optional[str]:
         """
