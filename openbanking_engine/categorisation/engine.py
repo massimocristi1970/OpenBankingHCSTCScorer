@@ -82,6 +82,7 @@ class CategoryMatch:
     weight: float = 1.0
     is_stable: bool = False
     is_housing: bool = False
+    debug_rationale: Optional[str] = None  # Optional debug information
 
 
 class TransactionCategorizer:
@@ -118,8 +119,12 @@ class TransactionCategorizer:
         "VISA DIRECT PAYMENT", "BARCLAYS CASHBACK",
     }
     
-    def __init__(self):
-        """Initialize the categorizer with pattern dictionaries."""
+    def __init__(self, debug_mode: bool = False):
+        """Initialize the categorizer with pattern dictionaries.
+        
+        Args:
+            debug_mode: If True, emit detailed rationale for categorization decisions
+        """
         self.income_patterns = INCOME_PATTERNS
         self.transfer_patterns = TRANSFER_PATTERNS
         self.debt_patterns = DEBT_PATTERNS
@@ -127,6 +132,7 @@ class TransactionCategorizer:
         self.risk_patterns = RISK_PATTERNS
         self.positive_patterns = POSITIVE_PATTERNS
         self.income_detector = IncomeDetector()
+        self.debug_mode = debug_mode
     
     def categorize_transaction(
         self, 
@@ -172,6 +178,107 @@ class TransactionCategorizer:
         # Convert to uppercase for matching
         return text.upper().strip()
     
+    def _build_debug_rationale(self, match_type: str, details: str = "") -> Optional[str]:
+        """Build debug rationale string if debug mode is enabled.
+        
+        Args:
+            match_type: Type of match (e.g., 'plaid_detailed', 'keyword', 'transfer_pairing')
+            details: Additional details about the match
+        
+        Returns:
+            Debug rationale string if debug_mode is True, None otherwise
+        """
+        if not self.debug_mode:
+            return None
+        
+        if details:
+            return f"{match_type}: {details}"
+        return match_type
+    
+    def _find_transfer_pair(
+        self, 
+        transactions: List[Dict], 
+        current_idx: int,
+        amount: float,
+        description: str,
+        date_str: str
+    ) -> Optional[Dict]:
+        """Find potential transfer pair for this transaction (debit/credit matching).
+        
+        Args:
+            transactions: Full list of transactions
+            current_idx: Index of current transaction
+            amount: Transaction amount
+            description: Transaction description
+            date_str: Transaction date string (YYYY-MM-DD)
+        
+        Returns:
+            Matching transaction dict if found, None otherwise
+        """
+        if not transactions or not date_str:
+            return None
+        
+        try:
+            from datetime import datetime, timedelta
+            current_date = datetime.strptime(date_str, "%Y-%m-%d")
+        except (ValueError, TypeError):
+            return None
+        
+        # Normalize description for comparison
+        norm_desc = self._normalize_text(description)
+        if len(norm_desc) < 3:  # Too short to match reliably
+            return None
+        
+        # Look for opposite-signed transaction within 1-2 days
+        for i, txn in enumerate(transactions):
+            if i == current_idx:
+                continue
+            
+            txn_amount = txn.get("amount", 0)
+            # Look for opposite sign
+            if (amount < 0 and txn_amount >= 0) or (amount >= 0 and txn_amount < 0):
+                # Check amount similarity (within 5-10%)
+                abs_amount = abs(amount)
+                abs_txn_amount = abs(txn_amount)
+                if abs_amount == 0:
+                    continue
+                
+                amount_diff = abs(abs_amount - abs_txn_amount) / abs_amount
+                if amount_diff > 0.10:  # More than 10% different
+                    continue
+                
+                # Check date proximity (within 1-2 days)
+                txn_date_str = txn.get("date", "")
+                if not txn_date_str:
+                    continue
+                
+                try:
+                    txn_date = datetime.strptime(txn_date_str, "%Y-%m-%d")
+                    days_diff = abs((current_date - txn_date).days)
+                    if days_diff > 2:
+                        continue
+                except (ValueError, TypeError):
+                    continue
+                
+                # Check description overlap
+                txn_desc = self._normalize_text(txn.get("name", ""))
+                if len(txn_desc) < 3:
+                    continue
+                
+                # Simple overlap check: find common words
+                desc_words = set(norm_desc.split())
+                txn_words = set(txn_desc.split())
+                if not desc_words or not txn_words:
+                    continue
+                
+                common_words = desc_words.intersection(txn_words)
+                # Require at least 30% overlap
+                overlap_ratio = len(common_words) / min(len(desc_words), len(txn_words))
+                if overlap_ratio >= 0.30:
+                    return txn
+        
+        return None
+    
     def _normalize_hcstc_lender(self, merchant_name: str) -> Optional[str]:
         """
         Normalize HCSTC lender name to canonical form.
@@ -206,11 +313,39 @@ class TransactionCategorizer:
 
         detailed_upper = str(plaid_category_detailed).strip().upper()
 
+        # Check specific TRANSFER_IN categories BEFORE generic TRANSFER_IN
+        # This ensures more specific matches take precedence
+        
+        # Loan disbursements are NOT income (weight=0.0)
+        if detailed_upper == "TRANSFER_IN_CASH_ADVANCES_AND_LOANS":
+            return CategoryMatch(
+                category="income",
+                subcategory="loans",
+                confidence=0.98,
+                description="Loan Payments/Disbursements",
+                match_method="plaid_strict",
+                weight=0.0,
+                is_stable=False
+            )
+
         # === TRANSFER IN → HOLDING CATEGORY (NOT INCOME BY DEFAULT) ===
         # Plaid often labels true income (e.g., salary via Faster Payments) as TRANSFER_IN.
         # We therefore treat TRANSFER_IN as a holding state and allow the IncomeDetector
         # to reclassify it into income where appropriate.
+        # EXCEPT: Explicit account transfers should remain as transfers
         if detailed_upper.startswith("TRANSFER_IN"):
+            # Explicit account transfers should NOT be promoted to income
+            if "ACCOUNT_TRANSFER" in detailed_upper:
+                return CategoryMatch(
+                    category="transfer",
+                    subcategory="internal",
+                    confidence=0.98,
+                    description="Account Transfer",
+                    match_method="plaid_strict",
+                    weight=0.0,
+                    is_stable=False
+                )
+            # Generic TRANSFER_IN is a holding category for potential income promotion
             return CategoryMatch(
                 category="transfer",
                 subcategory="in",
@@ -221,8 +356,20 @@ class TransactionCategorizer:
                 is_stable=False
             )
 
-        # === ALL TRANSFER OUT → EXPENSE / OTHER (COUNTED) ===
+        # === TRANSFER OUT → HANDLE ACCOUNT TRANSFERS SPECIALLY ===
         if detailed_upper.startswith("TRANSFER_OUT"):
+            # Explicit account transfers should be categorized as transfers, not expenses
+            if "ACCOUNT_TRANSFER" in detailed_upper:
+                return CategoryMatch(
+                    category="transfer",
+                    subcategory="external",
+                    confidence=0.98,
+                    description="Account Transfer Out",
+                    match_method="plaid_strict",
+                    weight=0.0,
+                    is_stable=False
+                )
+            # Other TRANSFER_OUT (e.g., payments) are expenses
             return CategoryMatch(
                 category="expense",
                 subcategory="other",
@@ -230,18 +377,6 @@ class TransactionCategorizer:
                 description="Plaid Transfer Out",
                 match_method="plaid_strict",
                 weight=1.0,
-                is_stable=False
-            )
-
-        # Loan disbursements still excluded
-        if detailed_upper == "TRANSFER_IN_CASH_ADVANCES_AND_LOANS":
-            return CategoryMatch(
-                category="income",
-                subcategory="loans",
-                confidence=0.98,
-                description="Loan Payments/Disbursements",
-                match_method="plaid_strict",
-                weight=0.0,
                 is_stable=False
             )
 
@@ -263,21 +398,32 @@ class TransactionCategorizer:
         # IMPORTANT:
         # - Some Plaid TRANSFER_IN entries are genuine income (e.g. salary via Faster Payments)
         # - Treat TRANSFER_IN as a holding category and allow IncomeDetector to reclassify it
+        # - EXCEPT: Explicit account transfers (TRANSFER_IN_ACCOUNT_TRANSFER) should remain as transfers
         transfer_fallback = None
         if strict_match:
             if strict_match.category != "transfer":
+                return strict_match
+            # If it's an explicit account transfer, return immediately (do not promote)
+            # Check subcategory to determine if it's an account transfer
+            if strict_match.subcategory == "internal":
                 return strict_match
             transfer_fallback = strict_match
 
         
         # STEP 0B: Known expense services should not be treated as income
+        # EXCEPT when it's a payout (gig economy income)
         matched_service = None
         for service in self.KNOWN_EXPENSE_SERVICES:
             if service in combined_text:
                 matched_service = service
                 break
         if matched_service:
-            if plaid_category_primary:
+            # Allow STRIPE PAYOUT, PAYPAL PAYOUT, SHOPIFY PAYMENTS to pass through
+            # These are gig economy payouts, not expense refunds
+            if "PAYOUT" in combined_text or "DISBURSEMENT" in combined_text:
+                # Let this pass through to gig economy pattern matching below
+                pass
+            elif plaid_category_primary:
                 plaid_primary_upper = plaid_category_primary.upper()
 
                 # Exclude loan disbursements from income
@@ -303,17 +449,28 @@ class TransactionCategorizer:
                     weight=0.0,
                     is_stable=False
                 )
-
-            # Refund/credit from a known expense service
-            return CategoryMatch(
-                category="income",
-                subcategory="other",
-                confidence=0.50,
-                description="Other Income",
-                match_method="known_service_exclusion",
-                weight=1.0,
-                is_stable=False
-            )
+                
+                # Refund/credit from a known expense service
+                return CategoryMatch(
+                    category="income",
+                    subcategory="other",
+                    confidence=0.50,
+                    description="Other Income",
+                    match_method="known_service_exclusion",
+                    weight=1.0,
+                    is_stable=False
+                )
+            else:
+                # Refund/credit from a known expense service (no PLAID category)
+                return CategoryMatch(
+                    category="income",
+                    subcategory="other",
+                    confidence=0.50,
+                    description="Other Income",
+                    match_method="known_service_exclusion",
+                    weight=1.0,
+                    is_stable=False
+                )
 
         
         # STEP 1: Check PLAID categories for high-confidence loan/transfer indicators
@@ -371,7 +528,30 @@ class TransactionCategorizer:
                     description="Salary & Wages",
                     match_method=f"plaid_{reason}",
                     weight=1.0,
-                    is_stable=True
+                    is_stable=True,
+                    debug_rationale=self._build_debug_rationale("income_detection", reason)
+                )
+            elif "interest" in reason:
+                return CategoryMatch(
+                    category="income",
+                    subcategory="interest",
+                    confidence=confidence,
+                    description="Interest Income",
+                    match_method=f"plaid_{reason}",
+                    weight=1.0,
+                    is_stable=True,
+                    debug_rationale=self._build_debug_rationale("income_detection", reason)
+                )
+            elif "gig" in reason:
+                return CategoryMatch(
+                    category="income",
+                    subcategory="gig_economy",
+                    confidence=confidence,
+                    description="Gig Economy Income",
+                    match_method=f"plaid_{reason}",
+                    weight=0.7,
+                    is_stable=False,
+                    debug_rationale=self._build_debug_rationale("income_detection", reason)
                 )
             else:
                 # Generic PLAID income - check if it matches specific patterns
@@ -388,7 +568,8 @@ class TransactionCategorizer:
                     # Weight 0.5 for unverifiable income (vs 1.0 for stable salary)
                     # This reflects that non-salary income is less reliable for affordability
                     weight=1.0,
-                    is_stable=False
+                    is_stable=False,
+                    debug_rationale=self._build_debug_rationale("income_detection", reason)
                 )
         
         # STEP 3: Check income patterns (keyword matching ONLY)
@@ -405,7 +586,8 @@ class TransactionCategorizer:
                     description=patterns.get("description", subcategory),
                     match_method=match_method,
                     weight=patterns.get("weight", 1.0),
-                    is_stable=patterns.get("is_stable", False)
+                    is_stable=patterns.get("is_stable", False),
+                    debug_rationale=self._build_debug_rationale("keyword_pattern_match", f"income/{subcategory}")
                 )
         
         # STEP 4: Check for transfers (only if NOT identified as income above)

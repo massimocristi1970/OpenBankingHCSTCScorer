@@ -8,7 +8,10 @@ INCOME_PATTERNS = {
     "salary": {
         "keywords": [
             "SALARY", "WAGES", "PAYROLL", "PAYSLIP", "NET SALARY", "MONTHLY SALARY",
-            "WEEKLY WAGES", "PAY RUN", "PAYRUN", "PAYE"
+            "WEEKLY WAGES", "PAY RUN", "PAYRUN", "PAYE",
+            # Additional payroll providers and systems (additive)
+            "ADP", "PAYFIT", "SAGE PAYROLL", "XERO PAYRUN", "WORKDAY",
+            "BARCLAYS PAYMENTS", "HSBC PAYROLL"
         ],
         "regex_patterns": [
             r"(?i)\b(salary|payroll|payslip|net\s*salary|gross\s*pay)\b",
@@ -17,6 +20,12 @@ INCOME_PATTERNS = {
             r"(?i)\b(payroll)\b.*\b(bacs)\b",
             r"(?i)\bpay\s*run\b|\bpayrun\b",
             r"(?i)\bpaye\b",
+            # Additional payroll provider patterns (additive)
+            r"(?i)\badp\b.*\b(payroll|salary|wages|payment)\b",
+            r"(?i)\bpayfit\b",
+            r"(?i)\bsage\b.*\b(payroll|salary|wages)\b",
+            r"(?i)\bxero\b.*\b(payrun|payroll|salary)\b",
+            r"(?i)\bworkday\b.*\b(payroll|salary|wages)\b",
         ],
         "weight": 1.0,
         "is_stable": True,
@@ -31,7 +40,9 @@ INCOME_PATTERNS = {
             "WORKING TAX CREDIT", "CHILD TAX CREDIT",
             "CARERS ALLOWANCE", "ATTENDANCE ALLOWANCE",
             "MATERNITY ALLOWANCE", "BEREAVEMENT BENEFIT",
-            "SOCIAL SECURITY", "STATE BENEFIT"
+            "SOCIAL SECURITY", "STATE BENEFIT",
+            # Additional benefit variants (additive)
+            "HMRC REFUND", "TAX REFUND", "HMRC TAX REFUND"
         ],
         "regex_patterns": [
             r"(?i)universal\s*credit",
@@ -45,6 +56,9 @@ INCOME_PATTERNS = {
             r"(?i)attendance\s*allowance",
             r"(?i)maternity\s*allowance",
             r"(?i)(state|government|social)\s*(benefit|payment)",
+            # Additional tax refund patterns (additive)
+            r"(?i)\bhmrc\b.*\b(refund|tax\s*refund)\b",
+            r"(?i)\btax\s*refund\b",
         ],
         "weight": 1.0,
         "is_stable": True,
@@ -55,7 +69,11 @@ INCOME_PATTERNS = {
         "keywords": [
             "STATE PENSION", "ANNUITY", "PENSION PAYMENT", "PENSION CREDIT",
             "PENSION DRAWDOWN", "DRAWDOWN", "OCCUPATIONAL PENSION", "WORKS PENSION",
-        "RETIREMENT INCOME"
+            "RETIREMENT INCOME",
+            # Additional pension providers (additive)
+            "NEST PENSION", "AVIVA PENSION", "LEGAL AND GENERAL PENSION",
+            "SCOTTISH WIDOWS PENSION", "STANDARD LIFE PENSION", "PRUDENTIAL PENSION",
+            "ROYAL LONDON PENSION", "AEGON PENSION"
         ],
         "regex_patterns": [
             r"(?i)\bstate\s*pension\b",
@@ -64,6 +82,15 @@ INCOME_PATTERNS = {
             r"(?i)\b(retirement)\s*(income|payment|credit)\b",
             r"(?i)\b(drawdown)\b",
             r"(?i)\b(occupational|works)\s*pension\b",
+            # Additional pension provider patterns (additive)
+            r"(?i)\bnest\b.*\bpension\b",
+            r"(?i)\baviva\b.*\bpension\b",
+            r"(?i)\blegal\s*and\s*general\b.*\bpension\b",
+            r"(?i)\bscottish\s*widows\b.*\bpension\b",
+            r"(?i)\bstandard\s*life\b.*\bpension\b",
+            r"(?i)\bprudential\b.*\bpension\b",
+            r"(?i)\broyal\s*london\b.*\bpension\b",
+            r"(?i)\baegon\b.*\bpension\b",
         ],
         "weight": 1.0,
         "is_stable": True,
@@ -74,14 +101,18 @@ INCOME_PATTERNS = {
         "keywords": [
             "UBER", "DELIVEROO", "JUST EAT", "BOLT", "LYFT",
             "FIVERR", "UPWORK", "TASKRABBIT", "FREELANCER",
-            "AMAZON FLEX", "ETSY", "EBAY", "VINTED", "DEPOP"
+            "AMAZON FLEX", "ETSY", "EBAY", "VINTED", "DEPOP",
+            # Additional gig platforms (additive)
+            "UBER EATS", "EVRI", "DPD", "YODEL", "ROYAL MAIL",
+            "SHOPIFY PAYMENTS", "STRIPE PAYOUT", "PAYPAL PAYOUT"
         ],
         "regex_patterns": [
             # Generic payout language (used in combination below)
             r"(?i)\b(payout|settlement|disbursement|earnings|driver\s*pay|weekly\s*pay|instant\s*pay)\b",
 
-            # Uber payouts
-            r"(?i)\buber\b.*\b(payout|earnings|bv|payments|driver)\b",
+            # Uber payouts (including Uber Eats)
+            r"(?i)\buber\b.*\b(payout|earnings|bv|payments|driver|eats)\b",
+            r"(?i)\buber\s*eats\b.*\b(payout|earnings|payment)\b",
 
             # Deliveroo / Just Eat payouts
             r"(?i)\bdeliveroo\b.*\b(payout|earnings|settlement|payment)\b",
@@ -103,6 +134,17 @@ INCOME_PATTERNS = {
             r"(?i)\bdepop\b.*\b(payout|transfer|payment)\b",
             # Amazon Flex (tightened to avoid Amazon shopping refunds)
             r"(?i)\bamazon\b.*\b(flex|logistics)\b.*\b(payout|earnings|payment|settlement)\b",
+            
+            # Additional delivery/courier platforms (additive)
+            r"(?i)\bevri\b.*\b(payout|earnings|payment)\b",
+            r"(?i)\bdpd\b.*\b(payout|earnings|payment|driver)\b",
+            r"(?i)\byodel\b.*\b(payout|earnings|payment|driver)\b",
+            r"(?i)\broyal\s*mail\b.*\b(payout|earnings|payment)\b",
+            
+            # Payment processor payouts (additive)
+            r"(?i)\bshopify\b.*\b(payout|payments|disbursement)\b",
+            r"(?i)\bstripe\b.*\b(payout|transfer)\b",
+            r"(?i)\bpaypal\b.*\b(payout|disbursement)\b",
         ],
         "weight": 0.7,
         "is_stable": False,
@@ -134,6 +176,22 @@ INCOME_PATTERNS = {
         "description": "Loan Disbursements/Refunds (Not Income)"
     },
 
+    "interest": {
+        "keywords": [
+            "INTEREST", "GROSS INTEREST", "INTEREST PAID", "INTEREST CREDIT",
+            "BANK INTEREST", "SAVINGS INTEREST"
+        ],
+        "regex_patterns": [
+            r"(?i)\binterest\b.*\b(paid|credit|payment|earned)\b",
+            r"(?i)\bgross\s*int(erest)?\b",
+            r"(?i)\bbank\s*interest\b",
+            r"(?i)\bsavings\s*interest\b",
+        ],
+        "weight": 1.0,
+        "is_stable": True,
+        "description": "Interest Income"
+    },
+    
     "refund": {
         "keywords": [
             "REFUND", "REFUNDED", "CREDIT REVERSAL",
@@ -155,13 +213,17 @@ TRANSFER_PATTERNS = {
     "keywords": [
         "OWN ACCOUNT", "INTERNAL TRANSFER", "INTERNAL TFR", "BETWEEN ACCOUNTS",
         "SELF TRANSFER", "ACCOUNT TRANSFER", "TRANSFER BETWEEN",
-        "FROM SAVINGS", "TO SAVINGS", "FROM CURRENT", "TO CURRENT"
+        "FROM SAVINGS", "TO SAVINGS", "FROM CURRENT", "TO CURRENT",
+        # Additional neobank and internal transfer keywords (additive)
+        "REVOLUT", "MONZO", "STARLING", "CHASE", "WISE",
+        "PAYPAL TOPUP", "SAVER", "ISA", "POT", "VAULT",
+        "ROUND UP", "MOVE MONEY", "INTERNAL MOVE"
     ],
     "regex_patterns": [
         r"(?i)\bown\s*account\b",
         r"(?i)\bbetween\s*accounts\b",
         r"(?i)\bself\s*transfer\b",
-        r"(?i)\binternal\s*(transfer|tfr|xfer)\b",
+        r"(?i)\binternal\s*(transfer|tfr|xfer|move)\b",
         r"(?i)\baccount\s*transfer\b|\btransfer\s*between\b",
         r"(?i)\b(move(d)?|transfer(red)?)\b.*\b(from|to)\b.*\b(savings|current)\b",
         r"(?i)\b(from|to)\b\s*(savings|current)\b.*\b(transfer|tfr|xfer|moved?)\b",
@@ -169,6 +231,20 @@ TRANSFER_PATTERNS = {
 
         # WARNING: see note below about standing order / so
         r"(?i)\bstanding\s*order\b",
+        
+        # Additional neobank patterns (additive)
+        r"(?i)\brevolut\b.*\b(transfer|top\s*up|pot|vault|move)\b",
+        r"(?i)\bmonzo\b.*\b(transfer|pot|move)\b",
+        r"(?i)\bstarling\b.*\b(transfer|space|move)\b",
+        r"(?i)\bchase\b.*\b(transfer|move|internal)\b",
+        r"(?i)\bwise\b.*\b(transfer|move)\b",
+        r"(?i)\bpaypal\b.*\btop\s*up\b",
+        
+        # Internal movement patterns (additive)
+        r"(?i)\b(saver|pot|vault|space)\b.*\b(transfer|move|moved)\b",
+        r"(?i)\bround\s*up\b",
+        r"(?i)\bmove\s*money\b",
+        r"(?i)\binternal\s*move\b",
     ],
     "weight": 0.0,
     "is_stable": False,
