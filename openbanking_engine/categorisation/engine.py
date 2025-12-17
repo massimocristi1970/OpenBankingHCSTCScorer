@@ -378,13 +378,19 @@ class TransactionCategorizer:
 
         
         # STEP 0B: Known expense services should not be treated as income
+        # EXCEPT when it's a payout (gig economy income)
         matched_service = None
         for service in self.KNOWN_EXPENSE_SERVICES:
             if service in combined_text:
                 matched_service = service
                 break
         if matched_service:
-            if plaid_category_primary:
+            # Allow STRIPE PAYOUT, PAYPAL PAYOUT, SHOPIFY PAYMENTS to pass through
+            # These are gig economy payouts, not expense refunds
+            if "PAYOUT" in combined_text or "DISBURSEMENT" in combined_text:
+                # Let this pass through to gig economy pattern matching below
+                pass
+            elif plaid_category_primary:
                 plaid_primary_upper = plaid_category_primary.upper()
 
                 # Exclude loan disbursements from income
@@ -410,17 +416,28 @@ class TransactionCategorizer:
                     weight=0.0,
                     is_stable=False
                 )
-
-            # Refund/credit from a known expense service
-            return CategoryMatch(
-                category="income",
-                subcategory="other",
-                confidence=0.50,
-                description="Other Income",
-                match_method="known_service_exclusion",
-                weight=1.0,
-                is_stable=False
-            )
+                
+                # Refund/credit from a known expense service
+                return CategoryMatch(
+                    category="income",
+                    subcategory="other",
+                    confidence=0.50,
+                    description="Other Income",
+                    match_method="known_service_exclusion",
+                    weight=1.0,
+                    is_stable=False
+                )
+            else:
+                # Refund/credit from a known expense service (no PLAID category)
+                return CategoryMatch(
+                    category="income",
+                    subcategory="other",
+                    confidence=0.50,
+                    description="Other Income",
+                    match_method="known_service_exclusion",
+                    weight=1.0,
+                    is_stable=False
+                )
 
         
         # STEP 1: Check PLAID categories for high-confidence loan/transfer indicators
@@ -478,7 +495,30 @@ class TransactionCategorizer:
                     description="Salary & Wages",
                     match_method=f"plaid_{reason}",
                     weight=1.0,
-                    is_stable=True
+                    is_stable=True,
+                    debug_rationale=self._build_debug_rationale("income_detection", reason)
+                )
+            elif "interest" in reason:
+                return CategoryMatch(
+                    category="income",
+                    subcategory="interest",
+                    confidence=confidence,
+                    description="Interest Income",
+                    match_method=f"plaid_{reason}",
+                    weight=1.0,
+                    is_stable=True,
+                    debug_rationale=self._build_debug_rationale("income_detection", reason)
+                )
+            elif "gig" in reason:
+                return CategoryMatch(
+                    category="income",
+                    subcategory="gig_economy",
+                    confidence=confidence,
+                    description="Gig Economy Income",
+                    match_method=f"plaid_{reason}",
+                    weight=0.7,
+                    is_stable=False,
+                    debug_rationale=self._build_debug_rationale("income_detection", reason)
                 )
             else:
                 # Generic PLAID income - check if it matches specific patterns
@@ -495,7 +535,8 @@ class TransactionCategorizer:
                     # Weight 0.5 for unverifiable income (vs 1.0 for stable salary)
                     # This reflects that non-salary income is less reliable for affordability
                     weight=1.0,
-                    is_stable=False
+                    is_stable=False,
+                    debug_rationale=self._build_debug_rationale("income_detection", reason)
                 )
         
         # STEP 3: Check income patterns (keyword matching ONLY)
@@ -512,7 +553,8 @@ class TransactionCategorizer:
                     description=patterns.get("description", subcategory),
                     match_method=match_method,
                     weight=patterns.get("weight", 1.0),
-                    is_stable=patterns.get("is_stable", False)
+                    is_stable=patterns.get("is_stable", False),
+                    debug_rationale=self._build_debug_rationale("keyword_pattern_match", f"income/{subcategory}")
                 )
         
         # STEP 4: Check for transfers (only if NOT identified as income above)
