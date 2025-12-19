@@ -841,7 +841,7 @@
                     <td>${escapeHtml(result.subcategory)}</td>
                     <td><span class="confidence-badge confidence-${confidenceClass}">${(result.confidence * 100).toFixed(0)}%</span></td>
                     <td>${escapeHtml(result.match_method)}</td>
-                    <td>${escapeHtml(result.plaid_category_primary || result.plaid_category_detailed || '-')}</td>
+                    <td>${escapeHtml(result.plaid_category_detailed || result.plaid_category_primary || '-')}</td>
                 `;
                 tbody.appendChild(tr);
             }

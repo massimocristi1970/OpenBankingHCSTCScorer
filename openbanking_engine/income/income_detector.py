@@ -37,7 +37,10 @@ class IncomeDetector:
         "PAYSLIP", "EMPLOYER", "EMPLOYERS",
         "BGC", "BANK GIRO CREDIT", "CONTRACT PAY", "MONTHLY PAY", "WEEKLY PAY",
         "BACS CREDIT", "FASTER PAYMENT", "FP-",
-        "EMPLOYMENT", "PAYCHECK"
+        "EMPLOYMENT", "PAYCHECK",
+        # Additional payroll providers and systems (additive)
+        "ADP", "PAYFIT", "SAGE PAYROLL", "XERO PAYRUN", "WORKDAY",
+        "BARCLAYS PAYMENTS", "HSBC PAYROLL"
     ]
 
     BENEFIT_KEYWORDS = [
@@ -46,20 +49,28 @@ class IncomeDetector:
         "PENSION CREDIT", "HOUSING BENEFIT",
         "TAX CREDIT", "WORKING TAX", "CHILD TAX",
         "CARERS ALLOWANCE", "ATTENDANCE ALLOWANCE",
-        "BEREAVEMENT", "MATERNITY ALLOWANCE"
+        "BEREAVEMENT", "MATERNITY ALLOWANCE",
+        # Additional benefit and tax refund keywords (additive)
+        "HMRC REFUND", "TAX REFUND", "HMRC TAX REFUND"
     ]
 
     PENSION_KEYWORDS = [
         "PENSION", "ANNUITY", "STATE PENSION", "RETIREMENT",
         "NEST", "AVIVA", "LEGAL AND GENERAL", "SCOTTISH WIDOWS",
-        "STANDARD LIFE", "PRUDENTIAL", "ROYAL LONDON", "AEGON"
+        "STANDARD LIFE", "PRUDENTIAL", "ROYAL LONDON", "AEGON",
+        # Additional pension providers (additive)
+        "NEST PENSION", "AVIVA PENSION", "LEGAL AND GENERAL PENSION",
+        "SCOTTISH WIDOWS PENSION", "STANDARD LIFE PENSION", "PRUDENTIAL PENSION",
+        "ROYAL LONDON PENSION", "AEGON PENSION"
     ]
 
     EXCLUSION_KEYWORDS = [
         "OWN ACCOUNT", "INTERNAL", "SELF TRANSFER",
         "FROM SAVINGS", "FROM CURRENT", "MOVED FROM",
         "MOVED TO", "BETWEEN ACCOUNTS", "INTERNAL TFR",
-        "ISA TRANSFER", "SAVINGS TRANSFER"
+        "ISA TRANSFER", "SAVINGS TRANSFER",
+        # Additional neobank and internal transfer keywords (additive)
+        "POT", "VAULT", "ROUND UP", "MOVE MONEY", "INTERNAL MOVE"
     ]
 
     LOAN_KEYWORDS = [
@@ -75,6 +86,18 @@ class IncomeDetector:
         "CREDIT UNION", "CU "
 
     ]
+    
+    # Additional gig economy platforms (additive)
+    GIG_KEYWORDS = [
+        "UBER", "UBER EATS", "DELIVEROO", "JUST EAT", "AMAZON FLEX",
+        "EVRI", "DPD", "YODEL", "ROYAL MAIL",
+        "SHOPIFY PAYMENTS", "STRIPE PAYOUT", "PAYPAL PAYOUT"
+    ]
+    
+    # Interest income keywords (additive)
+    INTEREST_KEYWORDS = [
+        "INTEREST", "GROSS INTEREST", "GROSS INT", "BANK INTEREST", "SAVINGS INTEREST"
+    ]
 
     LARGE_PAYMENT_THRESHOLD = 500.0
 
@@ -87,6 +110,8 @@ class IncomeDetector:
     FORTNIGHTLY_MAX_DAYS = 17
     MONTHLY_MIN_DAYS = 25
     MONTHLY_MAX_DAYS = 35
+    QUARTERLY_MIN_DAYS = 80
+    QUARTERLY_MAX_DAYS = 100
 
     SALARY_TIGHT_VARIANCE = 0.05
     SALARY_LOOSE_VARIANCE = 0.30
@@ -142,6 +167,20 @@ class IncomeDetector:
             return False
         d = description.upper()
         return any(k in d for k in self.PENSION_KEYWORDS)
+    
+    def _matches_gig_patterns(self, description: str) -> bool:
+        """Check if description matches gig economy patterns (additive)."""
+        if not description:
+            return False
+        d = description.upper()
+        return any(k in d for k in self.GIG_KEYWORDS)
+    
+    def _matches_interest_patterns(self, description: str) -> bool:
+        """Check if description matches interest income patterns (additive)."""
+        if not description:
+            return False
+        d = description.upper()
+        return any(k in d for k in self.INTEREST_KEYWORDS)
 
     def _looks_like_internal_transfer(self, description: str) -> bool:
         d = (description or "").upper()
@@ -218,8 +257,9 @@ class IncomeDetector:
             is_weekly = self.WEEKLY_MIN_DAYS <= avg_interval <= self.WEEKLY_MAX_DAYS
             is_fortnightly = self.FORTNIGHTLY_MIN_DAYS <= avg_interval <= self.FORTNIGHTLY_MAX_DAYS
             is_monthly = self.MONTHLY_MIN_DAYS <= avg_interval <= self.MONTHLY_MAX_DAYS
+            is_quarterly = self.QUARTERLY_MIN_DAYS <= avg_interval <= self.QUARTERLY_MAX_DAYS
 
-            if not (is_weekly or is_fortnightly or is_monthly):
+            if not (is_weekly or is_fortnightly or is_monthly or is_quarterly):
                 continue
 
             day_of_month_consistent = False
@@ -303,6 +343,8 @@ class IncomeDetector:
         if self._matches_pension_patterns(description):
             if self.MONTHLY_MIN_DAYS <= frequency_days <= self.MONTHLY_MAX_DAYS:
                 return ("pension", min(0.95, base_conf + 0.25))
+            if self.QUARTERLY_MIN_DAYS <= frequency_days <= self.QUARTERLY_MAX_DAYS:
+                return ("pension", min(0.93, base_conf + 0.23))
             return ("pension", min(0.90, base_conf + 0.15))
 
         # company suffix heuristic
@@ -457,16 +499,21 @@ class IncomeDetector:
         if self._looks_like_loan_disbursement(description, plaid_category_detailed):
             return (False, 0.0, "excluded_loan_disbursement")
 
-        # 1) PLAID income is strong
+        # 1) PLAID income is strong - prefer detailed over primary
         if plaid_category_detailed:
             d = plaid_category_detailed.upper()
             if "INCOME_WAGES" in d or ("INCOME" in d and ("SALARY" in d or "PAYROLL" in d)):
-                return (True, 0.96, "plaid_income_wages")
+                return (True, 0.96, "plaid_detailed_income_wages")
+            if "INCOME_RETIREMENT" in d or ("INCOME" in d and "RETIREMENT" in d):
+                return (True, 0.94, "plaid_detailed_income_retirement")
+            if "INCOME_GOVERNMENT" in d or ("INCOME" in d and ("GOVERNMENT" in d or "BENEFIT" in d)):
+                return (True, 0.94, "plaid_detailed_income_government")
             if "INCOME" in d:
-                return (True, 0.88, "plaid_income_detailed")
+                return (True, 0.88, "plaid_detailed_income")
 
+        # Fallback to primary only if detailed is not available
         if plaid_category_primary and "INCOME" in plaid_category_primary.upper():
-            return (True, 0.86, "plaid_income_primary")
+            return (True, 0.86, "plaid_primary_income")
 
         # 2) Transfer-in promotion (critical for your mislabelled salaries)
         promoted, p_conf, p_reason = self._transfer_in_promotion(
@@ -493,6 +540,11 @@ class IncomeDetector:
             return (True, 0.75, "keyword_benefits")
         if self._matches_pension_patterns(description):
             return (True, 0.75, "keyword_pension")
+        # Additional keyword checks (additive)
+        if self._matches_gig_patterns(description):
+            return (True, 0.70, "keyword_gig")
+        if self._matches_interest_patterns(description):
+            return (True, 0.85, "keyword_interest")
 
         # default
         return (False, 0.0, "no_income_signals")
