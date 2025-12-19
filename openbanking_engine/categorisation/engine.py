@@ -621,7 +621,7 @@ class TransactionCategorizer:
                     confidence=confidence,
                     description="Gig Economy Income",
                     match_method=f"plaid_{reason}",
-                    weight=0.7,
+                    weight=1.0,
                     is_stable=False,
                     debug_rationale=self._build_debug_rationale("income_detection", reason)
                 )
