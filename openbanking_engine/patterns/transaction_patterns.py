@@ -146,7 +146,7 @@ INCOME_PATTERNS = {
             r"(?i)\bstripe\b.*\b(payout|transfer)\b",
             r"(?i)\bpaypal\b.*\b(payout|disbursement)\b",
         ],
-        "weight": 0.7,
+        "weight": 1.0,
         "is_stable": False,
         "description": "Gig Economy Income"
     },

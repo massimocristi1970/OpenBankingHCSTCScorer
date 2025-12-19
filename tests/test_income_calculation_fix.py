@@ -124,7 +124,7 @@ class TestIncomeCalculationFix(unittest.TestCase):
                     "detailed": "TRANSFER_IN_ACCOUNT_TRANSFER"
                 }
             },
-            # Gig economy (70% weight)
+            # Gig economy (100% weight)
             {
                 "name": "UBER",
                 "amount": -200,
@@ -143,12 +143,12 @@ class TestIncomeCalculationFix(unittest.TestCase):
             if match.category == "income":
                 total_weighted_income += amount * match.weight
         
-        # Expected: £2,333 + £500 + (£200 * 0.7) = £2,973
-        expected_income = 2333 + 500 + (200 * 0.7)
+        # Expected: £2,333 + £500 + (£200 * 1.0) = £3,033
+        expected_income = 2333 + 500 + (200 * 1.0)
         
         self.assertAlmostEqual(total_weighted_income, expected_income, places=2)
         print(f"\n✓ Mixed income sources correctly calculated: £{total_weighted_income:.2f}")
-        print(f"  Salary: £2,333 (100%), Benefits: £500 (100%), Gig: £140 (70% of £200)")
+        print(f"  Salary: £2,333 (100%), Benefits: £500 (100%), Gig: £200 (100% of £200)")
         print(f"  Transfer: £3,000 excluded ✓")
     
     def test_transfer_without_plaid_category_uses_keyword_match(self):

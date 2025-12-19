@@ -15,12 +15,15 @@ The Transaction Categorization Review Dashboard is a non-intrusive, read-only Fl
 ## Features
 
 ### 📁 Batch Upload
+
 - Upload multiple JSON files containing transaction data
 - Supports both array format `[{...}, {...}]` and object format `{"transactions": [{...}]}`
 - Processes files independently and aggregates results
 
 ### 📊 Detailed Analysis
+
 For each transaction, the dashboard displays:
+
 - **Transaction Details**: Description, amount, date, merchant name
 - **Categorization Results**: Category, subcategory, confidence score
 - **Match Information**: How the transaction was categorized (keyword, regex, fuzzy, plaid, behavioral)
@@ -29,6 +32,7 @@ For each transaction, the dashboard displays:
 - **Stability Flags**: Whether income is considered stable, housing expenses, etc.
 
 ### 🔍 Review Features
+
 - **Summary Statistics**: Overview of total transactions, income/expense counts, confidence levels
 - **Category Breakdown**: Visual breakdown by category and subcategory
 - **Confidence Filtering**: Filter transactions by high/medium/low confidence
@@ -38,6 +42,7 @@ For each transaction, the dashboard displays:
 - **Low Confidence Alerts**: Automatically highlights transactions needing review with visual highlighting
 
 ### 📥 Export Capabilities
+
 - **CSV Export**: Download filtered results in CSV format for spreadsheet analysis
 - **JSON Export**: Export data in JSON format for further processing
 - Exports include all categorization details and metadata
@@ -45,12 +50,14 @@ For each transaction, the dashboard displays:
 ## Installation
 
 ### Prerequisites
+
 - Python 3.8 or higher
 - All dependencies from the main project
 
 ### Setup
 
 1. Ensure you have the required dependencies installed:
+
 ```bash
 pip install -r requirements.txt
 ```
@@ -72,12 +79,15 @@ python dashboard.py
 The dashboard will start on `http://localhost:5001` (port 5001 to avoid conflicts with the main Streamlit app).
 
 **For development with auto-reload:**
+
 ```bash
 FLASK_DEBUG=1 python dashboard.py
 ```
+
 ⚠️ **Note**: Debug mode should NOT be used in production as it poses security risks.
 
 You should see output like:
+
 ```
 ================================================================================
 Transaction Categorization Review Dashboard
@@ -93,6 +103,7 @@ Press Ctrl+C to stop the server.
 ### Accessing the Dashboard
 
 Open your web browser and navigate to:
+
 ```
 http://localhost:5001
 ```
@@ -128,11 +139,12 @@ Transactions with low confidence (< 60%) are automatically highlighted with a re
 The dashboard accepts transaction data in JSON format. Two structures are supported:
 
 ### Array Format (Preferred)
+
 ```json
 [
   {
     "name": "ACME CORP LTD SALARY",
-    "amount": -2500.00,
+    "amount": -2500.0,
     "date": "2024-01-25",
     "merchant_name": "ACME CORP LTD",
     "personal_finance_category": {
@@ -142,7 +154,7 @@ The dashboard accepts transaction data in JSON format. Two structures are suppor
   },
   {
     "name": "TESCO STORES",
-    "amount": 45.50,
+    "amount": 45.5,
     "date": "2024-01-26",
     "merchant_name": "TESCO",
     "personal_finance_category": {
@@ -154,12 +166,13 @@ The dashboard accepts transaction data in JSON format. Two structures are suppor
 ```
 
 ### Object Format
+
 ```json
 {
   "transactions": [
     {
       "name": "ACME CORP LTD SALARY",
-      "amount": -2500.00,
+      "amount": -2500.0,
       "date": "2024-01-25"
     }
   ]
@@ -169,6 +182,7 @@ The dashboard accepts transaction data in JSON format. Two structures are suppor
 ### Field Descriptions
 
 **Required Fields:**
+
 - `name` (string): Transaction description/name
 - `amount` (number): Transaction amount
   - **Negative values** = Credits (money IN to account, e.g., income)
@@ -176,6 +190,7 @@ The dashboard accepts transaction data in JSON format. Two structures are suppor
 - `date` (string): Transaction date in YYYY-MM-DD format
 
 **Optional Fields:**
+
 - `merchant_name` (string): Merchant or company name
 - `personal_finance_category` (object): PLAID categorization
   - `primary` (string): Primary category
@@ -188,47 +203,49 @@ The dashboard accepts transaction data in JSON format. Two structures are suppor
 You can create sample files for testing:
 
 **sample_salary.json:**
+
 ```json
 [
   {
     "name": "BANK GIRO CREDIT ACME CORP",
-    "amount": -2800.00,
+    "amount": -2800.0,
     "date": "2024-01-25"
   },
   {
     "name": "BANK GIRO CREDIT ACME CORP",
-    "amount": -2800.00,
+    "amount": -2800.0,
     "date": "2024-02-25"
   },
   {
     "name": "BANK GIRO CREDIT ACME CORP",
-    "amount": -2800.00,
+    "amount": -2800.0,
     "date": "2024-03-25"
   }
 ]
 ```
 
 **sample_mixed.json:**
+
 ```json
 [
   {
     "name": "SALARY FROM EMPLOYER",
-    "amount": -2500.00,
+    "amount": -2500.0,
     "date": "2024-01-15"
   },
   {
     "name": "TESCO STORES",
-    "amount": 85.30,
+    "amount": 85.3,
     "date": "2024-01-16"
   },
   {
     "name": "LENDING STREAM LOAN REPAY",
-    "amount": 150.00,
+    "amount": 150.0,
     "date": "2024-01-17"
   },
   {
     "name": "UNIVERSAL CREDIT DWP",
-    "amount": -450.00,
+    "amount": -450.0,
     "date": "2024-01-20"
   }
 ]
@@ -253,6 +270,7 @@ Confidence scores indicate how certain the categorization engine is about its cl
 The categorization engine uses a **multi-step pipeline** to accurately classify banking transactions. Each transaction is processed through several stages to determine its category, subcategory, and confidence level:
 
 **Pipeline Steps:**
+
 1. **Text Normalization** - Transaction descriptions are normalized (uppercase, trimmed)
 2. **HCSTC Lender Canonicalization** - Known lender variations are mapped to canonical names
 3. **Strict PLAID Category Checks** - High-confidence PLAID categories processed first (TRANSFER_IN/OUT, loan disbursements)
@@ -280,6 +298,7 @@ The `match_method` field indicates how a transaction was categorized:
 #### 📥 Income Categories (Negative Amounts - Credits)
 
 **`salary`** - Employment Income
+
 - Weight: 1.0 (100% counted)
 - Stable: Yes
 - Examples: "SALARY FROM ACME LTD", "PAYROLL BACS", "MONTHLY WAGES", "NET PAY"
@@ -287,6 +306,7 @@ The `match_method` field indicates how a transaction was categorized:
 - Risk: None
 
 **`benefits`** - Government Benefits
+
 - Weight: 1.0 (100% counted)
 - Stable: Yes
 - Examples: "UNIVERSAL CREDIT DWP", "CHILD BENEFIT", "PIP PAYMENT", "JSA"
@@ -294,6 +314,7 @@ The `match_method` field indicates how a transaction was categorized:
 - Risk: None
 
 **`pension`** - Retirement Income
+
 - Weight: 1.0 (100% counted)
 - Stable: Yes
 - Examples: "STATE PENSION", "ANNUITY PAYMENT", "PENSION DRAWDOWN"
@@ -301,13 +322,15 @@ The `match_method` field indicates how a transaction was categorized:
 - Risk: None
 
 **`gig_economy`** - Gig Economy Income
-- Weight: 0.7 (70% counted for affordability)
+
+- Weight: 1.0 (100% counted for affordability)
 - Stable: No (irregular income)
 - Examples: "UBER PAYOUT", "DELIVEROO EARNINGS", "AMAZON FLEX", "ETSY SETTLEMENT"
 - Keywords: UBER, DELIVEROO, JUST EAT, BOLT, FIVERR, UPWORK, AMAZON FLEX, ETSY, EBAY
 - Risk: Income instability
 
 **`loans`** - Loan Disbursements
+
 - Weight: 0.0 (NOT counted as income)
 - Stable: No
 - Examples: "ZOPA LOAN DISBURSEMENT", "PERSONAL LOAN PAYOUT", "LENDABLE TRANSFER"
@@ -316,6 +339,7 @@ The `match_method` field indicates how a transaction was categorized:
 - Risk: Debt increase
 
 **`other`** - Other Income Sources
+
 - Weight: 0.5-1.0 (depending on verification)
 - Stable: No
 - Examples: Unverified transfers, miscellaneous credits
@@ -324,30 +348,35 @@ The `match_method` field indicates how a transaction was categorized:
 #### 💳 Debt Categories (Positive Amounts - Debits)
 
 **`hcstc_payday`** - HCSTC/Payday Lenders
+
 - Risk Level: Very High / Critical
 - Examples: "LENDING STREAM", "DRAFTY", "MONEYBOAT", "CASHFLOAT", "QUIDMARKET"
 - Keywords: 30+ known HCSTC lenders (Lending Stream, Drafty, Mr Lender, etc.)
 - Impact: High debt indicator, triggers hard decline at 7+ lenders
 
 **`credit_cards`** - Credit Card Payments
+
 - Risk Level: Low-Medium
 - Examples: "VANQUIS PAYMENT", "BARCLAYCARD", "CAPITAL ONE", "AMEX"
 - Keywords: VANQUIS, AQUA, CAPITAL ONE, BARCLAYCARD, AMEX, MBNA
 - Impact: Managed credit, factored into DTI ratio
 
 **`bnpl`** - Buy Now Pay Later
+
 - Risk Level: High
 - Examples: "KLARNA", "CLEARPAY", "ZILCH", "MONZO FLEX", "PAYPAL PAY IN 3"
 - Keywords: KLARNA, CLEARPAY, ZILCH, PAYPAL PAY IN 3/4, LAYBUY
 - Impact: Credit utilization indicator
 
 **`catalogue`** - Catalogue Credit
+
 - Risk Level: Medium
 - Examples: "VERY.COM", "LITTLEWOODS", "JD WILLIAMS", "FREEMANS"
 - Keywords: VERY, LITTLEWOODS, JD WILLIAMS, SIMPLY BE, JACAMO
 - Impact: Sub-prime credit indicator
 
 **`other_loans`** - Other Loan Payments
+
 - Risk Level: Medium
 - Examples: "ZOPA REPAYMENT", "CAR FINANCE", "PERSONAL LOAN PAYMENT"
 - Keywords: ZOPA, NOVUNA, CAR FINANCE, LOAN REPAYMENT
@@ -356,48 +385,57 @@ The `match_method` field indicates how a transaction was categorized:
 #### 🏠 Essential Expense Categories
 
 **`rent`** - Rental Payments
+
 - Housing: Yes
 - Examples: "RENT TO LANDLORD", "LETTING AGENT", "HOUSING ASSOCIATION"
 - Keywords: LANDLORD, LETTING AGENT, TENANCY, COUNCIL RENT
 - Impact: Essential expense, housing cost
 
 **`mortgage`** - Mortgage Payments
+
 - Housing: Yes
 - Examples: "MORTGAGE PAYMENT", "HOME LOAN", "NATIONWIDE MORTGAGE"
 - Keywords: MORTGAGE, HOME LOAN, MTG
 - Impact: Essential expense, housing cost
 
 **`council_tax`** - Council Tax
+
 - Examples: "COUNCIL TAX", "CITY COUNCIL TAX"
 - Keywords: COUNCIL TAX, CTAX
 - Impact: Essential expense
 
 **`utilities`** - Gas, Electric, Water
+
 - Examples: "BRITISH GAS", "EDF ENERGY", "THAMES WATER", "OCTOPUS ENERGY"
 - Keywords: Energy suppliers, water companies, utility bills
 - Impact: Essential expense
 
 **`communications`** - Phone, Internet, TV
+
 - Examples: "VIRGIN MEDIA", "VODAFONE", "BT BROADBAND", "SKY TV", "TV LICENCE"
 - Keywords: Telecoms providers, broadband, mobile networks
 - Impact: Essential expense
 
 **`transport`** - Car, Fuel, Public Transport
+
 - Examples: "SHELL FUEL", "TFL OYSTER", "TRAINLINE", "CONGESTION CHARGE"
 - Keywords: SHELL, ESSO, TFL, NATIONAL RAIL, parking
 - Impact: Essential expense
 
 **`groceries`** - Food Shopping
+
 - Examples: "TESCO STORES", "SAINSBURY'S", "ASDA", "MORRISONS", "ALDI", "LIDL"
 - Keywords: Major supermarkets (excluding their banking services)
 - Impact: Essential expense
 
 **`insurance`** - Insurance Premiums
+
 - Examples: "AVIVA", "DIRECT LINE", "CAR INSURANCE", "HOME INSURANCE"
 - Keywords: Insurance providers, premium payments
 - Impact: Essential expense
 
 **`childcare`** - Childcare Costs
+
 - Examples: "CHILDCARE PAYMENT", "CHILDMINDER", "NURSERY FEES", "AFTER SCHOOL CLUB"
 - Keywords: CHILDCARE, CHILDMINDER, NURSERY, PRESCHOOL
 - Impact: Essential expense
@@ -405,24 +443,28 @@ The `match_method` field indicates how a transaction was categorized:
 #### ⚠️ Risk Categories
 
 **`gambling`** - Gambling Transactions
+
 - Risk Level: Critical
 - Examples: "BET365", "WILLIAM HILL", "LADBROKES", "BETFAIR", "SKYBET"
 - Keywords: 20+ gambling operators and betting brands
 - Impact: Hard decline at >15% of income, critical risk flag
 
 **`bank_charges`** - Overdraft/Unpaid Fees
+
 - Risk Level: High
 - Examples: "UNPAID ITEM CHARGE", "OVERDRAFT FEE", "RETURNED DD FEE"
 - Keywords: Unpaid charges, NSF fees, overdraft charges
 - Impact: Account conduct penalty, mandatory referral at 3+
 
 **`failed_payments`** - Failed Direct Debits
+
 - Risk Level: Critical
 - Examples: "UNPAID DIRECT DEBIT", "RETURNED DD", "BOUNCED PAYMENT"
 - Keywords: Unpaid DD, returned payments, failed debits
 - Impact: Hard decline at 6+ in 45 days
 
 **`debt_collection`** - Debt Collection Agencies
+
 - Risk Level: Severe/Critical
 - Examples: "LOWELL", "CABOT", "INTRUM", "ARROW GLOBAL", "LINK FINANCIAL"
 - Keywords: DCAs, debt collectors, recovery agencies
@@ -431,6 +473,7 @@ The `match_method` field indicates how a transaction was categorized:
 #### ✅ Positive Categories
 
 **`savings`** - Savings Activity
+
 - Examples: "SAVINGS TRANSFER", "ISA", "MONEYBOX", "PLUM", "PREMIUM BONDS"
 - Keywords: SAVINGS, ISA, INVESTMENT, savings apps
 - Impact: Positive indicator (+5 bonus points)
@@ -438,6 +481,7 @@ The `match_method` field indicates how a transaction was categorized:
 #### 🔄 Transfer Categories
 
 **`internal`** - Internal Transfers
+
 - Weight: 0.0 (excluded from income/expense calculations)
 - Examples: "OWN ACCOUNT TRANSFER", "BETWEEN ACCOUNTS", "FROM SAVINGS TO CURRENT"
 - Keywords: OWN ACCOUNT, INTERNAL TRANSFER, SELF TRANSFER
@@ -459,11 +503,13 @@ Confidence scores indicate certainty of categorization:
 The system prioritizes PLAID categories in this order:
 
 1. **Strict PLAID Categories** (checked first):
+
    - `TRANSFER_IN_ACCOUNT_TRANSFER` → income/internal (weight: 0.0)
    - `TRANSFER_OUT_ACCOUNT_TRANSFER` → expense/internal (weight: 0.0)
    - `TRANSFER_IN_CASH_ADVANCES_AND_LOANS` → income/loans (weight: 0.0)
 
 2. **High-Confidence PLAID Categories**:
+
    - `INCOME_WAGES` → income/salary (weight: 1.0, stable)
    - `LOAN_PAYMENTS` → income/loans (weight: 0.0)
 
@@ -518,6 +564,7 @@ app.run(debug=True, port=5002, host='0.0.0.0')  # Change 5001 to 5002
 ### Low Performance with Large Files
 
 The dashboard uses batch categorization which is optimized for large transaction sets. However:
+
 - Very large files (10,000+ transactions) may take a few seconds to process
 - Consider splitting extremely large datasets into multiple files
 
@@ -538,6 +585,7 @@ config/categorization_patterns.py (Rules & Patterns)
 ```
 
 **Key Principles:**
+
 1. **No Modifications**: Dashboard never modifies core categorization code
 2. **Read-Only Usage**: Only calls existing public methods
 3. **Isolated Logic**: All dashboard-specific code is in `dashboard.py` and `templates/`
@@ -546,6 +594,7 @@ config/categorization_patterns.py (Rules & Patterns)
 ### Files Created
 
 This dashboard adds only these files to the project:
+
 - `dashboard.py` - Flask application
 - `templates/dashboard.html` - Web interface
 - `DASHBOARD_README.md` - This documentation
@@ -560,6 +609,7 @@ No existing files are modified.
 **Scenario**: Some salary payments are being categorized as transfers instead of income.
 
 **Steps:**
+
 1. Upload transaction files
 2. Filter by category: "income" and "transfer"
 3. Look for low confidence scores
@@ -571,6 +621,7 @@ No existing files are modified.
 **Scenario**: Need to find transactions where the engine is uncertain.
 
 **Steps:**
+
 1. Upload files
 2. Use the "Low Confidence" summary card to see the count
 3. Filter by confidence: "Low (< 0.60)"
@@ -582,6 +633,7 @@ No existing files are modified.
 **Scenario**: Added new categorization patterns, want to verify they work.
 
 **Steps:**
+
 1. Upload test data containing transactions that should match new rules
 2. Check if transactions are categorized correctly
 3. Review match methods to ensure new patterns are being used
@@ -592,6 +644,7 @@ No existing files are modified.
 **Scenario**: Need a report for manual review by the team.
 
 **Steps:**
+
 1. Upload all transaction files
 2. Apply relevant filters (e.g., low confidence only)
 3. Export to CSV
@@ -618,14 +671,13 @@ No existing files are modified.
 ## Future Enhancements
 
 Possible improvements for future versions:
+
 - Save analysis sessions to database
 - Compare categorization across different time periods
 - Add more advanced filtering options
 - Export confidence score trends
 - Rule suggestion engine based on miscategorizations
 - Integration with main Streamlit app
-
-
 
 ## Technical Details
 

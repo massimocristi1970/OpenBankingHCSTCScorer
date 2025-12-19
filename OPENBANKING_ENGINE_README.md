@@ -35,16 +35,19 @@ openbanking_engine/
 ### 1. Configuration Layer (`config/`)
 
 **scoring_config.py**
+
 - `SCORING_CONFIG`: Score ranges, weights, thresholds, decline rules
 - `PRODUCT_CONFIG`: Loan parameters (amounts, terms, interest rates)
 
 **pfc_mapping_loader.py**
+
 - Utility for loading Personal Finance Category (PFC) mappings from CSV
 - Enables custom categorization mappings
 
 ### 2. Pattern Layer (`patterns/`)
 
 **transaction_patterns.py**
+
 - `INCOME_PATTERNS`: Salary, benefits, pension, gig economy, loans
 - `TRANSFER_PATTERNS`: Internal transfers, own account movements
 - `DEBT_PATTERNS`: HCSTC/payday lenders, credit cards, BNPL, catalogue credit
@@ -55,6 +58,7 @@ openbanking_engine/
 ### 3. Income Detection Layer (`income/`)
 
 **income_detector.py**
+
 - `IncomeDetector`: Behavioral income detection through recurring patterns
 - `RecurringIncomeSource`: Data structure for detected income sources
 - Analyzes transaction history to identify legitimate salary/benefits
@@ -63,17 +67,20 @@ openbanking_engine/
 ### 4. Categorisation Layer (`categorisation/`)
 
 **preprocess.py**
+
 - Text normalization (uppercase, trimming)
 - HCSTC lender name canonicalization
 - Internal transfer detection
 - PFC mapping utilities
 
 **pattern_matching.py**
+
 - Generic pattern matching engine
 - Supports keyword, regex, and fuzzy matching
 - Returns match method and confidence score
 
 **engine.py**
+
 - `TransactionCategorizer`: Main categorization orchestrator
 - Multi-step categorization pipeline:
   1. Known expense service check
@@ -87,6 +94,7 @@ openbanking_engine/
 ### 5. Scoring Layer (`scoring/`)
 
 **feature_builder.py** (formerly metrics_calculator.py)
+
 - `MetricsCalculator`: Calculates all financial metrics
 - Metric types:
   - `IncomeMetrics`: Total, monthly, stable, gig income; stability scores
@@ -97,6 +105,7 @@ openbanking_engine/
   - `RiskMetrics`: Gambling, bank charges, failed payments, debt collection
 
 **scoring_engine.py**
+
 - `ScoringEngine`: Loan application scoring
 - Components:
   - Affordability scoring (DTI, disposable income, post-loan affordability)
@@ -280,21 +289,25 @@ print(f"Score: {scoring_result.score}")
 ## Design Principles
 
 ### 1. Domain-Driven Structure
+
 - Code organized by functional domain (patterns, income, categorisation, scoring)
 - Clear separation of concerns
 - Each module has a single responsibility
 
 ### 2. Preserved Business Logic
+
 - All existing algorithms and calculations maintained
 - No changes to scoring rules or categorization patterns
 - Backward compatible with existing tests
 
 ### 3. Clean Imports
+
 - Relative imports within openbanking_engine package
 - Absolute imports from outside
 - Clear dependency tree
 
 ### 4. Professional Organization
+
 - Configuration separated from logic
 - Patterns separated from matching logic
 - Feature calculation separated from scoring
@@ -302,11 +315,13 @@ print(f"Score: {scoring_result.score}")
 ## Migration Notes
 
 ### What Changed
+
 1. **Structure**: Code moved from monolithic root files to modular package
 2. **Imports**: Internal imports updated to use relative imports
 3. **Entry Point**: New `run_open_banking_scoring()` function for clean API
 
 ### What Stayed the Same
+
 1. **Algorithms**: All categorization and scoring logic preserved
 2. **Tests**: All existing tests pass without modification
 3. **Public API**: Root-level imports continue to work via wrappers
@@ -343,13 +358,15 @@ python -m unittest test_plaid_categorization_preservation
 The HCSTC scoring system evaluates loan applications on a **175-point scale** (previously 100 points, rescaled by 1.75x). The system balances affordability, income quality, account conduct, and risk indicators to make responsible lending decisions.
 
 **Decision Thresholds:**
+
 - **APPROVE**: 70-175 points - Auto-approved for requested amount/term
-- **REFER**: 45-69 points - Manual underwriter review required  
+- **REFER**: 45-69 points - Manual underwriter review required
 - **DECLINE**: 0-44 points - Automatic rejection
 
 ### Score Breakdown (175 Points Maximum)
 
 **Component Weights:**
+
 - Affordability: 78.75 points (45%)
 - Income Quality: 43.75 points (25%)
 - Account Conduct: 35 points (20%)
@@ -360,6 +377,7 @@ The HCSTC scoring system evaluates loan applications on a **175-point scale** (p
 Evaluates the stability and reliability of income sources.
 
 **Income Stability (0-21 points):**
+
 - 90%+ stability score: 21 points
 - 75-89% stability: 17.5 points
 - 60-74% stability: 12.25 points
@@ -368,12 +386,14 @@ Evaluates the stability and reliability of income sources.
 - Stability based on: income type weights, consistency, verification
 
 **Income Regularity (0-14 points):**
+
 - Measures consistency of income timing and amounts
 - Calculated from income regularity score (0-100%)
 - Points = (regularity_score / 100) × 14
 - Maximum: 14 points
 
 **Income Verification (0-8.75 points):**
+
 - Verifiable income (salary, benefits, pension): 8.75 points
 - Unverifiable income (other sources): 3.5 points
 - Based on income source identification and PLAID categories
@@ -383,6 +403,7 @@ Evaluates the stability and reliability of income sources.
 Assesses ability to repay the loan without financial hardship.
 
 **DTI Ratio Score (0-31.5 points):**
+
 - < 15% DTI: 31.5 points
 - 15-25% DTI: 26.25 points
 - 25-35% DTI: 21 points
@@ -392,6 +413,7 @@ Assesses ability to repay the loan without financial hardship.
 
 **Disposable Income Score (0-26.25 points):**
 Based on monthly disposable income (after expenses, before loan):
+
 - £400+ disposable: 26.25 points
 - £300-400 disposable: 22.75 points
 - £200-300 disposable: 17.5 points
@@ -400,6 +422,7 @@ Based on monthly disposable income (after expenses, before loan):
 - < £50 disposable: 0 points
 
 **Post-Loan Affordability (0-21 points):**
+
 - Calculated as: (post_loan_disposable / 50) × 21
 - Maximum: 21 points (£50+ post-loan disposable)
 - Ensures adequate buffer after loan repayment
@@ -409,17 +432,20 @@ Based on monthly disposable income (after expenses, before loan):
 Evaluates banking behavior and financial management.
 
 **Failed Payments (0-14 points):**
+
 - No failed payments: 14 points
 - Each failed payment: -3.5 points
 - Minimum: 0 points
 
 **Overdraft Usage (0-12.25 points):**
+
 - No overdraft days: 12.25 points
 - 1-5 days in overdraft: 8.75 points
 - 6-15 days in overdraft: 5.25 points
 - 16+ days in overdraft: 0 points
 
 **Balance Management (0-8.75 points):**
+
 - Average balance ≥ £500: 8.75 points
 - Average balance £200-£500: 5.25 points
 - Average balance £0-£200: 1.75 points
@@ -430,6 +456,7 @@ Evaluates banking behavior and financial management.
 Evaluates high-risk financial behaviors.
 
 **Gambling Activity (0-8.75 points):**
+
 - 0% gambling: 8.75 points
 - 0-2% gambling: 5.25 points
 - 2-5% gambling: 0 points
@@ -438,6 +465,7 @@ Evaluates high-risk financial behaviors.
 - > 15% gambling: Hard decline
 
 **HCSTC History (0-8.75 points):**
+
 - No HCSTC lenders: 8.75 points
 - 1 HCSTC lender: 3.5 points
 - 2+ HCSTC lenders: 0 points
@@ -467,18 +495,20 @@ These trigger manual review (not automatic decline):
 ### Affordability Calculation Details
 
 #### Monthly Income Calculation
+
 ```
 Weighted Income = Σ (Transaction Amount × Income Weight)
 Monthly Income = Weighted Income / Months of Data
 
 Income Weights:
 - Salary, Benefits, Pension: 1.0 (100%)
-- Gig Economy: 0.7 (70%)
+- Gig Economy: 1.0 (100%)
 - Other (unverified): 0.5-1.0 (50-100%)
 - Loans, Transfers: 0.0 (0%, excluded)
 ```
 
 #### Monthly Expense Calculation
+
 ```
 Monthly Expenses = (Total Debt Payments + Essential Expenses) / Months
 
@@ -501,6 +531,7 @@ Debt Payments Include:
 ```
 
 #### Loan Repayment Calculation (FCA Compliant)
+
 ```
 Daily Interest Rate: 0.8% (FCA cap)
 Total Cost Cap: 100% of loan amount (FCA cap)
@@ -510,6 +541,7 @@ Example: £500 loan for 3 months = £500 × 2.0 / 3 = £333.33/month
 ```
 
 #### Disposable Income & DTI
+
 ```
 Expense Shock Buffer: 10% (multiplier: 1.1)
 Buffered Expenses = Monthly Expenses × 1.1
@@ -524,22 +556,26 @@ Projected DTI = ((Total Debt + New Loan Payment) / Gross Income) × 100
 ### Product Parameters
 
 **Loan Amounts:**
+
 - Minimum: £200
 - Maximum: £1,500
 - Available in £50 increments
 
 **Loan Terms:**
+
 - Available terms: 3, 4, 5, or 6 months
 - Equal monthly installments
 - No early repayment penalties
 
 **Interest & Fees:**
+
 - Daily interest rate: 0.8% per day (FCA maximum)
 - Total cost cap: 100% of loan amount (FCA maximum)
 - No hidden fees or charges
 - Transparent pricing
 
 **Score-Based Loan Limits:**
+
 - Score 149+: Max £1,500 over 6 months
 - Score 123-148: Max £1,200 over 6 months
 - Score 105-122: Max £800 over 5 months
@@ -549,24 +585,26 @@ Projected DTI = ((Total Debt + New Loan Payment) / Gross Income) × 100
 **Example Calculations:**
 
 | Loan Amount | Term | Daily Interest | Total Cost Cap | Total Repayable | Monthly Payment |
-|-------------|------|----------------|----------------|-----------------|-----------------|
-| £200        | 3 mo | 0.8%          | £200 (100%)    | £400            | £133.33         |
-| £500        | 3 mo | 0.8%          | £500 (100%)    | £1,000          | £333.33         |
-| £800        | 5 mo | 0.8%          | £800 (100%)    | £1,600          | £320.00         |
-| £1,200      | 6 mo | 0.8%          | £1,200 (100%)  | £2,400          | £400.00         |
-| £1,500      | 6 mo | 0.8%          | £1,500 (100%)  | £3,000          | £500.00         |
+| ----------- | ---- | -------------- | -------------- | --------------- | --------------- |
+| £200        | 3 mo | 0.8%           | £200 (100%)    | £400            | £133.33         |
+| £500        | 3 mo | 0.8%           | £500 (100%)    | £1,000          | £333.33         |
+| £800        | 5 mo | 0.8%           | £800 (100%)    | £1,600          | £320.00         |
+| £1,200      | 6 mo | 0.8%           | £1,200 (100%)  | £2,400          | £400.00         |
+| £1,500      | 6 mo | 0.8%           | £1,500 (100%)  | £3,000          | £500.00         |
 
 ### FCA Compliance Features
 
 The scoring system implements FCA responsible lending requirements:
 
 **1. Price Cap Enforcement**
+
 - Daily interest capped at 0.8% (FCA maximum)
 - Total cost capped at 100% of loan amount
 - No charges for late payment beyond cost cap
 - Transparent, standardized pricing
 
 **2. Affordability Assessment**
+
 - Comprehensive income verification
 - Essential expense consideration
 - 10% expense shock buffer for resilience
@@ -574,6 +612,7 @@ The scoring system implements FCA responsible lending requirements:
 - DTI ratio monitoring and limits
 
 **3. Income Verification**
+
 - Stable income sources prioritized (weight 1.0)
 - PLAID category integration for verification
 - Employment income preferred over gig economy
@@ -581,6 +620,7 @@ The scoring system implements FCA responsible lending requirements:
 - Minimum income thresholds enforced
 
 **4. Responsible Lending Checks**
+
 - Gambling activity monitoring (hard decline at >15%)
 - Debt spiral detection (7+ HCSTC lenders)
 - Failed payment history review (45-day window)
@@ -588,12 +628,14 @@ The scoring system implements FCA responsible lending requirements:
 - Bank charge monitoring
 
 **5. Forbearance & Support**
+
 - Clear decline reasons provided
 - Referral to manual review when appropriate
 - No risk-based pricing (fixed rate product)
 - Consumer protection compliance
 
 **6. Creditworthiness Assessment**
+
 - Multi-factor scoring (not just credit score)
 - Account conduct evaluation
 - Behavioral analysis of banking patterns
@@ -603,6 +645,7 @@ The scoring system implements FCA responsible lending requirements:
 ### Decision Examples
 
 #### Example 1: APPROVE - Strong Applicant
+
 ```
 Monthly Income: £2,100 (salary, stable)
 Monthly Expenses: £950 (rent, utilities, groceries)
@@ -624,6 +667,7 @@ Post-Loan Disposable: £617/month
 ```
 
 #### Example 2: REFER - Marginal Applicant
+
 ```
 Monthly Income: £1,400 (benefits, stable)
 Monthly Expenses: £850
@@ -644,6 +688,7 @@ Recommendation: Review banking behavior, consider lower amount (£300)
 ```
 
 #### Example 3: DECLINE - High Risk
+
 ```
 Monthly Income: £900 (gig economy, unstable)
 Monthly Expenses: £650
@@ -678,5 +723,3 @@ Potential areas for extension:
 4. **Multi-currency**: Support for non-GBP currencies
 5. **API Layer**: REST API wrapper for the scoring engine
 6. **Caching**: Add caching for frequently accessed patterns and configs
-
-
