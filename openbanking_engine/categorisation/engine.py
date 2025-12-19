@@ -27,6 +27,7 @@ from ..patterns.transaction_patterns import (
     DEBT_PATTERNS,
     ESSENTIAL_PATTERNS,
     RISK_PATTERNS,
+    EXPENSE_PATTERNS,
     POSITIVE_PATTERNS,
 )
 
@@ -139,6 +140,7 @@ class TransactionCategorizer:
         self.debt_patterns = DEBT_PATTERNS
         self.essential_patterns = ESSENTIAL_PATTERNS
         self.risk_patterns = RISK_PATTERNS
+        self.expense_patterns = EXPENSE_PATTERNS
         self.positive_patterns = POSITIVE_PATTERNS
         self.income_detector = IncomeDetector()
         self.debug_mode = debug_mode
@@ -384,6 +386,41 @@ class TransactionCategorizer:
                 subcategory="other",
                 confidence=0.98,
                 description="Plaid Transfer Out",
+                match_method="plaid_strict",
+                weight=1.0,
+                is_stable=False
+            )
+        
+        # === EXPENSE SUBCATEGORIES → STRICT PLAID MAPPINGS ===
+        # These take precedence over keyword matching to ensure PLAID categorization is preserved
+        if "BANK_FEES_INSUFFICIENT_FUNDS" in detailed_upper:
+            return CategoryMatch(
+                category="expense",
+                subcategory="unpaid",
+                confidence=0.98,
+                description="Unpaid/Returned/NSF Fees",
+                match_method="plaid_strict",
+                weight=1.0,
+                is_stable=False
+            )
+        
+        if "BANK_FEES_OVERDRAFT" in detailed_upper:
+            return CategoryMatch(
+                category="expense",
+                subcategory="unauthorised_overdraft",
+                confidence=0.98,
+                description="Overdraft Fees",
+                match_method="plaid_strict",
+                weight=1.0,
+                is_stable=False
+            )
+        
+        if "ENTERTAINMENT_CASINOS_AND_GAMBLING" in detailed_upper:
+            return CategoryMatch(
+                category="expense",
+                subcategory="gambling",
+                confidence=0.98,
+                description="Gambling",
                 match_method="plaid_strict",
                 weight=1.0,
                 is_stable=False
@@ -736,6 +773,18 @@ class TransactionCategorizer:
                     risk_level=patterns.get("risk_level", "medium")
                 )
         
+        # STEP 3: Check expense patterns (after risk patterns)
+        for subcategory, patterns in self.expense_patterns.items():
+            match = self._match_patterns(combined_text, patterns)
+            if match:
+                return CategoryMatch(
+                    category="expense",
+                    subcategory=subcategory,
+                    confidence=match[1],
+                    description=patterns.get("description", subcategory),
+                    match_method=match[0]
+                )
+        
         # SIMPLIFIED: Let keyword patterns drive categorization naturally
         # No PLAID defaults that override keyword matching (Pragmatic Fix)
         
@@ -972,7 +1021,44 @@ class TransactionCategorizer:
         
         plaid_upper = plaid_category.upper()
 
-        # Discretionary spending (PLAID detailed categories)
+        # Check specific expense categories BEFORE generic patterns
+        # This ensures more specific PLAID categories are matched first
+        if not is_income:
+            # PLAID expense category mappings (specific before generic)
+            if "BANK_FEES_INSUFFICIENT_FUNDS" in plaid_upper or "INSUFFICIENT_FUNDS" in plaid_upper:
+                return CategoryMatch(
+                    category="expense",
+                    subcategory="unpaid",
+                    confidence=0.90,
+                    description="Unpaid/Returned/NSF Fees",
+                    match_method="plaid"
+                )
+            if "BANK_FEES_OVERDRAFT" in plaid_upper or ("OVERDRAFT" in plaid_upper and "FEES" in plaid_upper):
+                return CategoryMatch(
+                    category="expense",
+                    subcategory="unauthorised_overdraft",
+                    confidence=0.90,
+                    description="Overdraft Fees",
+                    match_method="plaid"
+                )
+            if "ENTERTAINMENT_CASINOS_AND_GAMBLING" in plaid_upper or ("CASINOS" in plaid_upper and "GAMBLING" in plaid_upper):
+                return CategoryMatch(
+                    category="expense",
+                    subcategory="gambling",
+                    confidence=0.85,
+                    description="Gambling",
+                    match_method="plaid"
+                )
+            if "GAMBLING" in plaid_upper or "CASINO" in plaid_upper:
+                return CategoryMatch(
+                    category="expense",
+                    subcategory="gambling",
+                    confidence=0.85,
+                    description="Gambling",
+                    match_method="plaid"
+                )
+
+        # Discretionary spending (PLAID detailed categories) - checked after specific patterns
         if not is_income and any(x in plaid_upper for x in [
         "GENERAL_MERCHANDISE",
             "ENTERTAINMENT",
@@ -1067,15 +1153,6 @@ class TransactionCategorizer:
                     confidence=0.85,
                     description="Food & Dining",
                     match_method="plaid"
-                )
-            if "GAMBLING" in plaid_upper or "CASINO" in plaid_upper:
-                return CategoryMatch(
-                    category="risk",
-                    subcategory="gambling",
-                    confidence=0.85,
-                    description="Gambling",
-                    match_method="plaid",
-                    risk_level="critical"
                 )
             if "LOAN" in plaid_upper:
                 return CategoryMatch(
@@ -1606,6 +1683,9 @@ class TransactionCategorizer:
             "expense": {
                 "discretionary": {"total": 0.0, "count": 0},
                 "food_dining": {"total": 0.0, "count": 0},
+                "unpaid": {"total": 0.0, "count": 0},
+                "unauthorised_overdraft": {"total": 0.0, "count": 0},
+                "gambling": {"total": 0.0, "count": 0},
                 "other": {"total": 0.0, "count": 0},
             },
 
@@ -1642,6 +1722,7 @@ class TransactionCategorizer:
             if category in summary and subcategory in summary.get(category, {}):
                 if category == "income":
                     summary[category][subcategory]["total"] += (amount * match.weight)
+                    summary[category][subcategory]["count"] += 1
 
                 elif category == "expense" and subcategory == "other":
                     # PARTIAL INCLUSION: NON-recurring expense/other counted at 50%
@@ -1663,6 +1744,12 @@ class TransactionCategorizer:
                     else:
                         # one-offs / noise discounted
                         summary[category][subcategory]["total"] += (amount * 0.5)
+                    summary[category][subcategory]["count"] += 1
+                
+                else:
+                    # All other categories and subcategories (including new expense subcategories)
+                    summary[category][subcategory]["total"] += amount
+                    summary[category][subcategory]["count"] += 1
 
 
 
