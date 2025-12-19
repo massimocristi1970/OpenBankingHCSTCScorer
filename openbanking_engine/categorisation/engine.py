@@ -1033,7 +1033,7 @@ class TransactionCategorizer:
                     description="Unpaid/Returned/NSF Fees",
                     match_method="plaid"
                 )
-            if "BANK_FEES_OVERDRAFT" in plaid_upper or ("OVERDRAFT" in plaid_upper and "FEES" in plaid_upper):
+            if "BANK_FEES_OVERDRAFT" in plaid_upper:
                 return CategoryMatch(
                     category="expense",
                     subcategory="unauthorised_overdraft",
