@@ -821,6 +821,88 @@ RISK_PATTERNS = {
 
 }
 
+# Expense Categories (for categorizing specific expense types)
+EXPENSE_PATTERNS = {
+    "unpaid": {
+        "keywords": [
+            "UNPAID ITEM CHARGE", "UNPAID TRANSACTION FEE",
+            "RETURNED ITEM FEE", "RETURNED DD FEE", "RETURNED PAYMENT FEE",
+            "UNPAID DD CHARGE", "UNPAID SO CHARGE",
+            "BOUNCE FEE",
+            "INSUFFICIENT FUNDS FEE", "NSF FEE",
+            "PENALTY CHARGE", "UNPAID CHARGE", "RETURNED FEE", "ITEM FEE"
+        ],
+        "regex_patterns": [
+            # Core: unpaid/returned/bounced + charge/fee
+            r"(?i)\b(unpaid|returned|bounced|failed|dishono(u)?red)\b.*\b(charge|fee)\b",
+            r"(?i)\b(charge|fee)\b.*\b(unpaid|returned|bounced|failed|dishono(u)?red)\b",
+
+            # Insufficient funds / NSF
+            r"(?i)\b(nsf|insufficient\s*funds)\b.*\b(charge|fee)\b",
+            r"(?i)\b(charge|fee)\b.*\b(nsf|insufficient\s*funds)\b",
+
+            # Item/transaction fees ONLY when penalty context exists
+            r"(?i)\b(item|transaction)\b.*\b(charge|fee)\b.*\b(unpaid|returned|nsf|insufficient)\b",
+            r"(?i)\b(unpaid|returned|nsf|insufficient)\b.*\b(item|transaction)\b.*\b(charge|fee)\b",
+        ],
+        "description": "Unpaid/Returned/NSF Fees"
+    },
+
+    "unauthorised_overdraft": {
+        "keywords": [
+            "OVERDRAFT FEE", "OVERDRAFT CHARGE",
+            "UNARRANGED OVERDRAFT", "UNAUTHORISED OVERDRAFT",
+            "OVERDRAFT INTEREST", "OVERDRAFT PENALTY"
+        ],
+        "regex_patterns": [
+            # Overdraft charges
+            r"(?i)\boverdraft\b.*\b(charge|fee|penalty|interest)\b",
+            r"(?i)\b(charge|fee|penalty|interest)\b.*\boverdraft\b",
+
+            # Unauthorised/unarranged variants
+            r"(?i)\b(unauthori[sz]ed|unarranged|unauth)\b.*\boverdraft\b",
+            r"(?i)\boverdraft\b.*\b(unauthori[sz]ed|unarranged|unauth)\b",
+        ],
+        "description": "Overdraft Fees"
+    },
+
+    "gambling": {
+        "keywords": [
+            # Operators / brands (high-signal)
+            "BET365", "BETFAIR", "WILLIAM HILL", "LADBROKES", "CORAL",
+            "PADDY POWER", "BETFRED", "POKERSTARS", "SKYBET", "UNIBET",
+            "BWIN", "BETWAY", "TOMBOLA", "GROSVENOR", "NATIONAL LOTTERY",
+            "DRAFTKINGS", "FANDUEL", "CASUMO"
+        ],
+        "regex_patterns": [
+            # Major UK operators
+            r"(?i)\bbet365\b",
+            r"(?i)\bbetfair\b",
+            r"(?i)\bwilliam\s*hill\b",
+            r"(?i)\bladbrokes\b",
+            r"(?i)\bcoral\b",
+            r"(?i)\bpaddy\s*power\b",
+            r"(?i)\bbetfred\b",
+            r"(?i)\bpokerstars\b",
+            r"(?i)\bskybet\b",
+            r"(?i)\bunibet\b",
+            r"(?i)\bbwin\b",
+            r"(?i)\bbetway\b",
+            r"(?i)\btombola\b",
+            r"(?i)\bgrosvenor\b.*\b(casino|gaming)\b",
+            r"(?i)\bnational\s*lottery\b|\blotto\b",
+            # 888 brands – DO NOT match just "888"
+            r"(?i)\b888\s*(casino|sport|sports|poker)\b",
+            r"(?i)\b888casino\b|\b888poker\b|\b888sport\b",
+
+            # Generic gambling terms ONLY when payment/top-up context exists
+            r"(?i)\b(casino|betting|gambling|poker|bingo)\b.*\b(top\s*up|deposit|stake|wager|gaming|bookmaker|bookmakers|sportsbook)\b",
+            r"(?i)\b(top\s*up|deposit|stake|wager)\b.*\b(casino|betting|gambling|poker|bingo)\b",
+        ],
+        "description": "Gambling"
+    },
+}
+
     # Positive Indicators
 POSITIVE_PATTERNS = {
     "savings": {

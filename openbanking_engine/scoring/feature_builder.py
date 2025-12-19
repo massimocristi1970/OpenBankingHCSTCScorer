@@ -547,6 +547,9 @@ class MetricsCalculator:
                 "other": {"total": 0.0, "count": 0},
                 "food_dining": {"total": 0.0, "count": 0},
                 "discretionary": {"total": 0.0, "count": 0},  # NEW
+                "unpaid": {"total": 0.0, "count": 0},
+                "unauthorised_overdraft": {"total": 0.0, "count": 0},
+                "gambling": {"total": 0.0, "count": 0},
             },
 
             "debt": {
@@ -932,6 +935,11 @@ class MetricsCalculator:
         other_expenses = expense_data.get("other", {}).get("total", 0) / actual_months
         food_dining = expense_data.get("food_dining", {}).get("total", 0) / actual_months
         discretionary = expense_data.get("discretionary", {}).get("total", 0) / actual_months
+        
+        # New expense subcategories
+        unpaid = expense_data.get("unpaid", {}).get("total", 0) / actual_months
+        unauthorised_overdraft = expense_data.get("unauthorised_overdraft", {}).get("total", 0) / actual_months
+        gambling = expense_data.get("gambling", {}).get("total", 0) / actual_months
 
         # Get monthly averages - debt category
         hcstc = debt_data.get("hcstc_payday", {}).get("total", 0) / actual_months
@@ -944,14 +952,17 @@ class MetricsCalculator:
         housing = max(rent, mortgage)
     
         # Essential costs (fixed/necessary spend)
+        # Include unpaid + unauthorised_overdraft as essential-like spend
         essential_total = (
             housing + council_tax + utilities + transport +
             groceries + communications + insurance + childcare +
-            other_expenses + food_dining
+            other_expenses + food_dining +
+            unpaid + unauthorised_overdraft
         )
 
         # Discretionary costs (separate bucket)
-        discretionary_total = discretionary
+        # Include gambling as discretionary-like spend
+        discretionary_total = discretionary + gambling
 
         # Total spend used for affordability
         monthly_total_spend = essential_total + discretionary_total
@@ -1017,7 +1028,10 @@ class MetricsCalculator:
                 "childcare": childcare,
                 "other_expenses": other_expenses,
                 "food_dining": food_dining,
+                "unpaid": unpaid,
+                "unauthorised_overdraft": unauthorised_overdraft,
                 "discretionary": discretionary,
+                "gambling": gambling,
                 "debt_payments": hcstc + other_loans + credit_cards + bnpl + catalogue,
             }
         )
