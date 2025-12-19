@@ -40,7 +40,12 @@ class ExpenseMetrics:
     monthly_communications: float = 0.0
     monthly_insurance: float = 0.0
     monthly_childcare: float = 0.0
+
+    # Split totals
     monthly_essential_total: float = 0.0
+    monthly_discretionary_total: float = 0.0
+    monthly_total_spend: float = 0.0
+
 
     # Optional: current month-to-date spend trend (not included in the base averages)
     mtd_total_spend: float = 0.0
@@ -460,6 +465,61 @@ class MetricsCalculator:
         recent_txn_ids = set()
         for txn in recent_transactions:
             recent_txn_ids.add(self._get_transaction_id(txn))
+
+        # Helper: recurring-like check (local, minimal)
+        def _normalize_desc(s: str) -> str:
+            s = (s or "").strip().lower()
+            cleaned = "".join(ch if (ch.isalnum() or ch.isspace()) else " " for ch in s)
+            return " ".join(cleaned.split())
+
+
+        def _is_recurring_like_local(txn: Dict, amount_tolerance: float = 0.25, min_similar: int = 2) -> bool:
+            # We only care about cadence of same-ish description + amount
+            this_norm = _normalize_desc(txn.get("name", ""))
+            if not this_norm:
+                return False
+
+            this_amt = abs(float(txn.get("amount", 0) or 0))
+            if this_amt <= 0:
+                return False
+
+            this_id = self._get_transaction_id(txn)
+            dates = []
+            for t in recent_transactions:
+                if self._get_transaction_id(t) == this_id:
+                    continue
+
+                a = float(t.get("amount", 0) or 0)
+                if abs(a) <= 0:
+                    continue   
+                other_norm = _normalize_desc(t.get("name", ""))
+                if other_norm != this_norm:
+                    continue
+
+
+                # similar amount band
+                if abs(abs(a) - this_amt) / this_amt > amount_tolerance:
+                    continue
+
+                ds = t.get("date")
+                if not ds:
+                    continue
+                try:
+                    dates.append(datetime.strptime(ds, "%Y-%m-%d"))
+                except ValueError:
+                    continue
+
+            if len(dates) < min_similar:
+                return False
+
+            dates_sorted = sorted(dates)
+            intervals = [(dates_sorted[i] - dates_sorted[i - 1]).days for i in range(1, len(dates_sorted))]
+            if not intervals:
+                return False
+
+            avg = sum(intervals) / len(intervals)
+            return (5 <= avg <= 9) or (11 <= avg <= 17) or (25 <= avg <= 35)
+
     
         # Initialize summary structure
         summary = {
@@ -483,10 +543,12 @@ class MetricsCalculator:
                 "groceries": {"total":  0.0, "count":  0},
                 "childcare": {"total": 0.0, "count": 0},
             },
-            "expense": {  # ADD THIS
+            "expense": {
                 "other": {"total": 0.0, "count": 0},
                 "food_dining": {"total": 0.0, "count": 0},
+                "discretionary": {"total": 0.0, "count": 0},  # NEW
             },
+
             "debt": {
                 "hcstc_payday": {"total": 0.0, "count": 0, "distinct_lenders": set(), "distinct_lenders_90d": set()},
                 "other_loans": {"total": 0.0, "count": 0},
@@ -495,6 +557,9 @@ class MetricsCalculator:
                 "catalogue": {"total": 0.0, "count": 0},
             },
         }
+
+        transfer_income_supplement = 0.0
+
     
         # Filter categorized transactions and rebuild summary
         for txn, match in categorized_transactions:
@@ -514,7 +579,27 @@ class MetricsCalculator:
                 else:
                     summary[category][subcategory]["total"] += amount
                 summary[category][subcategory]["count"] += 1
-    
+
+            if category == "transfer" and subcategory == "internal":
+                raw_amt = float(txn.get("amount", 0) or 0)
+                if raw_amt < 0:
+                    if _is_recurring_like_local(txn):
+                        transfer_income_supplement += abs(raw_amt) * 0.5
+
+        core_income_total = (
+            summary["income"]["salary"]["total"]
+            + summary["income"]["benefits"]["total"]
+            + summary["income"]["pension"]["total"]
+            + summary["income"]["gig_economy"]["total"]
+        )
+
+        cap = core_income_total * 0.40  # 20% cap
+        applied = min(transfer_income_supplement, cap)
+
+        summary["income"]["other"]["total"] += applied
+        if applied > 0:
+            summary["income"]["other"]["count"] += 1
+
         return summary
     
     def calculate_all_metrics(
@@ -846,6 +931,7 @@ class MetricsCalculator:
         # Add other expenses that aren't in "essential" category
         other_expenses = expense_data.get("other", {}).get("total", 0) / actual_months
         food_dining = expense_data.get("food_dining", {}).get("total", 0) / actual_months
+        discretionary = expense_data.get("discretionary", {}).get("total", 0) / actual_months
 
         # Get monthly averages - debt category
         hcstc = debt_data.get("hcstc_payday", {}).get("total", 0) / actual_months
@@ -857,12 +943,19 @@ class MetricsCalculator:
         # Housing is rent OR mortgage (not both)
         housing = max(rent, mortgage)
     
-        # Total essential costs (including other expenses)
+        # Essential costs (fixed/necessary spend)
         essential_total = (
-            housing + council_tax + utilities + transport + 
+            housing + council_tax + utilities + transport +
             groceries + communications + insurance + childcare +
             other_expenses + food_dining
         )
+
+        # Discretionary costs (separate bucket)
+        discretionary_total = discretionary
+
+        # Total spend used for affordability
+        monthly_total_spend = essential_total + discretionary_total
+
     
         # --- Optional month-to-date (MTD) spend trend flag (NOT part of the averages) ---
         mtd_total_spend = 0.0
@@ -908,6 +1001,8 @@ class MetricsCalculator:
             monthly_insurance=insurance,
             monthly_childcare=childcare,
             monthly_essential_total=essential_total,
+            monthly_discretionary_total=discretionary_total,
+            monthly_total_spend=monthly_total_spend,
             mtd_total_spend=mtd_total_spend,
             mtd_spend_vs_3m_avg_ratio=mtd_ratio,
             mtd_spend_flag=mtd_flag,
@@ -922,6 +1017,7 @@ class MetricsCalculator:
                 "childcare": childcare,
                 "other_expenses": other_expenses,
                 "food_dining": food_dining,
+                "discretionary": discretionary,
                 "debt_payments": hcstc + other_loans + credit_cards + bnpl + catalogue,
             }
         )
@@ -973,7 +1069,7 @@ class MetricsCalculator:
         """Calculate affordability metrics."""
         
         effective_income = income_metrics.effective_monthly_income or 0.0
-        essential_costs = expense_metrics.monthly_essential_total or 0.0
+        total_spend = expense_metrics.monthly_total_spend or 0.0
         debt_payments = debt_metrics.monthly_debt_payments or 0.0
         
         # Apply expense shock buffer for income/expenses resilience assessment
@@ -981,7 +1077,11 @@ class MetricsCalculator:
         # or temporary reductions in income, improving the robustness of 
         # affordability calculations and reducing default risk.
         expense_buffer = self.product_config.get("expense_shock_buffer", 1.1)
-        buffered_expenses = essential_costs * expense_buffer
+        essential_costs = expense_metrics.monthly_essential_total or 0.0
+        discretionary_costs = expense_metrics.monthly_discretionary_total or 0.0
+        buffered_expenses = (essential_costs * expense_buffer) + discretionary_costs
+
+
         
         # Debt-to-Income Ratio
         if effective_income > 0:
@@ -1025,7 +1125,7 @@ class MetricsCalculator:
         print(
             f"[AFFORDABILITY] "
             f"Income £{effective_income:.2f} | "
-            f"Expenses £{buffered_expenses:.2f} | "
+            f"Expenses £{expense_metrics.monthly_total_spend:.2f} | "
             f"Debt £{debt_payments:.2f} | "
             f"Repayment £{proposed_repayment:.2f} | "
             f"Post-loan £{post_loan_disposable:.2f}"

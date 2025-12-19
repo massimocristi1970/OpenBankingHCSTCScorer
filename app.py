@@ -110,9 +110,9 @@ def main():
         
         st.markdown("### 📊 Score Ranges")
         st.markdown("""
-        - **>70**: APPROVE ✅
-        - **45-69**: REFER 📋
-        - **0-44**: DECLINE ❌
+        - **>40**: APPROVE ✅
+        - **26-39**: REFER 📋
+        - **0-25**: DECLINE ❌
         """)
     
     # Main content area
@@ -128,7 +128,7 @@ def main():
         render_help_tab()
 
 
-def render_upload_tab(loan_amount: float, loan_term: int, months_of_data: int):
+def render_upload_tab(loan_amount: float, loan_term: int, months_of_data: Optional[int]):
     """Render the upload and processing tab."""
     
     st.header("📤 Upload Application Files")
@@ -593,7 +593,7 @@ def render_results_tab():
         )
     
     with col2:
-        if not errors_df.empty:
+        if errors_df is not None and not errors_df.empty:
             error_csv = io.StringIO()
             errors_df.to_csv(error_csv, index=False)
             st.download_button(
@@ -604,7 +604,7 @@ def render_results_tab():
             )
     
     # Errors table
-    if not errors_df.empty:
+    if errors_df is not None and not errors_df.empty:
         st.subheader("❌ Processing Errors")
         st.dataframe(errors_df, use_container_width=True, hide_index=True)
 

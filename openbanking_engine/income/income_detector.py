@@ -12,6 +12,8 @@ from datetime import datetime, timedelta
 from collections import defaultdict
 from dataclasses import dataclass
 
+from sympy import intervals
+
 
 @dataclass
 class RecurringIncomeSource:
@@ -66,7 +68,12 @@ class IncomeDetector:
         "CASHFLOAT", "QUIDMARKET", "QUID MARKET", "LOANS 2 GO", "LOANS2GO",
         "LOAN DISBURSEMENT", "LOAN ADVANCE",
         "PAYDAY LOAN", "SHORT TERM LOAN",
-        "POLAR CREDIT", "118 118 MONEY", "CASHASAP"
+        "POLAR CREDIT", "118 118 MONEY", "CASHASAP",
+        "BAMBOO", "BAMBOO LTD",
+        "FERNOVO",
+        "OAKBROOK", "OAKBROOK FINANCE", "OAKBROOK FINANCE LIMITED",
+        "CREDIT UNION", "CU "
+
     ]
 
     LARGE_PAYMENT_THRESHOLD = 500.0
@@ -401,6 +408,8 @@ class IncomeDetector:
                 pass
 
         return (False, 0.0, "transfer_in_not_promoted")
+    
+
 
     # ----------------------------
     # Batch cache
@@ -504,3 +513,64 @@ class IncomeDetector:
             all_transactions=None,                # engine can pass if you wire it
             current_txn_index=transaction_index
         )
+    def is_recurring_like(
+        self,
+        description: str,
+        amount: float,
+        all_transactions: Optional[List[Dict]],
+        current_txn_index: Optional[int],
+        min_similar: int = 2,          # "2 other occurrences" = 3 total incl current
+        amount_tolerance: float = 0.25 # 25% band
+    ) -> bool:
+        """
+        Returns True if this credit/debit looks recurring based on normalized description,
+        similar amount, and cadence roughly weekly/fortnightly/monthly.
+        """
+        if not all_transactions or current_txn_index is None:
+            return False
+        this_norm = self._normalize_description(description or "")
+        if not this_norm:
+            return False
+
+        this_amt = abs(amount)
+        if this_amt <= 0:
+            return False
+        dates = []
+        for i, t in enumerate(all_transactions):
+            if i == current_txn_index:
+                continue
+            a = t.get("amount", 0)
+            if abs(a) < self.min_amount:
+                continue
+
+            # same normalized name
+            name = t.get("name", "")
+            if self._normalize_description(name) != this_norm:
+                continue
+
+            # similar amount
+            if abs(abs(a) - this_amt) / this_amt > amount_tolerance:
+                continue
+
+            ds = t.get("date")
+            if not ds:
+                continue
+            try:
+                dates.append(datetime.strptime(ds, "%Y-%m-%d"))
+            except ValueError:
+                continue
+        # Need at least N similar other occurrences
+        if len(dates) < min_similar:
+            return False
+
+        dates_sorted = sorted(dates)
+        intervals = [(dates_sorted[i] - dates_sorted[i - 1]).days for i in range(1, len(dates_sorted))]
+        if not intervals:
+            return False
+
+        avg = sum(intervals) / len(intervals)
+        is_weekly = self.WEEKLY_MIN_DAYS <= avg <= self.WEEKLY_MAX_DAYS
+        is_fortnightly = self.FORTNIGHTLY_MIN_DAYS <= avg <= self.FORTNIGHTLY_MAX_DAYS
+        is_monthly = self.MONTHLY_MIN_DAYS <= avg <= self.MONTHLY_MAX_DAYS
+
+        return is_weekly or is_fortnightly or is_monthly
