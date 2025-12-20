@@ -8,8 +8,14 @@ from openbanking_engine.scoring.feature_builder import MetricsCalculator
 
 
 def load_json(path: str) -> dict:
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
+    # Some exports contain non-utf8 bytes; fall back safely
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except UnicodeDecodeError:
+        with open(path, "r", encoding="utf-8", errors="replace") as f:
+            return json.load(f)
+
 
 
 def extract_transactions(payload: dict) -> list:
