@@ -783,8 +783,9 @@ Total: £{salary_total + benefits_total + pension_total + gig_total + other_tota
 """)
         
         # **CRITICAL FIX**: Use ACTUAL months from filtered period
-        # NOT self.lookback_months (which might be > actual data period)
-        actual_months = self._count_unique_income_months(transactions)
+        # Use self.months_of_data which was calculated from transactions during init
+        # This is more accurate than self.lookback_months (which might be > actual data period)
+        actual_months = self.months_of_data
 
         print(f"[INCOME VALIDATION] Using {actual_months} months for averaging (lookback={self.lookback_months})")
         

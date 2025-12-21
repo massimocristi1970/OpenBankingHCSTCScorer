@@ -344,7 +344,15 @@ class TransactionCategorizer:
         
         # STRONG SIGNALS: Promote with high confidence
         
-        # 1. Explicit payroll keywords
+        # 1. Gig economy payouts (check FIRST - more specific than "WEEKLY PAY")
+        gig_keywords = [
+            "UBER", "DELIVEROO", "JUST EAT", "STRIPE PAYOUT",
+            "PAYPAL PAYOUT", "SHOPIFY PAYMENTS"
+        ]
+        if any(kw in desc_upper for kw in gig_keywords):
+            return (True, 0.85, "transfer_promoted_gig_payout")
+        
+        # 2. Explicit payroll keywords
         payroll_keywords = [
             "SALARY", "WAGES", "PAYROLL", "NET PAY", "WAGE",
             "PAYSLIP", "EMPLOYER", "MONTHLY PAY", "WEEKLY PAY",
@@ -353,31 +361,23 @@ class TransactionCategorizer:
         if any(kw in desc_upper for kw in payroll_keywords):
             return (True, 0.95, "transfer_promoted_payroll_keyword")
         
-        # 2. Company suffix (LTD, LIMITED, PLC, etc.) + meaningful amount
+        # 3. Company suffix (LTD, LIMITED, PLC, etc.) + meaningful amount
         if re.search(r'\b(LTD|LIMITED|PLC|LLP|INC|CORP)\b', desc_upper):
             if abs(amount) >= 200:  # Minimum threshold for salary-like payment
                 return (True, 0.90, "transfer_promoted_company_suffix")
         
-        # 3. Faster Payment (FP-) prefix - common for salary
+        # 4. Faster Payment (FP-) prefix - common for salary
         if desc_upper.startswith("FP-") or " FP-" in desc_upper:
             if abs(amount) >= 200:
                 return (True, 0.88, "transfer_promoted_faster_payment")
         
-        # 4. Benefits keywords
+        # 5. Benefits keywords
         benefit_keywords = [
             "UNIVERSAL CREDIT", "DWP", "CHILD BENEFIT",
             "PIP", "DLA", "ESA", "JSA", "HMRC"
         ]
         if any(kw in desc_upper for kw in benefit_keywords):
             return (True, 0.92, "transfer_promoted_benefits")
-        
-        # 5. Gig economy payouts
-        gig_keywords = [
-            "UBER", "DELIVEROO", "JUST EAT", "STRIPE PAYOUT",
-            "PAYPAL PAYOUT", "SHOPIFY PAYMENTS"
-        ]
-        if any(kw in desc_upper for kw in gig_keywords):
-            return (True, 0.85, "transfer_promoted_gig_payout")
         
         # 6. Large one-off payment from named entity (not generic "PAYMENT")
         if abs(amount) >= 500:
