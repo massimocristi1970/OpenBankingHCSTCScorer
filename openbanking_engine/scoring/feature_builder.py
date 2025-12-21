@@ -17,6 +17,13 @@ from ..config.scoring_config import PRODUCT_CONFIG
 # Initialize logger for this module
 logger = logging.getLogger(__name__)
 
+# TEMPORARY: Enable debug logging for income validation
+# TODO: Remove in production or configure via logging config
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+
 
 @dataclass
 class IncomeMetrics:
@@ -796,13 +803,11 @@ class MetricsCalculator:
             total_income  # Use the already calculated total_income
         )
         
-        # **CRITICAL FIX**: Use ACTUAL months from filtered period
-        # Use self.months_of_data which was calculated from transactions during init
-        # This is more accurate than self.lookback_months (which might be > actual data period)
-        actual_months = self.months_of_data
+        # **CRITICAL FIX**: Count months in FILTERED transactions, not total history
+        actual_months = self._count_unique_income_months(transactions)
 
-        logger.debug("[INCOME VALIDATION] Using %d months for averaging (lookback=%d)", 
-                    actual_months, self.lookback_months)
+        logger.debug("[INCOME VALIDATION] Using %d months for averaging (lookback=%d, total_history=%d)", 
+                    actual_months, self.lookback_months, self.months_of_data)
         
         # Monthly calculations - divide by ACTUAL months in recent period
         monthly_stable = (salary_total + benefits_total + pension_total) / actual_months

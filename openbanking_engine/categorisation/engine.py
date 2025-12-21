@@ -1539,43 +1539,7 @@ class TransactionCategorizer:
             transfer_fallback = strict_match
 
         
-        # STEP 0B: Check if this is a known expense service (same as non-batch)
-        for service in self.KNOWN_EXPENSE_SERVICES:
-            if service in combined_text:
-                plaid_cat_for_checks = f"{plaid_detailed_upper} {plaid_primary_upper}"
-
-                if "TRANSFER" in plaid_cat_for_checks:
-                    return CategoryMatch(
-                        category="transfer",
-                        subcategory="internal",
-                        confidence=0.90,
-                        description="Internal Transfer",
-                        match_method="plaid",
-                        weight=0.0,
-                        is_stable=False
-                    )
-
-                if "LOAN_PAYMENTS" in plaid_cat_for_checks:
-                    return CategoryMatch(
-                        category="income",
-                        subcategory="loans",
-                        confidence=0.95,
-                        description="Loan Payments/Disbursements",
-                        match_method="plaid",
-                        weight=0.0,
-                        is_stable=False
-                    )       
-                return CategoryMatch(
-                    category="income",
-                    subcategory="other",
-                    confidence=0.5,
-                    description="Other Income",
-                    match_method="known_service_exclusion",
-                    weight=1.0,
-                    is_stable=False
-                )
-               
-        # **NEW STEP 0C: AGGRESSIVE TRANSFER PROMOTION**
+        # **STEP 0B: AGGRESSIVE TRANSFER PROMOTION** (MOVED UP - MUST RUN FIRST)
         # Check if this TRANSFER_IN should be promoted to income
         if transfer_fallback is not None:
             should_promote, confidence, reason = self._should_promote_transfer_to_income(
@@ -1609,6 +1573,43 @@ class TransactionCategorizer:
                     weight=1.0,
                     is_stable=(subcategory in ["salary", "benefits"]),
                     debug_rationale=self._build_debug_rationale("transfer_promotion", reason)
+                )
+
+        # **STEP 0C: Known Expense Service Check** (MOVED DOWN - RUNS AFTER PROMOTION)
+        # Only check this AFTER we've tried to promote transfers to income
+        for service in self.KNOWN_EXPENSE_SERVICES:
+            if service in combined_text:
+                plaid_cat_for_checks = f"{plaid_detailed_upper} {plaid_primary_upper}"
+
+                if "TRANSFER" in plaid_cat_for_checks:
+                    return CategoryMatch(
+                        category="transfer",
+                        subcategory="internal",
+                        confidence=0.90,
+                        description="Internal Transfer",
+                        match_method="plaid",
+                        weight=0.0,
+                        is_stable=False
+                    )
+
+                if "LOAN_PAYMENTS" in plaid_cat_for_checks:
+                    return CategoryMatch(
+                        category="income",
+                        subcategory="loans",
+                        confidence=0.95,
+                        description="Loan Payments/Disbursements",
+                        match_method="plaid",
+                        weight=0.0,
+                        is_stable=False
+                    )       
+                return CategoryMatch(
+                    category="income",
+                    subcategory="other",
+                    confidence=0.5,
+                    description="Other Income",
+                    match_method="known_service_exclusion",
+                    weight=1.0,
+                    is_stable=False
                 )
                
         # STEP 1: Check PLAID categories for loan/transfer indicators (same as non-batch)
