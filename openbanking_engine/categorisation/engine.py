@@ -96,6 +96,14 @@ class TransactionCategorizer:
     # Minimum confidence threshold for fuzzy matching
     FUZZY_THRESHOLD = 80
     
+    # Transfer promotion thresholds (in pounds)
+    # Minimum amount for company suffix to trigger promotion
+    COMPANY_SUFFIX_MIN_AMOUNT = 200.0
+    # Minimum amount for Faster Payment prefix to trigger promotion
+    FASTER_PAYMENT_MIN_AMOUNT = 200.0
+    # Minimum amount for large named payment promotion
+    LARGE_PAYMENT_MIN_AMOUNT = 500.0
+    
     # Salary detection keywords (used to identify legitimate salary payments)
     SALARY_KEYWORDS = [
         "SALARY", "WAGES", "PAYROLL", "NET PAY", "WAGE", 
@@ -363,12 +371,12 @@ class TransactionCategorizer:
         
         # 3. Company suffix (LTD, LIMITED, PLC, etc.) + meaningful amount
         if re.search(r'\b(LTD|LIMITED|PLC|LLP|INC|CORP)\b', desc_upper):
-            if abs(amount) >= 200:  # Minimum threshold for salary-like payment
+            if abs(amount) >= self.COMPANY_SUFFIX_MIN_AMOUNT:
                 return (True, 0.90, "transfer_promoted_company_suffix")
         
         # 4. Faster Payment (FP-) prefix - common for salary
         if desc_upper.startswith("FP-") or " FP-" in desc_upper:
-            if abs(amount) >= 200:
+            if abs(amount) >= self.FASTER_PAYMENT_MIN_AMOUNT:
                 return (True, 0.88, "transfer_promoted_faster_payment")
         
         # 5. Benefits keywords
@@ -380,7 +388,7 @@ class TransactionCategorizer:
             return (True, 0.92, "transfer_promoted_benefits")
         
         # 6. Large one-off payment from named entity (not generic "PAYMENT")
-        if abs(amount) >= 500:
+        if abs(amount) >= self.LARGE_PAYMENT_MIN_AMOUNT:
             # Check if description has specific words (not just "PAYMENT" or "TRANSFER")
             generic_words = ["PAYMENT", "TRANSFER", "CREDIT", "DEBIT", "TFR"]
             words = desc_upper.split()

@@ -721,6 +721,10 @@ class MetricsCalculator:
         This prevents dividing by months that have no income, which would
         artificially deflate monthly income averages.
         
+        Note: In PLAID format, income transactions have NEGATIVE amounts
+        (money coming in), while expense transactions have POSITIVE amounts
+        (money going out). This is the opposite of typical accounting convention.
+        
         Returns:
             Number of unique months with income (minimum 1)
         """
@@ -728,7 +732,7 @@ class MetricsCalculator:
         
         for txn in transactions:
             amount = txn.get("amount", 0)
-            if amount >= 0:  # Not income (in PLAID format)
+            if amount >= 0:  # Not income (in PLAID format: negative = credit/income)
                 continue
             
             date_str = txn.get("date", "")
@@ -789,7 +793,7 @@ class MetricsCalculator:
             pension_total, pension_count,
             gig_total, gig_count,
             other_total, other_count,
-            salary_total + benefits_total + pension_total + gig_total + other_total
+            total_income  # Use the already calculated total_income
         )
         
         # **CRITICAL FIX**: Use ACTUAL months from filtered period
