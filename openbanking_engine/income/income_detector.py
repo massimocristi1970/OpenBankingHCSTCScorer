@@ -12,8 +12,6 @@ from datetime import datetime, timedelta
 from collections import defaultdict
 from dataclasses import dataclass
 
-from sympy import intervals
-
 
 @dataclass
 class RecurringIncomeSource:

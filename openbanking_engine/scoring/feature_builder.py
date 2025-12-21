@@ -8,10 +8,14 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from collections import defaultdict
 import statistics
+import logging
 
 from openbanking_engine.categorisation.engine import CategoryMatch
 
 from ..config.scoring_config import PRODUCT_CONFIG
+
+# Initialize logger for this module
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -710,6 +714,39 @@ class MetricsCalculator:
 
         }
     
+    def _count_unique_income_months(self, transactions: List[Dict]) -> int:
+        """
+        Count unique calendar months that contain INCOME transactions.
+        
+        This prevents dividing by months that have no income, which would
+        artificially deflate monthly income averages.
+        
+        Note: In PLAID format, income transactions have NEGATIVE amounts
+        (money coming in), while expense transactions have POSITIVE amounts
+        (money going out). This is the opposite of typical accounting convention.
+        
+        Returns:
+            Number of unique months with income (minimum 1)
+        """
+        income_months = set()
+        
+        for txn in transactions:
+            amount = txn.get("amount", 0)
+            if amount >= 0:  # Not income (in PLAID format: negative = credit/income)
+                continue
+            
+            date_str = txn.get("date", "")
+            if not date_str:
+                continue
+            
+            try:
+                date = datetime.strptime(date_str, "%Y-%m-%d")
+                income_months.add((date.year, date.month))
+            except (ValueError, TypeError):
+                continue
+        
+        return max(1, len(income_months))
+    
     def calculate_income_metrics(
         self, 
         category_summary: Dict,
@@ -736,23 +773,36 @@ class MetricsCalculator:
         
         total_income = salary_total + benefits_total + pension_total + gig_total + other_total
         
-        # Calculate actual months in the filtered period
-        # Use lookback_months as the period since we're working with filtered data
-        actual_months = self.lookback_months
+        # **ADD VALIDATION LOGGING**
+        salary_count = income_data.get("salary", {}).get("count", 0)
+        benefits_count = income_data.get("benefits", {}).get("count", 0)
+        pension_count = income_data.get("pension", {}).get("count", 0)
+        gig_count = income_data.get("gig_economy", {}).get("count", 0)
+        other_count = income_data.get("other", {}).get("count", 0)
 
-        def _count_unique_months(self, transactions: List[Dict]) -> int:
-            months = set()
-            for txn in transactions:
-                date_str = txn.get("date")
-                if not date_str:
-                    continue
-                try:
-                    dt = datetime.strptime(date_str, "%Y-%m-%d")
-                    months.add((dt.year, dt.month))
-                except ValueError:
-                    continue
-            return max(1, len(months))
+        logger.debug(
+            "[INCOME VALIDATION]\n"
+            "Salary: £%.2f (%d txns)\n"
+            "Benefits: £%.2f (%d txns)\n"
+            "Pension: £%.2f (%d txns)\n"
+            "Gig Economy: £%.2f (%d txns)\n"
+            "Other: £%.2f (%d txns)\n"
+            "Total: £%.2f",
+            salary_total, salary_count,
+            benefits_total, benefits_count,
+            pension_total, pension_count,
+            gig_total, gig_count,
+            other_total, other_count,
+            total_income  # Use the already calculated total_income
+        )
+        
+        # **CRITICAL FIX**: Use ACTUAL months from filtered period
+        # Use self.months_of_data which was calculated from transactions during init
+        # This is more accurate than self.lookback_months (which might be > actual data period)
+        actual_months = self.months_of_data
 
+        logger.debug("[INCOME VALIDATION] Using %d months for averaging (lookback=%d)", 
+                    actual_months, self.lookback_months)
         
         # Monthly calculations - divide by ACTUAL months in recent period
         monthly_stable = (salary_total + benefits_total + pension_total) / actual_months
@@ -894,6 +944,26 @@ class MetricsCalculator:
             return 40.0
         else:
             return 20.0
+    
+    def _validate_category_summary(self, category_summary: Dict, label: str = ""):
+        """
+        Debug helper to validate category summary structure.
+        
+        Call this after building filtered_category_summary to ensure
+        transferred income is properly included.
+        """
+        logger.debug("[CATEGORY SUMMARY VALIDATION - %s]", label)
+        
+        for category in ["income", "essential", "expense", "debt"]:
+            cat_data = category_summary.get(category, {})
+            logger.debug("\n%s:", category.upper())
+            
+            for subcategory, data in cat_data.items():
+                if isinstance(data, dict):
+                    total = data.get("total", 0)
+                    count = data.get("count", 0)
+                    if total > 0 or count > 0:
+                        logger.debug("  %s: £%.2f (%d txns)", subcategory, total, count)
     
     def calculate_expense_metrics(
         self, 
