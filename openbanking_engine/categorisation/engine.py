@@ -1936,6 +1936,17 @@ class TransactionCategorizer:
                     # All other categories and subcategories (including new expense subcategories)
                     summary[category][subcategory]["total"] += amount
                     summary[category][subcategory]["count"] += 1
+                    
+                    # Track HCSTC lenders for risk assessment
+                    if category == "debt" and subcategory == "hcstc_payday":
+                        # Extract lender name from transaction
+                        lender_name = txn.get("name", "").strip().upper()
+                        if lender_name:
+                            summary["debt"]["hcstc_payday"]["lenders"].add(lender_name)
+                            
+                            # Also track lenders in last 90 days
+                            if txn_date and txn_date >= hcstc_cutoff:
+                                summary["debt"]["hcstc_payday"]["lenders_90d"].add(lender_name)
 
 
 

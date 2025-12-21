@@ -99,7 +99,7 @@ openbanking_engine/
 - Metric types:
   - `IncomeMetrics`: Total, monthly, stable, gig income; stability scores
   - `ExpenseMetrics`: Housing, utilities, transport, groceries, essentials
-  - `DebtMetrics`: HCSTC, credit cards, BNPL; active lenders
+  - `DebtMetrics`: HCSTC, credit cards, BNPL; active lenders (from same period as expenses)
   - `AffordabilityMetrics`: Disposable income, DTI ratio, post-loan affordability
   - `BalanceMetrics`: Average balance, overdraft usage, negative balance days
   - `RiskMetrics`: Gambling, bank charges, failed payments, debt collection
@@ -494,11 +494,41 @@ These trigger manual review (not automatic decline):
 
 ### Affordability Calculation Details
 
+#### Time Period Consistency
+
+**All affordability metrics use the same time basis for fair comparison:**
+
+```
+Lookback Period: Last 3 complete calendar months (configurable)
+- Income calculations: Based on last N months with income transactions
+- Expense calculations: Based on last N complete calendar months
+- Debt calculations: Based on last N complete calendar months
+
+This ensures:
+- Monthly debt = Total debt (last 3 months) / 3
+- Monthly expenses = Total expenses (last 3 months) / 3
+- Consistent affordability: Income - Expenses - Debt
+```
+
+**Example with concentrated recent debt:**
+```
+Scenario: 12 months of transaction history
+- £1,800 in credit card payments (all in last 3 months)
+- Lookback period: 3 months
+
+Correct Calculation:
+  Monthly credit card = £1,800 / 3 months = £600/month ✓
+
+Incorrect (old approach):
+  Monthly credit card = £1,800 / 12 months = £150/month ✗
+  (Understates debt by 4x!)
+```
+
 #### Monthly Income Calculation
 
 ```
 Weighted Income = Σ (Transaction Amount × Income Weight)
-Monthly Income = Weighted Income / Months of Data
+Monthly Income = Weighted Income / Lookback Months
 
 Income Weights:
 - Salary, Benefits, Pension: 1.0 (100%)
@@ -510,7 +540,8 @@ Income Weights:
 #### Monthly Expense Calculation
 
 ```
-Monthly Expenses = (Total Debt Payments + Essential Expenses) / Months
+Monthly Expenses = (Essential Expenses + Discretionary Expenses) / Lookback Months
+Monthly Debt = (Total Debt Payments) / Lookback Months
 
 Essential Expenses Include:
 - Rent/Mortgage (housing costs)
@@ -528,6 +559,9 @@ Debt Payments Include:
 - BNPL payments
 - Catalogue credit payments
 - Other loan payments
+
+Note: Debt payments are calculated separately from expenses using the same
+lookback period to ensure consistent monthly averages.
 ```
 
 #### Loan Repayment Calculation (FCA Compliant)
