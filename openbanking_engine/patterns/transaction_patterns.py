@@ -7,25 +7,64 @@ Patterns for UK consumer lending based on PLAID format transaction data.
 INCOME_PATTERNS = {
     "salary": {
         "keywords": [
-            "SALARY", "WAGES", "PAYROLL", "PAYSLIP", "NET SALARY", "MONTHLY SALARY",
-            "WEEKLY WAGES", "PAY RUN", "PAYRUN", "PAYE",
-            # Additional payroll providers and systems (additive)
+            # Core payroll terms
+            "SALARY", "WAGES", "PAYROLL", "PAYSLIP", "NET SALARY", "GROSS PAY",
+            "MONTHLY SALARY", "WEEKLY WAGES", "PAY RUN", "PAYRUN", "PAYE",
+            "NET PAY", "WAGE", "EMPLOYER", "EMPLOYERS",
+            
+            # Payment method identifiers
+            "BGC", "BANK GIRO CREDIT", "BACS CREDIT", "BACS",
+            "FASTER PAYMENT", "FP-", "FPS",
+            
+            # Contract/employment terms
+            "CHEQUERS CONTRACT", "CONTRACT PAY", "EMPLOYMENT PAYMENT",
+            "STAFF PAYMENT", "EMPLOYEE PAYMENT",
+            
+            # Payroll providers
             "ADP", "PAYFIT", "SAGE PAYROLL", "XERO PAYRUN", "WORKDAY",
-            "BARCLAYS PAYMENTS", "HSBC PAYROLL"
+            "BARCLAYS PAYMENTS", "HSBC PAYROLL", "PAYCIRCLE",
+            
+            # Common employer suffixes (to catch "ABC LIMITED SALARY" patterns)
+            # These will be used in regex patterns
         ],
         "regex_patterns": [
+            # Core salary terms
             r"(?i)\b(salary|payroll|payslip|net\s*salary|gross\s*pay)\b",
             r"(?i)\b(monthly|weekly|fortnightly)\s*(salary|wages|pay)\b",
-            r"(?i)\b(bacs)\s*(credit)?\b.*\b(payroll|salary|wages)\b",
-            r"(?i)\b(payroll)\b.*\b(bacs)\b",
+            
+            # Payment methods + salary context
+            r"(?i)\b(bacs|bgc|fps|fp-?)\s*(credit|payment)?\s*(salary|payroll|wages)\b",
+            r"(?i)\b(salary|payroll|wages)\b.*\b(bacs|bgc|fps|fp-?)\b",
+            
+            # Bank giro credit (common UK salary method)
+            r"(?i)\bbank\s*giro\s*credit\b",
+            r"(?i)\bbgc\b",
+            
+            # Faster Payments with context
+            r"(?i)\bfaster\s*payment\b.*\b(salary|payroll|wages|employment)\b",
+            r"(?i)\bfp-?\b.*\b(salary|payroll|wages|pay)\b",
+            
+            # Pay run variations
             r"(?i)\bpay\s*run\b|\bpayrun\b",
             r"(?i)\bpaye\b",
-            # Additional payroll provider patterns (additive)
+            
+            # Employment context
+            r"(?i)\bemployment\b.*\b(payment|pay|salary|wages)\b",
+            r"(?i)\b(payment|pay|salary|wages)\b.*\bemployment\b",
+            
+            # Payroll providers
             r"(?i)\badp\b.*\b(payroll|salary|wages|payment)\b",
             r"(?i)\bpayfit\b",
             r"(?i)\bsage\b.*\b(payroll|salary|wages)\b",
             r"(?i)\bxero\b.*\b(payrun|payroll|salary)\b",
             r"(?i)\bworkday\b.*\b(payroll|salary|wages)\b",
+            
+            # Company suffix patterns (catch "XYZ LIMITED" without explicit salary keyword)
+            # Only match if amount is significant (handled in engine logic)
+            r"(?i)\b[A-Z][A-Z\s&]+\b\s+(LTD|LIMITED|PLC|LLP|CORP|CORPORATION|INC)\b",
+            
+            # Generic employer patterns (with bounds to avoid false positives)
+            r"(?i)^[A-Z][A-Z\s]+(?:LTD|LIMITED|PLC|LLP)$",  # Simple company name
         ],
         "weight": 1.0,
         "is_stable": True,

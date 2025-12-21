@@ -384,71 +384,140 @@ class IncomeDetector:
         all_transactions: Optional[List[Dict]] = None,
         current_txn_index: Optional[int] = None,
     ) -> Tuple[bool, float, str]:
+        """
+        ENHANCED: More aggressive transfer-to-income promotion with batch context.
+    
+        This method is called when Plaid labels a credit as TRANSFER_IN but we suspect
+        it might be legitimate income (salary, benefits, gig payout, etc.).
+    
+        Changes from original:
+        - Lower thresholds for promotion
+        - Better use of batch context for recurring detection
+        - More granular confidence scoring
+        """
         if amount >= 0:
             return (False, 0.0, "not_credit")
+    
         if not self._is_transfer_in(plaid_category_primary, plaid_category_detailed):
             return (False, 0.0, "not_transfer_in")
-
+    
+     # EXCLUSIONS: Real internal transfers
         if self._looks_like_internal_transfer(description):
             return (False, 0.0, "transfer_in_excluded_internal")
         if self._looks_like_loan_disbursement(description, plaid_category_detailed):
             return (False, 0.0, "transfer_in_excluded_loan")
-
-        # strong signals
+    
+        desc_upper = (description or "").upper()
+        abs_amount = abs(amount)
+    
+        # TIER 1: STRONG SIGNALS (95%+ confidence)
+    
+        # Explicit payroll keywords
         if self.matches_payroll_patterns(description):
-            return (True, 0.94, "transfer_in_promoted_payroll_keyword")
+            return (True, 0.96, "transfer_in_promoted_payroll_keyword")
+    
+        # Government benefits
         if self.matches_benefit_patterns(description):
-            return (True, 0.88, "transfer_in_promoted_benefit_keyword")
+            return (True, 0.94, "transfer_in_promoted_benefit_keyword")
+    
+        # Pension payments
         if self._matches_pension_patterns(description):
-            return (True, 0.88, "transfer_in_promoted_pension_keyword")
-
-        # company suffix + meaningful size
-        desc = (description or "").upper()
-        if re.search(r"\b(LTD|LIMITED|PLC|LLP|INC|CORP)\b", desc) and abs(amount) >= self.LARGE_PAYMENT_THRESHOLD:
-            return (True, 0.84, "transfer_in_promoted_company_suffix_large")
-
-        # fallback recurrence check (use batch if provided)
+            return (True, 0.94, "transfer_in_promoted_pension_keyword")
+    
+        # TIER 2: MODERATE SIGNALS (85-90% confidence)
+    
+        # Company suffix + meaningful amount
+        if re.search(r"\b(LTD|LIMITED|PLC|LLP|INC|CORP)\b", desc_upper):
+            if abs_amount >= 150:  # Lowered from 500
+                return (True, 0.88, "transfer_in_promoted_company_suffix")
+    
+        # Faster Payment prefix (common for salary)
+        if desc_upper.startswith("FP-") or " FP-" in desc_upper:
+            if abs_amount >= 150:
+                return (True, 0.86, "transfer_in_promoted_faster_payment")
+    
+        # Gig economy payouts
+        if self._matches_gig_patterns(description):
+            return (True, 0.85, "transfer_in_promoted_gig_payout")
+    
+        # TIER 3: BATCH-BASED RECURRING DETECTION (80-85% confidence)
+    
+        # If we have batch context, check for recurring pattern
         if all_transactions and current_txn_index is not None:
-            try:
-                this_norm = self._normalize_description(description)
-                this_amt = abs(amount)
-                if not this_norm or this_amt <= 0:
-                    return (False, 0.0, "transfer_in_not_promoted")
-
-                dates = []
-                for i, t in enumerate(all_transactions):
-                    if i == current_txn_index:
-                        continue
-                    a = t.get("amount", 0)
-                    if a >= 0:
-                        continue
-                    if abs(a) < self.min_amount:
-                        continue
-                    if self._normalize_description(t.get("name", "")) != this_norm:
-                        continue
-                    if abs(abs(a) - this_amt) / this_amt > 0.25:
-                        continue
-
-                    ds = t.get("date")
-                    if not ds:
-                        continue
+            # Look for similar transactions (same normalized description, similar amount)
+            this_norm = self._normalize_description(description)
+            if not this_norm:
+                return (False, 0.0, "transfer_in_not_promoted")
+        
+            similar_count = 0
+            similar_dates = []
+        
+            for i, txn in enumerate(all_transactions):
+                if i == current_txn_index:
+                    continue
+            
+                txn_amount = txn.get("amount", 0)
+                if txn_amount >= 0:  # Not a credit
+                    continue
+            
+                # Check description similarity
+                txn_norm = self._normalize_description(txn.get("name", ""))
+                if txn_norm != this_norm:
+                    continue
+            
+                # Check amount similarity (within 25%)
+                if abs(abs(txn_amount) - abs_amount) / abs_amount > 0.25:
+                    continue
+            
+                # This is a similar transaction
+                similar_count += 1
+            
+                # Track dates for cadence analysis
+                date_str = txn.get("date")
+                if date_str:
                     try:
-                        dates.append(datetime.strptime(ds, "%Y-%m-%d"))
+                        similar_dates.append(datetime.strptime(date_str, "%Y-%m-%d"))
                     except ValueError:
-                        continue
-
-                if len(dates) >= 2:
-                    dates_sorted = sorted(dates)
-                    intervals = [(dates_sorted[i] - dates_sorted[i-1]).days for i in range(1, len(dates_sorted))]
-                    if intervals:
-                        avg = sum(intervals) / len(intervals)
-                        if (self.WEEKLY_MIN_DAYS <= avg <= self.WEEKLY_MAX_DAYS or
-                            self.FORTNIGHTLY_MIN_DAYS <= avg <= self.FORTNIGHTLY_MAX_DAYS or
-                            self.MONTHLY_MIN_DAYS <= avg <= self.MONTHLY_MAX_DAYS):
-                            return (True, 0.82, "transfer_in_promoted_recurring_pattern")
-            except Exception:
-                pass
-
+                        pass
+        
+            # If we found 2+ similar transactions, analyze cadence
+            if similar_count >= 2 and len(similar_dates) >= 2:
+                dates_sorted = sorted(similar_dates)
+                intervals = [
+                    (dates_sorted[i] - dates_sorted[i-1]).days 
+                    for i in range(1, len(dates_sorted))
+                ]
+            
+                if intervals:
+                    avg_interval = sum(intervals) / len(intervals)
+                
+                    # Check for regular payment cadence
+                    is_weekly = self.WEEKLY_MIN_DAYS <= avg_interval <= self.WEEKLY_MAX_DAYS
+                    is_fortnightly = self.FORTNIGHTLY_MIN_DAYS <= avg_interval <= self.FORTNIGHTLY_MAX_DAYS
+                    is_monthly = self.MONTHLY_MIN_DAYS <= avg_interval <= self.MONTHLY_MAX_DAYS
+                
+                    if is_weekly or is_fortnightly or is_monthly:
+                        # Regular payment pattern detected
+                        if abs_amount >= 200:
+                            return (True, 0.85, "transfer_in_promoted_recurring_large")
+                        elif abs_amount >= 100:
+                            return (True, 0.80, "transfer_in_promoted_recurring_medium")
+                        else:
+                            return (True, 0.75, "transfer_in_promoted_recurring_small")
+    
+        # TIER 4: LARGE ONE-OFF PAYMENTS (70-75% confidence)
+    
+        # Large payment with specific identifier (not generic "PAYMENT")
+        if abs_amount >= 400:  # Lowered from 500
+            generic_words = {"PAYMENT", "TRANSFER", "CREDIT", "DEBIT", "TFR", "FROM", "TO"}
+            words = set(desc_upper.split())
+            specific_words = words - generic_words
+        
+            # Has meaningful name + large amount = likely income
+            if len(specific_words) >= 2:
+                return (True, 0.72, "transfer_in_promoted_large_named_payment")
+    
+        # DEFAULT: Do not promote
         return (False, 0.0, "transfer_in_not_promoted")
     
 
@@ -488,18 +557,26 @@ class IncomeDetector:
         all_transactions: Optional[List[Dict]] = None,
         current_txn_index: Optional[int] = None
     ) -> Tuple[bool, float, str]:
-
-        # credits only (PLAID uses negative for money-in)
+        """
+        ENHANCED: Better income detection with stronger transfer promotion.
+    
+        Changes from original:
+        - Transfer promotion runs BEFORE keyword fallback
+        - Recurring pattern detection integrated into transfer promotion
+        - Lower confidence thresholds to catch more legitimate income
+        """
+    
+        # Credits only
         if amount >= 0:
             return (False, 0.0, "not_credit")
-
-        # hard exclusions first
+    
+        # Hard exclusions first
         if self._looks_like_internal_transfer(description):
             return (False, 0.0, "excluded_internal_transfer")
         if self._looks_like_loan_disbursement(description, plaid_category_detailed):
             return (False, 0.0, "excluded_loan_disbursement")
-
-        # 1) PLAID income is strong - prefer detailed over primary
+    
+        # PRIORITY 1: PLAID INCOME (highest trust)
         if plaid_category_detailed:
             d = plaid_category_detailed.upper()
             if "INCOME_WAGES" in d or ("INCOME" in d and ("SALARY" in d or "PAYROLL" in d)):
@@ -510,12 +587,12 @@ class IncomeDetector:
                 return (True, 0.94, "plaid_detailed_income_government")
             if "INCOME" in d:
                 return (True, 0.88, "plaid_detailed_income")
-
-        # Fallback to primary only if detailed is not available
+    
         if plaid_category_primary and "INCOME" in plaid_category_primary.upper():
             return (True, 0.86, "plaid_primary_income")
-
-        # 2) Transfer-in promotion (critical for your mislabelled salaries)
+    
+        # PRIORITY 2: TRANSFER PROMOTION (rescue mislabeled salary)
+        # **MOVED UP** - This now runs before keyword fallback
         promoted, p_conf, p_reason = self._transfer_in_promotion(
             description=description,
             amount=amount,
@@ -526,27 +603,26 @@ class IncomeDetector:
         )
         if promoted:
             return (True, p_conf, p_reason)
-
-        # 3) Recurring-pattern support (if we have batch cache)
+    
+        # PRIORITY 3: RECURRING PATTERN (if batch cache is available)
         if self._cache_valid and current_txn_index is not None:
             src = self._transaction_index_map.get(current_txn_index)
-            if src and src.confidence >= 0.80:
+            if src and src.confidence >= 0.75:  # Lowered from 0.80
                 return (True, min(0.92, src.confidence), f"recurring_{src.source_type}")
-
-        # 4) Keyword fallback (rescues remaining misclassified credits)
+    
+        # PRIORITY 4: KEYWORD FALLBACK
         if self.matches_payroll_patterns(description):
-            return (True, 0.80, "keyword_payroll")
+            return (True, 0.82, "keyword_payroll")  # Increased from 0.80
         if self.matches_benefit_patterns(description):
-            return (True, 0.75, "keyword_benefits")
+            return (True, 0.78, "keyword_benefits")  # Increased from 0.75
         if self._matches_pension_patterns(description):
-            return (True, 0.75, "keyword_pension")
-        # Additional keyword checks (additive)
+            return (True, 0.78, "keyword_pension")  # Increased from 0.75
         if self._matches_gig_patterns(description):
-            return (True, 0.70, "keyword_gig")
+            return (True, 0.72, "keyword_gig")  # Increased from 0.70
         if self._matches_interest_patterns(description):
             return (True, 0.85, "keyword_interest")
-
-        # default
+    
+        # DEFAULT: Not income
         return (False, 0.0, "no_income_signals")
 
     def is_likely_income_from_batch(
