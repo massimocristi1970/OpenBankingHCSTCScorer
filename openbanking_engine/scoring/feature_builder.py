@@ -710,6 +710,35 @@ class MetricsCalculator:
 
         }
     
+    def _count_unique_income_months(self, transactions: List[Dict]) -> int:
+        """
+        Count unique calendar months that contain INCOME transactions.
+        
+        This prevents dividing by months that have no income, which would
+        artificially deflate monthly income averages.
+        
+        Returns:
+            Number of unique months with income (minimum 1)
+        """
+        income_months = set()
+        
+        for txn in transactions:
+            amount = txn.get("amount", 0)
+            if amount >= 0:  # Not income (in PLAID format)
+                continue
+            
+            date_str = txn.get("date", "")
+            if not date_str:
+                continue
+            
+            try:
+                date = datetime.strptime(date_str, "%Y-%m-%d")
+                income_months.add((date.year, date.month))
+            except (ValueError, TypeError):
+                continue
+        
+        return max(1, len(income_months))
+    
     def calculate_income_metrics(
         self, 
         category_summary: Dict,
@@ -736,23 +765,28 @@ class MetricsCalculator:
         
         total_income = salary_total + benefits_total + pension_total + gig_total + other_total
         
-        # Calculate actual months in the filtered period
-        # Use lookback_months as the period since we're working with filtered data
-        actual_months = self.lookback_months
+        # **ADD VALIDATION LOGGING**
+        salary_count = income_data.get("salary", {}).get("count", 0)
+        benefits_count = income_data.get("benefits", {}).get("count", 0)
+        pension_count = income_data.get("pension", {}).get("count", 0)
+        gig_count = income_data.get("gig_economy", {}).get("count", 0)
+        other_count = income_data.get("other", {}).get("count", 0)
 
-        def _count_unique_months(self, transactions: List[Dict]) -> int:
-            months = set()
-            for txn in transactions:
-                date_str = txn.get("date")
-                if not date_str:
-                    continue
-                try:
-                    dt = datetime.strptime(date_str, "%Y-%m-%d")
-                    months.add((dt.year, dt.month))
-                except ValueError:
-                    continue
-            return max(1, len(months))
+        print(f"""
+[INCOME VALIDATION]
+Salary: £{salary_total:.2f} ({salary_count} txns)
+Benefits: £{benefits_total:.2f} ({benefits_count} txns)
+Pension: £{pension_total:.2f} ({pension_count} txns)
+Gig Economy: £{gig_total:.2f} ({gig_count} txns)
+Other: £{other_total:.2f} ({other_count} txns)
+Total: £{salary_total + benefits_total + pension_total + gig_total + other_total:.2f}
+""")
+        
+        # **CRITICAL FIX**: Use ACTUAL months from filtered period
+        # NOT self.lookback_months (which might be > actual data period)
+        actual_months = self._count_unique_income_months(transactions)
 
+        print(f"[INCOME VALIDATION] Using {actual_months} months for averaging (lookback={self.lookback_months})")
         
         # Monthly calculations - divide by ACTUAL months in recent period
         monthly_stable = (salary_total + benefits_total + pension_total) / actual_months
@@ -894,6 +928,26 @@ class MetricsCalculator:
             return 40.0
         else:
             return 20.0
+    
+    def _validate_category_summary(self, category_summary: Dict, label: str = ""):
+        """
+        Debug helper to validate category summary structure.
+        
+        Call this after building filtered_category_summary to ensure
+        transferred income is properly included.
+        """
+        print(f"\n[CATEGORY SUMMARY VALIDATION - {label}]")
+        
+        for category in ["income", "essential", "expense", "debt"]:
+            cat_data = category_summary.get(category, {})
+            print(f"\n{category.upper()}:")
+            
+            for subcategory, data in cat_data.items():
+                if isinstance(data, dict):
+                    total = data.get("total", 0)
+                    count = data.get("count", 0)
+                    if total > 0 or count > 0:
+                        print(f"  {subcategory}: £{total:.2f} ({count} txns)")
     
     def calculate_expense_metrics(
         self, 

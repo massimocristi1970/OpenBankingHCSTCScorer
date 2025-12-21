@@ -313,6 +313,111 @@ class TransactionCategorizer:
         
         return None
     
+    def _should_promote_transfer_to_income(
+        self,
+        description: str,
+        amount: float,
+        plaid_category: Optional[str],
+        plaid_category_primary: Optional[str]
+    ) -> Tuple[bool, float, str]:
+        """
+        Determine if a TRANSFER_IN should be promoted to income.
+        
+        This rescues legitimate salary/wages that Plaid mislabeled as transfers.
+        
+        Returns:
+            (should_promote, confidence, reason)
+        """
+        if amount >= 0:  # Not a credit
+            return (False, 0.0, "not_credit")
+        
+        desc_upper = description.upper()
+        
+        # EXCLUSIONS: These are real transfers, do NOT promote
+        exclusion_keywords = [
+            "OWN ACCOUNT", "INTERNAL", "SELF TRANSFER",
+            "FROM SAVINGS", "TO SAVINGS", "MOVED FROM", "MOVED TO",
+            "POT", "VAULT", "ROUND UP", "ISA TRANSFER"
+        ]
+        if any(kw in desc_upper for kw in exclusion_keywords):
+            return (False, 0.0, "excluded_internal_transfer")
+        
+        # STRONG SIGNALS: Promote with high confidence
+        
+        # 1. Explicit payroll keywords
+        payroll_keywords = [
+            "SALARY", "WAGES", "PAYROLL", "NET PAY", "WAGE",
+            "PAYSLIP", "EMPLOYER", "MONTHLY PAY", "WEEKLY PAY",
+            "BGC", "BANK GIRO CREDIT", "BACS CREDIT"
+        ]
+        if any(kw in desc_upper for kw in payroll_keywords):
+            return (True, 0.95, "transfer_promoted_payroll_keyword")
+        
+        # 2. Company suffix (LTD, LIMITED, PLC, etc.) + meaningful amount
+        if re.search(r'\b(LTD|LIMITED|PLC|LLP|INC|CORP)\b', desc_upper):
+            if abs(amount) >= 200:  # Minimum threshold for salary-like payment
+                return (True, 0.90, "transfer_promoted_company_suffix")
+        
+        # 3. Faster Payment (FP-) prefix - common for salary
+        if desc_upper.startswith("FP-") or " FP-" in desc_upper:
+            if abs(amount) >= 200:
+                return (True, 0.88, "transfer_promoted_faster_payment")
+        
+        # 4. Benefits keywords
+        benefit_keywords = [
+            "UNIVERSAL CREDIT", "DWP", "CHILD BENEFIT",
+            "PIP", "DLA", "ESA", "JSA", "HMRC"
+        ]
+        if any(kw in desc_upper for kw in benefit_keywords):
+            return (True, 0.92, "transfer_promoted_benefits")
+        
+        # 5. Gig economy payouts
+        gig_keywords = [
+            "UBER", "DELIVEROO", "JUST EAT", "STRIPE PAYOUT",
+            "PAYPAL PAYOUT", "SHOPIFY PAYMENTS"
+        ]
+        if any(kw in desc_upper for kw in gig_keywords):
+            return (True, 0.85, "transfer_promoted_gig_payout")
+        
+        # 6. Large one-off payment from named entity (not generic "PAYMENT")
+        if abs(amount) >= 500:
+            # Check if description has specific words (not just "PAYMENT" or "TRANSFER")
+            generic_words = ["PAYMENT", "TRANSFER", "CREDIT", "DEBIT", "TFR"]
+            words = desc_upper.split()
+            specific_words = [w for w in words if w not in generic_words and len(w) > 3]
+            
+            if len(specific_words) >= 2:  # Has meaningful identifier
+                return (True, 0.75, "transfer_promoted_large_named_payment")
+        
+        # DEFAULT: Do not promote
+        return (False, 0.0, "transfer_not_promoted")
+    
+    def _looks_like_employer_name(self, description: str) -> bool:
+        """
+        Check if description looks like an employer name.
+        
+        Returns True if description contains:
+        - Company suffix (LTD, LIMITED, PLC, etc.)
+        - Multiple words (not just "PAYMENT" or "TRANSFER")
+        - Proper capitalization pattern
+        """
+        if not description:
+            return False
+        
+        desc_upper = description.upper()
+        
+        # Check for company suffix
+        if not re.search(r'\b(LTD|LIMITED|PLC|LLP|INC|CORP|CORPORATION)\b', desc_upper):
+            return False
+        
+        # Check for generic words that indicate it's NOT an employer
+        generic_only = ["PAYMENT", "TRANSFER", "CREDIT", "DEBIT", "FROM", "TO"]
+        words = [w for w in desc_upper.split() if len(w) > 2]
+        specific_words = [w for w in words if w not in generic_only]
+        
+        # Need at least 2 specific words + company suffix
+        return len(specific_words) >= 2
+    
             
     def _check_strict_plaid_categories(
         self,
@@ -516,6 +621,42 @@ class TransactionCategorizer:
                     match_method="known_service_exclusion",
                     weight=1.0,
                     is_stable=False
+                )
+
+        # **NEW STEP 0C: AGGRESSIVE TRANSFER PROMOTION**
+        # Check if this TRANSFER_IN should be promoted to income
+        if transfer_fallback is not None:
+            should_promote, confidence, reason = self._should_promote_transfer_to_income(
+                description=description,
+                amount=amount,
+                plaid_category=plaid_category,
+                plaid_category_primary=plaid_category_primary
+            )
+            
+            if should_promote:
+                # Determine subcategory from reason
+                if "payroll" in reason or "faster_payment" in reason or "company_suffix" in reason:
+                    subcategory = "salary"
+                    desc = "Salary & Wages"
+                elif "benefits" in reason:
+                    subcategory = "benefits"
+                    desc = "Benefits & Government"
+                elif "gig_payout" in reason:
+                    subcategory = "gig_economy"
+                    desc = "Gig Economy Income"
+                else:
+                    subcategory = "other"
+                    desc = "Other Income"
+                
+                return CategoryMatch(
+                    category="income",
+                    subcategory=subcategory,
+                    confidence=confidence,
+                    description=desc,
+                    match_method=reason,
+                    weight=1.0,
+                    is_stable=(subcategory in ["salary", "benefits"]),
+                    debug_rationale=self._build_debug_rationale("transfer_promotion", reason)
                 )
 
         
@@ -1424,6 +1565,42 @@ class TransactionCategorizer:
                     match_method="known_service_exclusion",
                     weight=1.0,
                     is_stable=False
+                )
+               
+        # **NEW STEP 0C: AGGRESSIVE TRANSFER PROMOTION**
+        # Check if this TRANSFER_IN should be promoted to income
+        if transfer_fallback is not None:
+            should_promote, confidence, reason = self._should_promote_transfer_to_income(
+                description=description,
+                amount=amount,
+                plaid_category=plaid_category,
+                plaid_category_primary=plaid_category_primary
+            )
+            
+            if should_promote:
+                # Determine subcategory from reason
+                if "payroll" in reason or "faster_payment" in reason or "company_suffix" in reason:
+                    subcategory = "salary"
+                    desc = "Salary & Wages"
+                elif "benefits" in reason:
+                    subcategory = "benefits"
+                    desc = "Benefits & Government"
+                elif "gig_payout" in reason:
+                    subcategory = "gig_economy"
+                    desc = "Gig Economy Income"
+                else:
+                    subcategory = "other"
+                    desc = "Other Income"
+                
+                return CategoryMatch(
+                    category="income",
+                    subcategory=subcategory,
+                    confidence=confidence,
+                    description=desc,
+                    match_method=reason,
+                    weight=1.0,
+                    is_stable=(subcategory in ["salary", "benefits"]),
+                    debug_rationale=self._build_debug_rationale("transfer_promotion", reason)
                 )
                
         # STEP 1: Check PLAID categories for loan/transfer indicators (same as non-batch)
