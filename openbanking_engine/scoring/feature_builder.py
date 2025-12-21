@@ -564,7 +564,7 @@ class MetricsCalculator:
             },
 
             "debt": {
-                "hcstc_payday": {"total": 0.0, "count": 0, "distinct_lenders": set(), "distinct_lenders_90d": set()},
+                "hcstc_payday": {"total": 0.0, "count": 0, "lenders": set(), "lenders_90d": set()},
                 "other_loans": {"total": 0.0, "count": 0},
                 "credit_cards": {"total": 0.0, "count": 0},
                 "bnpl": {"total": 0.0, "count": 0},
@@ -695,9 +695,26 @@ class MetricsCalculator:
         )
 
                    
-        # Use FULL transaction history for debt and risk metrics
-        # This captures all historical risk patterns (HCSTC, debt collection, gambling, etc.)
-        debt_metrics = self.calculate_debt_metrics(category_summary)
+        # Calculate debt metrics using the same filtered period as expenses
+        # This ensures consistent time basis for affordability calculations
+        # (Monthly debt must be calculated over the same period as monthly expenses)
+        filtered_category_summary_debt = self._build_filtered_category_summary(
+            categorized_transactions, expense_transactions
+        ) if categorized_transactions is not None else filtered_category_summary_expense
+        
+        # Calculate debt payments from filtered period
+        debt_metrics = self.calculate_debt_metrics(filtered_category_summary_debt)
+        
+        # However, HCSTC lender counts should come from FULL history for risk assessment
+        # Override the lender counts with full history data
+        full_debt_data = category_summary.get("debt", {})
+        full_hcstc_data = full_debt_data.get("hcstc_payday", {})
+        full_lenders = full_hcstc_data.get("lenders", set())
+        full_lenders_90d = full_hcstc_data.get("lenders_90d", set())
+        
+        # Convert sets to length (lenders are always stored as sets in the category summary)
+        debt_metrics.active_hcstc_count = len(full_lenders) if isinstance(full_lenders, set) else full_lenders
+        debt_metrics.active_hcstc_count_90d = len(full_lenders_90d) if isinstance(full_lenders_90d, set) else full_lenders_90d
         balance_metrics = self.calculate_balance_metrics(transactions, accounts)
         risk_metrics = self.calculate_risk_metrics(category_summary, income_metrics)
         
@@ -1015,13 +1032,6 @@ class MetricsCalculator:
         unpaid = expense_data.get("unpaid", {}).get("total", 0) / actual_months
         unauthorised_overdraft = expense_data.get("unauthorised_overdraft", {}).get("total", 0) / actual_months
         gambling = expense_data.get("gambling", {}).get("total", 0) / actual_months
-
-        # Get monthly averages - debt category
-        hcstc = debt_data.get("hcstc_payday", {}).get("total", 0) / actual_months
-        other_loans = debt_data.get("other_loans", {}).get("total", 0) / actual_months
-        credit_cards = debt_data.get("credit_cards", {}).get("total", 0) / actual_months
-        bnpl = debt_data.get("bnpl", {}).get("total", 0) / actual_months
-        catalogue = debt_data.get("catalogue", {}).get("total", 0) / actual_months
     
         # Housing is rent OR mortgage (not both)
         housing = max(rent, mortgage)
@@ -1107,7 +1117,6 @@ class MetricsCalculator:
                 "unauthorised_overdraft": unauthorised_overdraft,
                 "discretionary": discretionary,
                 "gambling": gambling,
-                "debt_payments": hcstc + other_loans + credit_cards + bnpl + catalogue,
             }
         )
     
@@ -1115,16 +1124,22 @@ class MetricsCalculator:
         """Calculate debt-related metrics."""
         debt_data = category_summary.get("debt", {})
         
-        # Get monthly averages
-        hcstc = debt_data.get("hcstc_payday", {}).get("total", 0) / self.months_of_data
-        other_loans = debt_data.get("other_loans", {}).get("total", 0) / self.months_of_data
-        credit_cards = debt_data.get("credit_cards", {}).get("total", 0) / self.months_of_data
-        bnpl = debt_data.get("bnpl", {}).get("total", 0) / self.months_of_data
-        catalogue = debt_data.get("catalogue", {}).get("total", 0) / self.months_of_data
+        # Get monthly averages using the same lookback period as expenses
+        # This ensures consistent time basis for affordability calculations
+        hcstc = debt_data.get("hcstc_payday", {}).get("total", 0) / self.lookback_months
+        other_loans = debt_data.get("other_loans", {}).get("total", 0) / self.lookback_months
+        credit_cards = debt_data.get("credit_cards", {}).get("total", 0) / self.lookback_months
+        bnpl = debt_data.get("bnpl", {}).get("total", 0) / self.lookback_months
+        catalogue = debt_data.get("catalogue", {}).get("total", 0) / self.lookback_months
         
         # Active HCSTC lender count (all time and 90 days)
-        active_hcstc_count = debt_data.get("hcstc_payday", {}).get("distinct_lenders", 0)
-        active_hcstc_count_90d = debt_data.get("hcstc_payday", {}).get("distinct_lenders_90d", 0)
+        # Handle both set and int types for backward compatibility
+        lenders = debt_data.get("hcstc_payday", {}).get("lenders", set())
+        lenders_90d = debt_data.get("hcstc_payday", {}).get("lenders_90d", set())
+        
+        # Convert sets to length (lenders are stored as sets in the filtered category summary)
+        active_hcstc_count = len(lenders) if isinstance(lenders, set) else lenders
+        active_hcstc_count_90d = len(lenders_90d) if isinstance(lenders_90d, set) else lenders_90d
         
         # Total debt commitments
         total_debt = hcstc + other_loans + credit_cards + bnpl + catalogue
