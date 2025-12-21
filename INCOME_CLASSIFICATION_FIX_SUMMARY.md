@@ -55,13 +55,14 @@ This fix addresses systematic income understatement caused by Plaid mislabeling 
 
 **Modified Methods:**
 - `calculate_income_metrics()` 
-  - Added validation logging showing breakdown by subcategory
+  - Added validation logging (using Python's logging module at DEBUG level)
   - Uses `self.months_of_data` (calculated from transactions) instead of `self.lookback_months`
   - Prevents income deflation when actual data period < lookback period
 
 **Key Behavior:**
 - Month counting uses actual transaction dates, not configuration
-- Validation logging helps diagnose aggregation issues
+- Validation logging uses proper logging framework (DEBUG level) instead of print statements
+- Logging can be controlled via application configuration
 - Minimum of 1 month returned even with no income data
 
 ## Test Coverage
@@ -116,7 +117,7 @@ Created comprehensive test suite (`test_income_classification_fix.py`) with 25 t
 
 ## Validation
 
-Manual verification shows:
+Manual verification shows (with logging.DEBUG enabled):
 - BANK GIRO CREDIT → income/salary (0.95 confidence)
 - FP-ACME CORPORATION LTD → income/salary (0.90 confidence)
 - TECH COMPANY LIMITED → income/salary (0.90 confidence)
@@ -125,7 +126,7 @@ Manual verification shows:
 
 Month counting correctly uses 2 months when data spans 2 months (not 3).
 
-Validation logging shows:
+Validation logging (DEBUG level) shows:
 ```
 [INCOME VALIDATION]
 Salary: £3000.00 (2 txns)
@@ -139,7 +140,10 @@ Benefits: £0.00 (0 txns)
 - All existing tests continue to pass (where they have correct imports)
 - New `_count_unique_income_months()` method supplements existing `_calculate_months_of_data()`
 - Changes are additive - no breaking API changes
-- Validation logging is non-invasive (console output only)
+- Validation logging uses Python's logging module at DEBUG level
+  - No output by default unless logging is configured
+  - Can be enabled/disabled via application logging configuration
+  - Non-intrusive to existing code
 
 ## Files Modified
 

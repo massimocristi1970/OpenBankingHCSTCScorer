@@ -8,10 +8,14 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from collections import defaultdict
 import statistics
+import logging
 
 from openbanking_engine.categorisation.engine import CategoryMatch
 
 from ..config.scoring_config import PRODUCT_CONFIG
+
+# Initialize logger for this module
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -772,22 +776,29 @@ class MetricsCalculator:
         gig_count = income_data.get("gig_economy", {}).get("count", 0)
         other_count = income_data.get("other", {}).get("count", 0)
 
-        print(f"""
-[INCOME VALIDATION]
-Salary: £{salary_total:.2f} ({salary_count} txns)
-Benefits: £{benefits_total:.2f} ({benefits_count} txns)
-Pension: £{pension_total:.2f} ({pension_count} txns)
-Gig Economy: £{gig_total:.2f} ({gig_count} txns)
-Other: £{other_total:.2f} ({other_count} txns)
-Total: £{salary_total + benefits_total + pension_total + gig_total + other_total:.2f}
-""")
+        logger.debug(
+            "[INCOME VALIDATION]\n"
+            "Salary: £%.2f (%d txns)\n"
+            "Benefits: £%.2f (%d txns)\n"
+            "Pension: £%.2f (%d txns)\n"
+            "Gig Economy: £%.2f (%d txns)\n"
+            "Other: £%.2f (%d txns)\n"
+            "Total: £%.2f",
+            salary_total, salary_count,
+            benefits_total, benefits_count,
+            pension_total, pension_count,
+            gig_total, gig_count,
+            other_total, other_count,
+            salary_total + benefits_total + pension_total + gig_total + other_total
+        )
         
         # **CRITICAL FIX**: Use ACTUAL months from filtered period
         # Use self.months_of_data which was calculated from transactions during init
         # This is more accurate than self.lookback_months (which might be > actual data period)
         actual_months = self.months_of_data
 
-        print(f"[INCOME VALIDATION] Using {actual_months} months for averaging (lookback={self.lookback_months})")
+        logger.debug("[INCOME VALIDATION] Using %d months for averaging (lookback=%d)", 
+                    actual_months, self.lookback_months)
         
         # Monthly calculations - divide by ACTUAL months in recent period
         monthly_stable = (salary_total + benefits_total + pension_total) / actual_months
@@ -937,18 +948,18 @@ Total: £{salary_total + benefits_total + pension_total + gig_total + other_tota
         Call this after building filtered_category_summary to ensure
         transferred income is properly included.
         """
-        print(f"\n[CATEGORY SUMMARY VALIDATION - {label}]")
+        logger.debug("[CATEGORY SUMMARY VALIDATION - %s]", label)
         
         for category in ["income", "essential", "expense", "debt"]:
             cat_data = category_summary.get(category, {})
-            print(f"\n{category.upper()}:")
+            logger.debug("\n%s:", category.upper())
             
             for subcategory, data in cat_data.items():
                 if isinstance(data, dict):
                     total = data.get("total", 0)
                     count = data.get("count", 0)
                     if total > 0 or count > 0:
-                        print(f"  {subcategory}: £{total:.2f} ({count} txns)")
+                        logger.debug("  %s: £%.2f (%d txns)", subcategory, total, count)
     
     def calculate_expense_metrics(
         self, 
