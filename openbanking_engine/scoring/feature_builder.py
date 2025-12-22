@@ -1206,6 +1206,27 @@ class MetricsCalculator:
             }
         )
 
+    # DEBUG: Log expense breakdown
+    logger.debug(
+        "[EXPENSE FILTER DEBUG]\n"
+        "Other: £%.2f\n"
+        "Food Dining: £%.2f\n"
+        "Discretionary: £%.2f\n"
+        "Account Transfer: £%.2f\n"
+        "Gambling: £%.2f\n"
+        "Essential Total: £%.2f\n"
+        "Discretionary Total: £%.2f\n"
+        "Months: %d",
+        other_expenses * actual_months,
+        food_dining * actual_months,
+        discretionary * actual_months,
+        account_transfer_expenses * actual_months,
+        gambling * actual_months,
+        essential_total * actual_months,
+        discretionary_total * actual_months,
+        actual_months
+    )
+
     def calculate_debt_metrics(self, category_summary: Dict) -> DebtMetrics:
         """Calculate debt-related metrics."""
         debt_data = category_summary.get("debt", {})
