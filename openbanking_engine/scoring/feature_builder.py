@@ -386,13 +386,12 @@ class MetricsCalculator:
         months: int
     ) -> List[Dict]:
         """
-        Return INCOME transactions from the most recent N calendar months that contain income.
+        Return INCOME transactions from the most recent N COMPLETE calendar months that contain income.
 
-        This avoids dividing by N months when the most recent month has income but a filter excluded it,
-        and ensures we only select months that actually have income.
+        This excludes the current (partial) month to match the expense filtering logic.
 
         Args:
-            categorized_transactions: List of (txn, CategoryMatch)
+            categorized_transactions:  List of (txn, CategoryMatch)
             months: number of income months to include
 
         Returns:
@@ -400,17 +399,33 @@ class MetricsCalculator:
         """
         if not categorized_transactions or months <= 0:
             return []
+        # Find the most recent transaction date to determine the anchor month
+        max_date = None
+        for txn, match in categorized_transactions:
+            date_str = txn.get("date")
+            if not date_str:
+                continue
+            try:
+                dt = datetime.strptime(date_str, "%Y-%m-%d")
+                if max_date is None or dt > max_date:
+                    max_date = dt
+            except ValueError:
+                continue
+        if max_date is None:
+            return []
+
+        # The anchor month (to be excluded as potentially partial)
+        anchor_month = (max_date.year, max_date.month)
 
         income_months = set()
 
-        # 1) Identify which calendar months contain income
+        # 1) Identify which calendar months contain income (excluding anchor month)
         for txn, match in categorized_transactions:
             try:
                 if getattr(match, "category", None) != "income":
                     continue
-
                 amt = txn.get("amount", 0)
-                # In your convention: income = negative amounts
+                # In your convention:  income = negative amounts
                 if amt is None or float(amt) >= 0:
                     continue
 
@@ -418,7 +433,12 @@ class MetricsCalculator:
                 if not date_str:
                     continue
                 dt = datetime.strptime(date_str, "%Y-%m-%d")
-                income_months.add((dt.year, dt.month))
+                txn_month = (dt.year, dt.month)
+                # Skip anchor month (partial)
+                if txn_month == anchor_month:
+                    continue
+
+                income_months.add(txn_month)
             except Exception:
                 continue
 
@@ -430,32 +450,34 @@ class MetricsCalculator:
         selected_months = set(selected_months)
 
         # 3) Return only income transactions that fall in those months
-        filtered_income_txns: List[Dict] = []
+        filtered_income_txns:  List[Dict] = []
         for txn, match in categorized_transactions:
             try:
                 if getattr(match, "category", None) != "income":
                     continue
-                amt = txn.get("amount", 0)
-                if amt is None or float(amt) >= 0:
-                    continue
+                    amt = txn.get("amount", 0)
+                    if amt is None or float(amt) >= 0:
+                        continue
 
-                date_str = txn.get("date")
-                if not date_str:
-                    continue
-                dt = datetime.strptime(date_str, "%Y-%m-%d")
+                    date_str = txn. get("date")
+                    if not date_str:
+                        continue
+                    dt = datetime.strptime(date_str, "%Y-%m-%d")
 
-                if (dt.year, dt.month) in selected_months:
-                    filtered_income_txns.append(txn)
+                    if (dt.year, dt.month) in selected_months:
+                        filtered_income_txns.append(txn)
             except Exception:
-                continue
+                    continue
 
         logger.debug(
-            "[INCOME FILTER DEBUG] Found %d income months:  %s, selected %d months, returning %d transactions",
+            "[INCOME FILTER DEBUG] Anchor month (excluded): %s, Found %d income months: %s, selected %d months, returning %d transactions",
+            anchor_month,
             len(income_months),
             sorted(income_months, reverse=True),
             months,
             len(filtered_income_txns)
         )
+
         return filtered_income_txns
 
     def _filter_month_to_date_transactions(self, transactions: List[Dict]) -> List[Dict]:
