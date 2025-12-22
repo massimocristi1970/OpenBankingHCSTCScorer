@@ -285,57 +285,101 @@ class MetricsCalculator:
 
         return filtered
     
-    def _filter_last_complete_calendar_months(self, transactions: List[Dict], months: int) -> List[Dict]:
+    def _filter_last_complete_calendar_months(self, transactions: List[Dict], months:  int) -> List[Dict]:
         """
-        Return transactions in the last N COMPLETE calendar months (excluding the month
-        of the latest transaction, because it may be partial).
-        Example: latest txn is 2025-05-18 -> complete months are Apr, Mar, Feb for months=3.
+        Return transactions from the last N COMPLETE calendar months that have expenses,
+        excluding the current (partial) month.
+    
+        This ensures we only count months with actual expenses within the recent lookback period.
+    
+        Example:  Latest txn is 2025-05-25, lookback=3
+        - Exclude May (partial month)
+        - Take up to 3 complete months before May that have expenses:  April, March, (Feb if it has expenses)
         """
         if not transactions:
             return []
 
-        # Find latest transaction date
+        # Find the most recent transaction date
         max_date = None
         for txn in transactions:
-            d = txn.get("date")
-            if not d:
+            date_str = txn.get("date")
+            if not date_str:
                 continue
             try:
-                dt = datetime.strptime(d, "%Y-%m-%d")
+                dt = datetime.strptime(date_str, "%Y-%m-%d")
+                if max_date is None or dt > max_date:
+                    max_date = dt
             except ValueError:
                 continue
-            if (max_date is None) or (dt > max_date):
-                max_date = dt
+    
         if max_date is None:
             return []
+    
+        # The anchor month (to be excluded as potentially partial)
+        anchor_month = (max_date.year, max_date.month)
+    
+        # Calculate the earliest allowed month (lookback period)
+        # We want to include up to 'months' complete months before the anchor
+        # Example: anchor=(2025, 5), months=3 -> earliest=(2025, 2)
+        # That gives us Feb, March, April (3 months, excluding May)
+        y, m = anchor_month
 
-        # Anchor is the first day of the latest txn month (we EXCLUDE this month)
-        anchor_start = max_date.replace(day=1)
-
-        # Compute earliest month start = anchor_start minus `months` months
-        y = anchor_start.year
-        m = anchor_start.month - months
-        while m <= 0:
-            m += 12
-            y -= 1
-        earliest_start = anchor_start.replace(year=y, month=m, day=1)
-
-        filtered: List[Dict] = []
+        # Go back 'months' from the anchor
+        for _ in range(months):
+            m -= 1
+            if m == 0:
+                m = 12
+                y -= 1
+        earliest_allowed = (y, m)
+    
+        # Find all months with EXPENSE transactions within the valid range
+        expense_months = set()
         for txn in transactions:
-            d = txn.get("date")
-            if not d:
+            amount = txn.get("amount", 0)
+            # Skip income (negative amounts)
+            if amount <= 0:
+                continue
+        
+            date_str = txn.get("date")
+            if not date_str:
                 continue
             try:
-                dt = datetime.strptime(d, "%Y-%m-%d")
+                dt = datetime.strptime(date_str, "%Y-%m-%d")
+                txn_month = (dt.year, dt.month)
+            
+                # Skip anchor month (partial) and months outside lookback window
+                if txn_month == anchor_month: 
+                    continue
+                if txn_month < earliest_allowed: 
+                    continue
+            
+                expense_months.add(txn_month)
             except ValueError:
                 continue
-
-            # Keep txns within [earliest_start, anchor_start)
-            if earliest_start <= dt < anchor_start:
-                filtered.append(txn)
-
-        return filtered
     
+        if not expense_months:
+            return []
+    
+        # Sort months in descending order and take up to 'months' of them
+        selected_months = sorted(expense_months, reverse=True)[:months]
+        selected_months_set = set(selected_months)
+    
+        # Filter transactions to selected months
+        filtered = []
+        for txn in transactions:
+            date_str = txn.get("date")
+            if not date_str:
+                continue
+            try:
+                dt = datetime.strptime(date_str, "%Y-%m-%d")
+                if (dt.year, dt.month) in selected_months_set: 
+                    filtered.append(txn)
+            except ValueError:
+                continue
+    
+           
+        return filtered
+
     def _filter_last_n_income_months(
         self,
         categorized_transactions: List[Tuple[Dict, "CategoryMatch"]],
@@ -696,7 +740,13 @@ class MetricsCalculator:
             mtd_transactions=mtd_transactions,
         )
 
-                   
+        expense_metrics = self.calculate_expense_metrics(
+            filtered_category_summary_expense,
+            expense_transactions,
+            mtd_category_summary=mtd_category_summary,
+            mtd_transactions=mtd_transactions,
+        )
+                           
         # Calculate debt metrics using the same filtered period as expenses
         # This ensures consistent time basis for affordability calculations
         # (Monthly debt must be calculated over the same period as monthly expenses)
@@ -772,6 +822,28 @@ class MetricsCalculator:
                 continue
         
         return max(1, len(income_months))
+    
+    def _count_unique_months(self, transactions: List[Dict]) -> int:
+        """
+        Count unique calendar months in transaction list.
+    
+        Returns:
+            Number of unique months (minimum 1)
+        """
+        months = set()
+    
+        for txn in transactions:
+            date_str = txn.get("date", "")
+            if not date_str:
+                continue
+        
+            try:
+                date = datetime.strptime(date_str, "%Y-%m-%d")
+                months.add((date.year, date.month))
+            except (ValueError, TypeError):
+                continue
+    
+        return max(1, len(months))
     
     def calculate_income_metrics(
         self, 
@@ -1011,8 +1083,12 @@ class MetricsCalculator:
         expense_data = category_summary.get("expense", {})
     
         # Calculate actual months in the filtered period
-        # Use lookback_months as the period since we're working with filtered data
-        actual_months = self.lookback_months
+        # Count unique months in the filtered transactions to handle edge cases
+        # where the filter may return fewer months than expected
+        if transactions:
+            actual_months = self._count_unique_months(transactions)
+        else:
+            actual_months = self.lookback_months
     
         # Get monthly averages based on actual months in filtered period
         rent = essential_data.get("rent", {}).get("total", 0) / actual_months
