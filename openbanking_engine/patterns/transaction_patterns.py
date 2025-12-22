@@ -431,7 +431,7 @@ DEBT_PATTERNS = {
     ],
     "regex_patterns": [
         # Very (tightened)
-        r"(?i)\bvery(\.com)?\b.*\b(account|payment|pay|credit|shopdirect)\b",
+        r"(?i)\bvery(\.com)?\b.*\b(account|payment|pay|credit|shopdirect|catalogue|catalog)\b",
         r"(?i)\bshopdirect\b.*\b(very|littlewoods)\b",
 
         # Littlewoods / Shop Direct ecosystem
