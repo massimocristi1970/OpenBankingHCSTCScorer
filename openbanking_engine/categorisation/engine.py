@@ -462,7 +462,7 @@ class TransactionCategorizer:
             if "ACCOUNT_TRANSFER" in detailed_upper:
                 return CategoryMatch(
                     category="income",
-                    subcategory="Account Transfer",
+                    subcategory="account_transfer",
                     confidence=0.98,
                     description="Account Transfer in",
                     match_method="plaid_strict",
@@ -486,7 +486,7 @@ class TransactionCategorizer:
             if "ACCOUNT_TRANSFER" in detailed_upper:
                 return CategoryMatch(
                     category="expense",
-                    subcategory="Account Transfer",
+                    subcategory="account_transfer",
                     confidence=0.98,
                     description="Account Transfer Out",
                     match_method="plaid_strict",

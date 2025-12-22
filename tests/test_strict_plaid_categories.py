@@ -1,14 +1,14 @@
 """
-Test suite for strict PLAID detailed categories that must ALWAYS be respected.
+Test suite for strict PLAID detailed categories that must ALWAYS be respected. 
 
 Tests that specific PLAID detailed categories (TRANSFER_IN_ACCOUNT_TRANSFER,
 TRANSFER_OUT_ACCOUNT_TRANSFER, TRANSFER_IN_CASH_ADVANCES_AND_LOANS) are
-NEVER overridden by keyword matching or behavioral detection.
+NEVER overridden by keyword matching or behavioral detection. 
 
-Addresses the issue where:
-1. TRANSFER_IN_ACCOUNT_TRANSFER was being miscategorized as income/salary or income/other
-2. TRANSFER_OUT_ACCOUNT_TRANSFER was being miscategorized as expense/other
-3. TRANSFER_IN_CASH_ADVANCES_AND_LOANS needs to be categorized as income/loans with weight=0.0
+Addresses the issue where: 
+1. TRANSFER_IN_ACCOUNT_TRANSFER is now categorized as income/account_transfer (not transfer)
+2. TRANSFER_OUT_ACCOUNT_TRANSFER is now categorized as expense/account_transfer (not transfer)
+3. TRANSFER_IN_CASH_ADVANCES_AND_LOANS is categorized as income/loans with weight=0.0
 """
 
 import unittest
@@ -29,10 +29,10 @@ class TestStrictPlaidCategories(unittest.TestCase):
     
     def test_transfer_in_account_transfer_with_payment_from_keyword(self):
         """
-        TRANSFER_IN_ACCOUNT_TRANSFER should be transfer > internal,
+        TRANSFER_IN_ACCOUNT_TRANSFER should be income > account_transfer,
         even with "Payment from" keyword that would normally match salary.
         
-        Real example:
+        Real example: 
         "Payment from Vishant Khanna - vgghhg" with TRANSFER_IN_ACCOUNT_TRANSFER
         was being categorized as income/salary due to keyword matching.
         """
@@ -43,7 +43,7 @@ class TestStrictPlaidCategories(unittest.TestCase):
             plaid_category_primary="TRANSFER_IN"
         )
         
-        self.assertEqual(result.category, "income")
+        self. assertEqual(result.category, "income")
         self.assertEqual(result.subcategory, "account_transfer")
         self.assertEqual(result.weight, 1.0)
         self.assertEqual(result.match_method, "plaid_strict")
@@ -52,11 +52,11 @@ class TestStrictPlaidCategories(unittest.TestCase):
     
     def test_transfer_in_account_transfer_with_mr_prefix(self):
         """
-        TRANSFER_IN_ACCOUNT_TRANSFER should be transfer > internal,
-        even with complex description.
+        TRANSFER_IN_ACCOUNT_TRANSFER should be income > account_transfer,
+        even with complex description. 
         
         Real example:
-        "MR VISHANT KHANNA - From POCKET CHANGE PIONEERS LTD - TiPJAR tipjar.tips/4YHJST"
+        "MR VISHANT KHANNA - From POCKET CHANGE PIONEERS LTD - TiPJAR tipjar. tips/4YHJST"
         with TRANSFER_IN_ACCOUNT_TRANSFER was being categorized as income/other.
         """
         result = self.categorizer.categorize_transaction(
@@ -76,7 +76,7 @@ class TestStrictPlaidCategories(unittest.TestCase):
     
     def test_transfer_in_account_transfer_simple(self):
         """
-        TRANSFER_IN_ACCOUNT_TRANSFER with simple description.
+        TRANSFER_IN_ACCOUNT_TRANSFER with simple description. 
         """
         result = self.categorizer.categorize_transaction(
             description="209074 40964700 MOBILE-CHANNEL FT",
@@ -95,7 +95,7 @@ class TestStrictPlaidCategories(unittest.TestCase):
     
     def test_transfer_out_account_transfer_to_person(self):
         """
-        TRANSFER_OUT_ACCOUNT_TRANSFER should be transfer > external,
+        TRANSFER_OUT_ACCOUNT_TRANSFER should be expense > account_transfer,
         not expense/other.
         
         Real example:
@@ -113,15 +113,15 @@ class TestStrictPlaidCategories(unittest.TestCase):
             plaid_category_primary="TRANSFER_OUT"
         )
         
-        self.assertEqual(result. category, "expense")
-        self.assertEqual(result. subcategory, "account_transfer")
+        self.assertEqual(result.category, "expense")
+        self.assertEqual(result.subcategory, "account_transfer")
         self.assertEqual(result. weight, 1.0)
         self.assertEqual(result.match_method, "plaid_strict")
         self.assertGreaterEqual(result.confidence, 0.98)
     
     def test_transfer_out_account_transfer_larger_amount(self):
         """
-        TRANSFER_OUT_ACCOUNT_TRANSFER with larger amount.
+        TRANSFER_OUT_ACCOUNT_TRANSFER with larger amount. 
         """
         result = self.categorizer.categorize_transaction(
             description=(
@@ -155,7 +155,7 @@ class TestStrictPlaidCategories(unittest.TestCase):
         )
         
         self.assertEqual(result.category, "income")
-        self.assertEqual(result.subcategory, "loans")
+        self.assertEqual(result. subcategory, "loans")
         self.assertEqual(result.weight, 0.0)
         self.assertEqual(result.match_method, "plaid_strict")
         self.assertGreaterEqual(result.confidence, 0.98)
@@ -172,19 +172,18 @@ class TestStrictPlaidCategories(unittest.TestCase):
             plaid_category_primary="TRANSFER_IN"
         )
         
-        self.assertEqual(result.category, "income")
+        self. assertEqual(result.category, "income")
         self.assertEqual(result.subcategory, "loans")
-        self.assertEqual(result.weight, 0.0)
+        self.assertEqual(result. weight, 0.0)
     
     # ====================================================================
     # Test that keywords do NOT override strict categories
     # ====================================================================
     
     def test_keyword_does_not_override_transfer_in_account_transfer(self):
-        
         """
         TRANSFER_IN_ACCOUNT_TRANSFER is now categorized as income > account_transfer,
-        even with salary keywords (no longer a transfer).
+        even with salary keywords (strict PLAID takes precedence).
         """
         result = self.categorizer.categorize_transaction(
             description="SALARY PAYMENT FROM EMPLOYER LIMITED",
@@ -199,9 +198,8 @@ class TestStrictPlaidCategories(unittest.TestCase):
     
     def test_keyword_does_not_override_transfer_out_account_transfer(self):
         """
-        
         Even with grocery/shopping keywords, TRANSFER_OUT_ACCOUNT_TRANSFER
-        must remain transfer > external.
+        must remain expense > account_transfer.
         """
         result = self.categorizer.categorize_transaction(
             description="TESCO GROCERIES",
@@ -210,10 +208,10 @@ class TestStrictPlaidCategories(unittest.TestCase):
             plaid_category_primary="TRANSFER_OUT"
         )
 
-        self.assertEqual(result.category, "transfer")
-        self.assertEqual(result.subcategory, "external")
+        self.assertEqual(result.category, "expense")
+        self.assertEqual(result. subcategory, "account_transfer")
         self.assertNotEqual(result.category, "essential")
-        self.assertEqual(result.weight, 0.0)
+        self.assertEqual(result.weight, 1.0)
     
     # ====================================================================
     # Test batch processing with strict categories
@@ -221,7 +219,7 @@ class TestStrictPlaidCategories(unittest.TestCase):
     
     def test_batch_processing_transfer_in_account_transfer(self):
         """
-        Batch processing should respect TRANSFER_IN_ACCOUNT_TRANSFER.
+        Batch processing should respect TRANSFER_IN_ACCOUNT_TRANSFER. 
         """
         transactions = [
             {
@@ -234,7 +232,7 @@ class TestStrictPlaidCategories(unittest.TestCase):
                 }
             },
             {
-                "name": "Payment from Vishant Khanna - vgghhg",
+                "name":  "Payment from Vishant Khanna - vgghhg",
                 "amount": -40,
                 "date": "2025-04-27",
                 "personal_finance_category": {
@@ -248,22 +246,22 @@ class TestStrictPlaidCategories(unittest.TestCase):
         
         self.assertEqual(len(results), 2)
         for txn, match in results:
-            self.assertEqual(match.category, "transfer")
-            self.assertEqual(match.subcategory, "internal")
-            self.assertEqual(match.weight, 0.0)
+            self.assertEqual(match.category, "income")
+            self.assertEqual(match.subcategory, "account_transfer")
+            self.assertEqual(match.weight, 1.0)
     
     def test_batch_processing_transfer_out_account_transfer(self):
         """
-        Batch processing should respect TRANSFER_OUT_ACCOUNT_TRANSFER.
+        Batch processing should respect TRANSFER_OUT_ACCOUNT_TRANSFER. 
         """
         transactions = [
             {
-                "name": "To Mr Vishant Khanna - Sent from Revolut",
+                "name":  "To Mr Vishant Khanna - Sent from Revolut",
                 "amount": 7.16,
-                "date": "2025-05-18",
+                "date":  "2025-05-18",
                 "merchant_name": "Revolut",
                 "personal_finance_category": {
-                    "primary": "TRANSFER_OUT",
+                    "primary":  "TRANSFER_OUT",
                     "detailed": "TRANSFER_OUT_ACCOUNT_TRANSFER"
                 }
             },
@@ -271,7 +269,7 @@ class TestStrictPlaidCategories(unittest.TestCase):
                 "name": "To Mr Vishant Khanna - Sent from Revolut",
                 "amount": 150,
                 "date": "2025-05-18",
-                "merchant_name": "Revolut",
+                "merchant_name":  "Revolut",
                 "personal_finance_category": {
                     "primary": "TRANSFER_OUT",
                     "detailed": "TRANSFER_OUT_ACCOUNT_TRANSFER"
@@ -283,9 +281,9 @@ class TestStrictPlaidCategories(unittest.TestCase):
         
         self.assertEqual(len(results), 2)
         for txn, match in results:
-            self.assertEqual(match.category, "transfer")
-            self.assertEqual(match.subcategory, "external")
-            self.assertEqual(match.weight, 0.0)
+            self.assertEqual(match.category, "expense")
+            self.assertEqual(match.subcategory, "account_transfer")
+            self.assertEqual(match.weight, 1.0)
     
     # ====================================================================
     # Test category summary with transfer subcategories
@@ -293,7 +291,7 @@ class TestStrictPlaidCategories(unittest.TestCase):
     
     def test_category_summary_tracks_transfer_subcategories(self):
         """
-        get_category_summary should track internal vs external transfers separately.
+        get_category_summary should track account_transfer in income/expense, not transfer.
         """
         transactions = [
             {
@@ -315,7 +313,7 @@ class TestStrictPlaidCategories(unittest.TestCase):
                 }
             },
             {
-                "name": "Another Payment from John",
+                "name":  "Another Payment from John",
                 "amount": -75,
                 "date": "2025-05-03",
                 "personal_finance_category": {
@@ -328,18 +326,17 @@ class TestStrictPlaidCategories(unittest.TestCase):
         categorized = self.categorizer.categorize_transactions(transactions)
         summary = self.categorizer.get_category_summary(categorized)
         
-        # Check that transfer has subcategories
-        self.assertIn("transfer", summary)
-        self.assertIn("internal", summary["transfer"])
-        self.assertIn("external", summary["transfer"])
+        # Check that income has account_transfer subcategory (2 transactions, total 175)
+        self.assertIn("income", summary)
+        self.assertIn("account_transfer", summary["income"])
+        self.assertEqual(summary["income"]["account_transfer"]["count"], 2)
+        self.assertEqual(summary["income"]["account_transfer"]["total"], 175.0)
         
-        # Check internal transfers (2 transactions, total 175)
-        self.assertEqual(summary["transfer"]["internal"]["count"], 2)
-        self.assertEqual(summary["transfer"]["internal"]["total"], 175.0)
-        
-        # Check external transfers (1 transaction, total 50)
-        self.assertEqual(summary["transfer"]["external"]["count"], 1)
-        self.assertEqual(summary["transfer"]["external"]["total"], 50.0)
+        # Check that expense has account_transfer subcategory (1 transaction, total 50)
+        self.assertIn("expense", summary)
+        self.assertIn("account_transfer", summary["expense"])
+        self.assertEqual(summary["expense"]["account_transfer"]["count"], 1)
+        self.assertEqual(summary["expense"]["account_transfer"]["total"], 50.0)
     
     def test_category_summary_mixed_categories(self):
         """
@@ -357,7 +354,7 @@ class TestStrictPlaidCategories(unittest.TestCase):
             },
             {
                 "name": "TESCO",
-                "amount": 45.50,
+                "amount":  45.50,
                 "date": "2025-05-02",
                 "personal_finance_category": {
                     "primary": "FOOD_AND_DRINK",
@@ -375,12 +372,12 @@ class TestStrictPlaidCategories(unittest.TestCase):
             }
         ]
         
-        categorized = self.categorizer.categorize_transactions(transactions)
-        summary = self.categorizer.get_category_summary(categorized)
+        categorized = self. categorizer.categorize_transactions(transactions)
+        summary = self. categorizer.get_category_summary(categorized)
         
-        # Check transfer > internal
-        self.assertEqual(summary["transfer"]["internal"]["count"], 1)
-        self.assertEqual(summary["transfer"]["internal"]["total"], 20.0)
+        # Check income > account_transfer
+        self.assertEqual(summary["income"]["account_transfer"]["count"], 1)
+        self.assertEqual(summary["income"]["account_transfer"]["total"], 20.0)
         
         # Check income > loans (weight=0.0, so total should be 0)
         self.assertEqual(summary["income"]["loans"]["count"], 1)
@@ -396,12 +393,12 @@ class TestStrictPlaidCategoriesPrecedence(unittest.TestCase):
     
     def setUp(self):
         """Set up test fixtures."""
-        self.categorizer = TransactionCategorizer()
+        self. categorizer = TransactionCategorizer()
     
     def test_strict_category_overrides_plaid_primary(self):
         """
         Detailed category TRANSFER_IN_ACCOUNT_TRANSFER should override
-        primary category INCOME_WAGES.
+        primary category INCOME_WAGES and be categorized as income/account_transfer.
         """
         result = self.categorizer.categorize_transaction(
             description="MONTHLY SALARY",
@@ -410,21 +407,21 @@ class TestStrictPlaidCategoriesPrecedence(unittest.TestCase):
             plaid_category_primary="INCOME_WAGES"  # Should be ignored
         )
         
-        self.assertEqual(result.category, "transfer")
-        self.assertEqual(result.subcategory, "internal")
+        self.assertEqual(result.category, "income")
+        self.assertEqual(result.subcategory, "account_transfer")
     
     def test_strict_category_checked_before_known_expense_services(self):
         """
-        Strict categories should be checked even before known expense service checks.
+        Strict categories should be checked even before known expense service checks. 
         """
-        result = self.categorizer.categorize_transaction(
+        result = self. categorizer.categorize_transaction(
             description="PAYPAL PAYMENT",  # Would normally trigger expense service check
             amount=-100,
             plaid_category="TRANSFER_IN_ACCOUNT_TRANSFER"
         )
         
-        self.assertEqual(result.category, "transfer")
-        self.assertEqual(result.subcategory, "internal")
+        self.assertEqual(result.category, "income")
+        self.assertEqual(result.subcategory, "account_transfer")
     
     def test_case_insensitive_matching(self):
         """
@@ -437,15 +434,15 @@ class TestStrictPlaidCategoriesPrecedence(unittest.TestCase):
         ]
         
         for detailed_cat in test_cases:
-            with self.subTest(detailed_category=detailed_cat):
+            with self. subTest(detailed_category=detailed_cat):
                 result = self.categorizer.categorize_transaction(
                     description="Test transaction",
                     amount=-100,
                     plaid_category=detailed_cat
                 )
                 
-                self.assertEqual(result.category, "transfer")
-                self.assertEqual(result.subcategory, "internal")
+                self.assertEqual(result.category, "income")
+                self.assertEqual(result.subcategory, "account_transfer")
 
 
 if __name__ == "__main__":

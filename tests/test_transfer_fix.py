@@ -4,7 +4,7 @@ This test validates the fix for the issue where transfers were being miscategori
 """
 
 import unittest
-from transaction_categorizer import TransactionCategorizer
+from openbanking_engine.categorisation.engine import TransactionCategorizer
 
 
 class TestTransferCategorization(unittest.TestCase):
