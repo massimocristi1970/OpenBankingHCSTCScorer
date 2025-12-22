@@ -1534,7 +1534,13 @@ class TransactionCategorizer:
         plaid_primary_upper = (plaid_category_primary or "").upper()
 
         # STEP 0A: Check strict PLAID categories FIRST (before any other logic)
-        strict_match = self._check_strict_plaid_categories(plaid_category)
+        # BUT:  Ignore TRANSFER_OUT categories when amount is negative (Plaid error)
+        plaid_detailed_upper = (plaid_category or "").upper()
+        if "TRANSFER_OUT" in plaid_detailed_upper:
+            # Skip Plaid's strict categorization - it's wrong for negative amounts
+            strict_match = None
+        else:
+            strict_match = self._check_strict_plaid_categories(plaid_category)
 
         # IMPORTANT:  TRANSFER_IN_ACCOUNT_TRANSFER is now categorized as income.
         # Other TRANSFER_IN types are treated as holding categories for potential promotion.
