@@ -92,10 +92,10 @@ class CategoryMatch:
 
 class TransactionCategorizer:
     """Categorizes transactions for HCSTC loan scoring."""
-    
+
     # Minimum confidence threshold for fuzzy matching
     FUZZY_THRESHOLD = 80
-    
+
     # Transfer promotion thresholds (in pounds)
     # Minimum amount for company suffix to trigger promotion
     COMPANY_SUFFIX_MIN_AMOUNT = 200.0
@@ -103,18 +103,18 @@ class TransactionCategorizer:
     FASTER_PAYMENT_MIN_AMOUNT = 200.0
     # Minimum amount for large named payment promotion
     LARGE_PAYMENT_MIN_AMOUNT = 500.0
-    
+
     # Salary detection keywords (used to identify legitimate salary payments)
     SALARY_KEYWORDS = [
-        "SALARY", "WAGES", "PAYROLL", "NET PAY", "WAGE", 
+        "SALARY", "WAGES", "PAYROLL", "NET PAY", "WAGE",
         "PAYSLIP", "EMPLOYER", "EMPLOYERS",
         "BGC", "BANK GIRO CREDIT", "CHEQUERS CONTRACT",
         "CONTRACT PAY", "MONTHLY PAY", "WEEKLY PAY"
     ]
-    
+
     # Keywords that indicate internal transfers (not income)
     TRANSFER_EXCLUSION_KEYWORDS = ["OWN ACCOUNT", "INTERNAL", "SELF TRANSFER"]
-    
+
     # Known expense services that should not be treated as income
     # These are payment processors, BNPL services, and lenders that might
     # have keywords like "PAY" or "PAYMENT" but are expenses, not income
@@ -136,10 +136,10 @@ class TransactionCategorizer:
         "CREDIT UNION", "CREDIT UNION PAYMENT", "CU ",
 
     }
-    
+
     def __init__(self, debug_mode: bool = False):
         """Initialize the categorizer with pattern dictionaries.
-        
+
         Args:
             debug_mode: If True, emit detailed rationale for categorization decisions
         """
@@ -152,10 +152,10 @@ class TransactionCategorizer:
         self.positive_patterns = POSITIVE_PATTERNS
         self.income_detector = IncomeDetector()
         self.debug_mode = debug_mode
-    
+
     def categorize_transaction(
-        self, 
-        description: str, 
+        self,
+        description: str,
         amount: float,
         merchant_name: Optional[str] = None,
         plaid_category: Optional[str] = None,
@@ -163,14 +163,14 @@ class TransactionCategorizer:
     ) -> CategoryMatch:
         """
         Categorize a single transaction.
-        
+
         Args:
             description: Transaction description/name
             amount: Transaction amount (negative = credit, positive = debit)
             merchant_name: Optional merchant name from PLAID
             plaid_category: Optional PLAID category (personal_finance_category.detailed)
             plaid_category_primary: Optional PLAID primary category (personal_finance_category.primary)
-        
+
         Returns:
             CategoryMatch with categorization result
         """
@@ -178,81 +178,81 @@ class TransactionCategorizer:
         text = self._normalize_text(description)
         merchant_text = self._normalize_text(merchant_name) if merchant_name else ""
         combined_text = f"{text} {merchant_text}".strip()
-        
+
         # Determine if income or expense based on PLAID amount convention.
         # In PLAID format: Negative amounts = credits (money IN to account),
         # Positive amounts = debits (money OUT of account).
         # This is the opposite of typical accounting where negative = outflow.
         is_credit = amount < 0
-        
+
         if is_credit:
             return self._categorize_income(combined_text, text, amount, plaid_category, plaid_category_primary)
         else:
             return self._categorize_expense(combined_text, text, plaid_category)
-    
+
     def _normalize_text(self, text: Optional[str]) -> str:
         """Normalize text for matching."""
         if not text:
             return ""
         # Convert to uppercase for matching
         return text.upper().strip()
-    
+
     def _build_debug_rationale(self, match_type: str, details: str = "") -> Optional[str]:
         """Build debug rationale string if debug mode is enabled.
-        
+
         Args:
             match_type: Type of match (e.g., 'plaid_detailed', 'keyword', 'transfer_pairing')
             details: Additional details about the match
-        
+
         Returns:
             Debug rationale string if debug_mode is True, None otherwise
         """
         if not self.debug_mode:
             return None
-        
+
         if details:
             return f"{match_type}: {details}"
         return match_type
-    
+
     def _find_transfer_pair(
-        self, 
-        transactions: List[Dict], 
+        self,
+        transactions: List[Dict],
         current_idx: int,
         amount: float,
         description: str,
         date_str: str
     ) -> Optional[Dict]:
         """Find potential transfer pair for this transaction (debit/credit matching).
-        
+
         Args:
             transactions: Full list of transactions
             current_idx: Index of current transaction
             amount: Transaction amount
             description: Transaction description
             date_str: Transaction date string (YYYY-MM-DD)
-        
+
         Returns:
             Matching transaction dict if found, None otherwise
         """
         if not transactions or not date_str:
             return None
-        
+
         try:
             from datetime import datetime, timedelta
             current_date = datetime.strptime(date_str, "%Y-%m-%d")
         except (ValueError, TypeError):
             return None
-        
+
         # Normalize description for comparison
         norm_desc = self._normalize_text(description)
         if len(norm_desc) < 3:  # Too short to match reliably
             return None
-        
+
         # Look for opposite-signed transaction within 1-2 days
         for i, txn in enumerate(transactions):
             if i == current_idx:
                 continue
-            
+
             txn_amount = txn.get("amount", 0)
             # Look for opposite sign
             if (amount < 0 and txn_amount >= 0) or (amount >= 0 and txn_amount < 0):
@@ -261,16 +261,16 @@ class TransactionCategorizer:
                 abs_txn_amount = abs(txn_amount)
                 if abs_amount == 0:
                     continue
-                
+
                 amount_diff = abs(abs_amount - abs_txn_amount) / abs_amount
                 if amount_diff > 0.10:  # More than 10% different
                     continue
-                
+
                 # Check date proximity (within 1-2 days)
                 txn_date_str = txn.get("date", "")
                 if not txn_date_str:
                     continue
-                
+
                 try:
                     txn_date = datetime.strptime(txn_date_str, "%Y-%m-%d")
                     days_diff = abs((current_date - txn_date).days)
@@ -278,49 +278,49 @@ class TransactionCategorizer:
                         continue
                 except (ValueError, TypeError):
                     continue
-                
+
                 # Check description overlap
                 txn_desc = self._normalize_text(txn.get("name", ""))
                 if len(txn_desc) < 3:
                     continue
-                
+
                 # Simple overlap check: find common words
                 desc_words = set(norm_desc.split())
                 txn_words = set(txn_desc.split())
                 if not desc_words or not txn_words:
                     continue
-                
+
                 common_words = desc_words.intersection(txn_words)
                 # Require at least 30% overlap
                 overlap_ratio = len(common_words) / min(len(desc_words), len(txn_words))
                 if overlap_ratio >= 0.30:
                     return txn
-        
+
         return None
-    
+
     def _normalize_hcstc_lender(self, merchant_name: str) -> Optional[str]:
         """
         Normalize HCSTC lender name to canonical form.
-        
+
         Args:
             merchant_name: Raw merchant/transaction name
-            
+
         Returns:
             Canonical lender name if recognized, None otherwise
         """
         if not merchant_name:
             return None
-            
+
         upper_name = merchant_name.upper()
-        
+
         # Use pre-sorted patterns (longest first) to ensure most specific match
         # This prevents "LENDING" from matching "MR LENDER" before "LENDING STREAM"
         for pattern, canonical in HCSTC_LENDER_PATTERNS_SORTED:
             if pattern in upper_name:
                 return canonical
-        
+
         return None
-    
+
     def _should_promote_transfer_to_income(
         self,
         description: str,
@@ -330,17 +330,17 @@ class TransactionCategorizer:
     ) -> Tuple[bool, float, str]:
         """
         Determine if a TRANSFER_IN should be promoted to income.
-        
+
         This rescues legitimate salary/wages that Plaid mislabeled as transfers.
-        
+
         Returns:
             (should_promote, confidence, reason)
         """
         if amount >= 0:  # Not a credit
             return (False, 0.0, "not_credit")
-        
+
         desc_upper = description.upper()
-        
+
         # EXCLUSIONS: These are real transfers, do NOT promote
         exclusion_keywords = [
             "OWN ACCOUNT", "INTERNAL", "SELF TRANSFER",
@@ -349,9 +349,9 @@ class TransactionCategorizer:
         ]
         if any(kw in desc_upper for kw in exclusion_keywords):
             return (False, 0.0, "excluded_internal_transfer")
-        
+
         # STRONG SIGNALS: Promote with high confidence
-        
+
         # 1. Gig economy payouts (check FIRST - more specific than "WEEKLY PAY")
         gig_keywords = [
             "UBER", "DELIVEROO", "JUST EAT", "STRIPE PAYOUT",
@@ -359,7 +359,7 @@ class TransactionCategorizer:
         ]
         if any(kw in desc_upper for kw in gig_keywords):
             return (True, 0.85, "transfer_promoted_gig_payout")
-        
+
         # 2. Explicit payroll keywords
         payroll_keywords = [
             "SALARY", "WAGES", "PAYROLL", "NET PAY", "WAGE",
@@ -368,17 +368,17 @@ class TransactionCategorizer:
         ]
         if any(kw in desc_upper for kw in payroll_keywords):
             return (True, 0.95, "transfer_promoted_payroll_keyword")
-        
+
         # 3. Company suffix (LTD, LIMITED, PLC, etc.) + meaningful amount
         if re.search(r'\b(LTD|LIMITED|PLC|LLP|INC|CORP)\b', desc_upper):
             if abs(amount) >= self.COMPANY_SUFFIX_MIN_AMOUNT:
                 return (True, 0.90, "transfer_promoted_company_suffix")
-        
+
         # 4. Faster Payment (FP-) prefix - common for salary
         if desc_upper.startswith("FP-") or " FP-" in desc_upper:
             if abs(amount) >= self.FASTER_PAYMENT_MIN_AMOUNT:
                 return (True, 0.88, "transfer_promoted_faster_payment")
-        
+
         # 5. Benefits keywords
         benefit_keywords = [
             "UNIVERSAL CREDIT", "DWP", "CHILD BENEFIT",
@@ -386,24 +386,24 @@ class TransactionCategorizer:
         ]
         if any(kw in desc_upper for kw in benefit_keywords):
             return (True, 0.92, "transfer_promoted_benefits")
-        
+
         # 6. Large one-off payment from named entity (not generic "PAYMENT")
         if abs(amount) >= self.LARGE_PAYMENT_MIN_AMOUNT:
             # Check if description has specific words (not just "PAYMENT" or "TRANSFER")
             generic_words = ["PAYMENT", "TRANSFER", "CREDIT", "DEBIT", "TFR"]
             words = desc_upper.split()
             specific_words = [w for w in words if w not in generic_words and len(w) > 3]
-            
+
             if len(specific_words) >= 2:  # Has meaningful identifier
                 return (True, 0.75, "transfer_promoted_large_named_payment")
-        
+
         # DEFAULT: Do not promote
         return (False, 0.0, "transfer_not_promoted")
-    
+
     def _looks_like_employer_name(self, description: str) -> bool:
         """
         Check if description looks like an employer name.
-        
+
         Returns True if description contains:
         - Company suffix (LTD, LIMITED, PLC, etc.)
         - Multiple words (not just "PAYMENT" or "TRANSFER")
@@ -411,22 +411,22 @@ class TransactionCategorizer:
         """
         if not description:
             return False
-        
+
         desc_upper = description.upper()
-        
+
         # Check for company suffix
         if not re.search(r'\b(LTD|LIMITED|PLC|LLP|INC|CORP|CORPORATION)\b', desc_upper):
             return False
-        
+
         # Check for generic words that indicate it's NOT an employer
         generic_only = ["PAYMENT", "TRANSFER", "CREDIT", "DEBIT", "FROM", "TO"]
         words = [w for w in desc_upper.split() if len(w) > 2]
         specific_words = [w for w in words if w not in generic_only]
-        
+
         # Need at least 2 specific words + company suffix
         return len(specific_words) >= 2
-    
-            
+
+
     def _check_strict_plaid_categories(
         self,
         plaid_category_detailed: Optional[str]
@@ -439,7 +439,7 @@ class TransactionCategorizer:
 
         # Check specific TRANSFER_IN categories BEFORE generic TRANSFER_IN
         # This ensures more specific matches take precedence
-        
+
         # Loan disbursements are NOT income (weight=0.0)
         if detailed_upper == "TRANSFER_IN_CASH_ADVANCES_AND_LOANS":
             return CategoryMatch(
@@ -503,7 +503,7 @@ class TransactionCategorizer:
                 weight=1.0,
                 is_stable=False
             )
-        
+
         # === EXPENSE SUBCATEGORIES → STRICT PLAID MAPPINGS ===
         # These take precedence over keyword matching to ensure PLAID categorization is preserved
         if "BANK_FEES_INSUFFICIENT_FUNDS" in detailed_upper:
@@ -516,7 +516,7 @@ class TransactionCategorizer:
                 weight=1.0,
                 is_stable=False
             )
-        
+
         if "BANK_FEES_OVERDRAFT" in detailed_upper:
             return CategoryMatch(
                 category="expense",
@@ -527,7 +527,7 @@ class TransactionCategorizer:
                 weight=1.0,
                 is_stable=False
             )
-        
+
         if "ENTERTAINMENT_CASINOS_AND_GAMBLING" in detailed_upper:
             return CategoryMatch(
                 category="expense",
@@ -540,19 +540,25 @@ class TransactionCategorizer:
             )
 
         return None
-    
+
     def _categorize_income(
-        self, 
-        combined_text: str, 
+        self,
+        combined_text: str,
         description: str,
         amount: float,
         plaid_category: Optional[str],
         plaid_category_primary: Optional[str] = None
     ) -> CategoryMatch:
         """Categorize an income transaction (credit)."""
-        
+
         # STEP 0A: Check strict PLAID categories FIRST (before any other logic)
-        strict_match = self._check_strict_plaid_categories(plaid_category)
+        # BUT:  Ignore TRANSFER_OUT categories when amount is negative (Plaid error)
+        plaid_detailed_upper = (plaid_category or "").upper()
+        if "TRANSFER_OUT" in plaid_detailed_upper:
+            # Skip Plaid's strict categorization - it's wrong for negative amounts
+            strict_match = None
+        else:
+            strict_match = self._check_strict_plaid_categories(plaid_category)
 
         # IMPORTANT:
         # - Some Plaid TRANSFER_IN entries are genuine income (e.g. salary via Faster Payments)
@@ -568,7 +574,7 @@ class TransactionCategorizer:
                 return strict_match
             transfer_fallback = strict_match
 
-        
+
         # STEP 0B: Known expense services should not be treated as income
         # EXCEPT when it's a payout (gig economy income)
         matched_service = None
@@ -608,7 +614,7 @@ class TransactionCategorizer:
                     weight=0.0,
                     is_stable=False
                 )
-                
+
                 # Refund/credit from a known expense service
                 return CategoryMatch(
                     category="income",
@@ -640,7 +646,7 @@ class TransactionCategorizer:
                 plaid_category=plaid_category,
                 plaid_category_primary=plaid_category_primary
             )
-            
+
             if should_promote:
                 # Determine subcategory from reason
                 if "payroll" in reason or "faster_payment" in reason or "company_suffix" in reason:
@@ -655,7 +661,7 @@ class TransactionCategorizer:
                 else:
                     subcategory = "other"
                     desc = "Other Income"
-                
+
                 return CategoryMatch(
                     category="income",
                     subcategory=subcategory,
@@ -667,14 +673,14 @@ class TransactionCategorizer:
                     debug_rationale=self._build_debug_rationale("transfer_promotion", reason)
                 )
 
-        
+
         # STEP 1: Check PLAID categories for high-confidence loan/transfer indicators
         # BEFORE applying keyword-based income detection
         # This preserves PLAID's accurate categorization of loan payments and transfers
         if plaid_category or plaid_category_primary:
             plaid_cat_upper = (plaid_category or "").upper()
             plaid_primary_upper = (plaid_category_primary or "").upper()
-            
+
             # Check for LOAN_PAYMENTS category - these are loan disbursements/refunds, NOT income
             # CRITICAL: This must be checked BEFORE keyword-based income detection to prevent
             # loan disbursements from being miscategorized as salary/income
@@ -688,7 +694,7 @@ class TransactionCategorizer:
                     weight=0.0,  # Not counted as income
                     is_stable=False
                 )
-            
+
             # Check for TRANSFER_IN with CASH_ADVANCES or LOANS
             # These are loan disbursements, should be categorized as income > loans with weight=0.0
             if "CASH_ADVANCES" in plaid_cat_upper or "ADVANCES" in plaid_cat_upper or "LOANS" in plaid_cat_upper:
@@ -702,7 +708,7 @@ class TransactionCategorizer:
                     weight=0.0,
                     is_stable=False
                 )
-            
+
             # Credit union handling (incoming loan proceeds vs outgoing repayments)
             desc_upper = (description or "").upper()
             if "CREDIT UNION" in desc_upper or "CU " in desc_upper:
@@ -727,8 +733,8 @@ class TransactionCategorizer:
                         match_method="keyword_credit_union",
                         weight=1.0,
                         is_stable=False
-                    ) 
-        
+                    )
+
         # STEP 2: SIMPLIFIED - Check PLAID INCOME_WAGES first (Pragmatic Fix)
         # Use simplified income detector (PLAID-first only, no behavioral)
         is_income, confidence, reason = self.income_detector.is_likely_income(
@@ -737,7 +743,7 @@ class TransactionCategorizer:
             plaid_category_primary=plaid_category_primary,
             plaid_category_detailed=plaid_category
         )
-        
+
         # If PLAID identifies as income with high confidence, trust it
         if is_income and confidence >= 0.85:
             # Determine subcategory based on reason
@@ -792,14 +798,14 @@ class TransactionCategorizer:
                     is_stable=False,
                     debug_rationale=self._build_debug_rationale("income_detection", reason)
                 )
-        
+
         # STEP 3: Check income patterns (keyword matching ONLY)
         # No PLAID guessing or behavioral detection
         for subcategory, patterns in self.income_patterns.items():
             match = self._match_patterns(combined_text, patterns)
             if match:
                 match_method, match_confidence = match
-                
+
                 return CategoryMatch(
                     category="income",
                     subcategory=subcategory,
@@ -810,7 +816,7 @@ class TransactionCategorizer:
                     is_stable=patterns.get("is_stable", False),
                     debug_rationale=self._build_debug_rationale("keyword_pattern_match", f"income/{subcategory}")
                 )
-        
+
         # STEP 4: Check for transfers (only if NOT identified as income above)
         if self._is_plaid_transfer(plaid_category_primary, plaid_category, description):
             return CategoryMatch(
@@ -822,7 +828,7 @@ class TransactionCategorizer:
                 weight=0.0,
                 is_stable=False
             )
-        
+
         # Check if it's a transfer based on keywords (fallback)
         if self._is_transfer(combined_text):
             return CategoryMatch(
@@ -834,7 +840,7 @@ class TransactionCategorizer:
                 weight=0.0,
                 is_stable=False
             )
-        
+
         # If we have a transfer fallback (e.g., Plaid TRANSFER_IN), keep it aside.
         # We still run income detection below (promotion/recurrence/keywords).
         # Only return transfer_fallback at the VERY end if nothing identifies income.
@@ -850,20 +856,20 @@ class TransactionCategorizer:
             weight=1.0,
             is_stable=False
         )
-    
+
     def _check_credit_card_or_catalogue_debt(
         self,
         combined_text: str
     ) -> Optional[CategoryMatch]:
         """
         Check if transaction matches credit card or catalogue debt patterns.
-        
+
         Helper method to avoid code duplication when checking for debt patterns
         before categorizing as groceries.
-        
+
         Args:
             combined_text: Combined description and merchant text (normalized)
-        
+
         Returns:
             CategoryMatch if debt pattern found, None otherwise
         """
@@ -881,21 +887,21 @@ class TransactionCategorizer:
                         risk_level=patterns.get("risk_level", "medium")
                     )
         return None
-    
+
     def _categorize_expense(
-        self, 
-        combined_text: str, 
+        self,
+        combined_text: str,
         description: str,
         plaid_category: Optional[str]
     ) -> CategoryMatch:
         """Categorize an expense transaction (debit)."""
-        
+
         # STEP 1: Check strict PLAID categories FIRST
         strict_match = self._check_strict_plaid_categories(plaid_category)
         if strict_match:
             return strict_match
-        
-        
+
+
         # Fallback to keyword/regex transfer detection
         # IMPORTANT: do NOT treat "standing order" alone as a transfer (rent/bills are often standing orders)
         if self._is_transfer(combined_text) and not re.search(r"(?i)\bstanding\s*order\b", combined_text):
@@ -908,7 +914,7 @@ class TransactionCategorizer:
                 weight=0.0,
                 is_stable=False
             )
-        
+
         # STEP 2: Check risk patterns (highest priority)
         for subcategory, patterns in self.risk_patterns.items():
             match = self._match_patterns(combined_text, patterns)
@@ -921,7 +927,7 @@ class TransactionCategorizer:
                     match_method=match[0],
                     risk_level=patterns.get("risk_level", "medium")
                 )
-        
+
         # STEP 3: Check expense patterns (after risk patterns)
         for subcategory, patterns in self.expense_patterns.items():
             match = self._match_patterns(combined_text, patterns)
@@ -933,10 +939,10 @@ class TransactionCategorizer:
                     description=patterns.get("description", subcategory),
                     match_method=match[0]
                 )
-        
+
         # SIMPLIFIED: Let keyword patterns drive categorization naturally
         # No PLAID defaults that override keyword matching (Pragmatic Fix)
-        
+
         # Special case: If description contains BANK or CREDIT CARD indicators, check debt first
         # This handles "SAINSBURYS BANK" vs "SAINSBURYS" distinction
         if any(indicator in combined_text for indicator in ["BANK", "CREDIT CARD", "CARD", "BARCLAYCARD"]):
@@ -952,7 +958,7 @@ class TransactionCategorizer:
                         match_method=match[0],
                         risk_level=patterns.get("risk_level", "medium")
                     )
-        
+
         # Check essential patterns BEFORE debt patterns (for non-bank transactions)
         # This prevents grocery stores from being miscategorized as credit card/catalogue debt
         for subcategory, patterns in self.essential_patterns.items():
@@ -966,7 +972,7 @@ class TransactionCategorizer:
                     match_method=match[0],
                     is_housing=patterns.get("is_housing", False)
                 )
-        
+
         # Check debt patterns AFTER essential patterns
         for subcategory, patterns in self.debt_patterns.items():
             match = self._match_patterns(combined_text, patterns)
@@ -979,7 +985,7 @@ class TransactionCategorizer:
                     match_method=match[0],
                     risk_level=patterns.get("risk_level", "medium")
                 )
-            
+
         # IMPORTANT: Use PLAID category fallback BEFORE checking positive patterns
         # This prevents "positive" keyword collisions (e.g., CHIP vs Chipotle)
         # This preserves high-confidence PLAID categorizations (e.g., gambling, restaurants)
@@ -988,7 +994,7 @@ class TransactionCategorizer:
             plaid_match = self._match_plaid_category(plaid_category, is_income=False)
             if plaid_match:
                 return plaid_match
-        
+
         # Check positive patterns
         for subcategory, patterns in self.positive_patterns.items():
             match = self._match_patterns(combined_text, patterns)
@@ -1000,8 +1006,8 @@ class TransactionCategorizer:
                     description=patterns.get("description", subcategory),
                     match_method=match[0]
                 )
-        
-                
+
+
         # Unknown expense (only reached if no patterns matched AND no PLAID category)
         return CategoryMatch(
             category="expense",
@@ -1010,16 +1016,16 @@ class TransactionCategorizer:
             description="Other Expense",
             match_method="default"
         )
-    
+
     def _check_gig_economy_patterns(self, combined_text: str) -> Optional[CategoryMatch]:
         """
         Check if transaction matches gig economy patterns.
-        
+
         Helper method to avoid duplicate gig economy checking logic.
-        
+
         Args:
             combined_text: Combined description and merchant text (normalized)
-        
+
         Returns:
             CategoryMatch if gig economy pattern found, None otherwise
         """
@@ -1037,77 +1043,77 @@ class TransactionCategorizer:
                         is_stable=patterns.get("is_stable", False)
                     )
         return None
-    
+
     def _is_transfer(self, text: str) -> bool:
         """Check if transaction is an internal transfer."""
         patterns = self.transfer_patterns
-        
+
         # Check keywords
         for keyword in patterns.get("keywords", []):
             if keyword.upper() in text:
                 return True
-        
+
         # Check regex patterns
         for pattern in patterns.get("regex_patterns", []):
             if re.search(pattern, text):
                 return True
-        
+
         return False
-    
+
     def _contains_salary_keywords(self, text: str) -> bool:
         """
         Check if transaction description contains salary/income-related keywords.
-        
+
         This is used to identify legitimate salary payments that PLAID may have
         miscategorized as transfers (e.g., BANK GIRO CREDIT, FP- prefix payments).
-        
+
         Args:
             text: Transaction description text (should be uppercase)
-        
+
         Returns:
             True if salary keywords are found, False otherwise
         """
         if not text:
             return False
-        
+
         # Check for salary keywords
         for keyword in self.SALARY_KEYWORDS:
             if keyword in text:
                 return True
-        
+
         # Check for FP- prefix (Faster Payments for salary)
         if text.startswith("FP-") or " FP-" in text:
             return True
-        
+
         # Check for patterns like "COMPANY NAME LTD" or "COMPANY NAME LIMITED"
         # These often indicate employer payments
         if re.search(r'\b(LTD|LIMITED|PLC)\b', text):
             # But only if it doesn't contain obvious transfer keywords
             if not any(kw in text for kw in self.TRANSFER_EXCLUSION_KEYWORDS):
                 return True
-        
+
         return False
-    
+
     def _is_plaid_transfer(
-        self, 
-        plaid_category_primary: Optional[str], 
+        self,
+        plaid_category_primary: Optional[str],
         plaid_category_detailed: Optional[str],
         description: Optional[str] = None
     ) -> bool:
         """
         Check if transaction is a transfer based on Plaid categories.
-        
+
         Args:
             plaid_category_primary: The primary Plaid category (e.g., "TRANSFER_IN")
             plaid_category_detailed: The detailed Plaid category (e.g., "TRANSFER_IN_ACCOUNT_TRANSFER")
             description: Optional transaction description to check for salary keywords
-        
+
         Returns:
             True if the transaction is identified as a transfer, False otherwise
         """
         if not plaid_category_primary and not plaid_category_detailed:
             return False
-        
+
         # Check primary category for transfer indicators
         if plaid_category_primary:
             primary_upper = plaid_category_primary.upper()
@@ -1117,7 +1123,7 @@ class TransactionCategorizer:
                 if description and self._contains_salary_keywords(description.upper()):
                     return False  # Not a transfer - it's likely salary
                 return True
-        
+
         # Check detailed category for transfer indicators
         if plaid_category_detailed:
             detailed_upper = plaid_category_detailed.upper()
@@ -1127,17 +1133,17 @@ class TransactionCategorizer:
                 if description and self._contains_salary_keywords(description.upper()):
                     return False  # Not a transfer - it's likely salary
                 return True
-        
+
         return False
-    
+
     def _match_patterns(
-        self, 
-        text: str, 
+        self,
+        text: str,
         patterns: Dict
     ) -> Optional[Tuple[str, float]]:
         """
         Match text against pattern dictionary.
-        
+
         Returns:
             Tuple of (match_method, confidence) or None if no match
         """
@@ -1145,12 +1151,12 @@ class TransactionCategorizer:
         for keyword in patterns.get("keywords", []):
             if keyword.upper() in text:
                 return ("keyword", 0.95)
-        
+
         # Check regex patterns
         for pattern in patterns.get("regex_patterns", []):
             if re.search(pattern, text, re.IGNORECASE):
                 return ("regex", 0.90)
-        
+
         # Try fuzzy matching if available
         if RAPIDFUZZ_AVAILABLE and _fuzz is not None:
             for keyword in patterns.get("keywords", []):
@@ -1158,16 +1164,16 @@ class TransactionCategorizer:
                 if score >= self.FUZZY_THRESHOLD:
                     return ("fuzzy", score / 100.0)
         return None
-    
+
     def _match_plaid_category(
-        self, 
-        plaid_category: str, 
+        self,
+        plaid_category: str,
         is_income: bool
     ) -> Optional[CategoryMatch]:
         """Map PLAID category to our categories."""
         if not plaid_category:
             return None
-        
+
         plaid_upper = plaid_category.upper()
 
         # Check specific expense categories BEFORE generic patterns
@@ -1224,7 +1230,7 @@ class TransactionCategorizer:
                 is_stable=False
             )
 
-        
+
         # Income categories
         if is_income:
             if "SALARY" in plaid_upper or "PAYROLL" in plaid_upper:
@@ -1257,7 +1263,7 @@ class TransactionCategorizer:
                     weight=1.0,
                     is_stable=True
                 )
-        
+
         # Expense categories
         else:
             if "RENT" in plaid_upper:
@@ -1312,24 +1318,24 @@ class TransactionCategorizer:
                     match_method="plaid",
                     risk_level="medium"
                 )
-        
+
         return None
-    
+
     def categorize_transactions(
-        self, 
+        self,
         transactions: List[Dict]
     ) -> List[Tuple[Dict, CategoryMatch]]:
         """
         Categorize a list of transactions.
-        
+
         Args:
             transactions: List of transaction dictionaries
-        
+
         Returns:
             List of tuples (transaction, category_match)
         """
         results = []
-        
+
         for i, txn in enumerate(transactions):
             txn["_batch_index"] = i
 
@@ -1354,7 +1360,7 @@ class TransactionCategorizer:
                         plaid_category = pfc.get("detailed")
                     if not plaid_category_primary:
                         plaid_category_primary = pfc.get("primary")
-            
+
             category_match = self.categorize_transaction(
                 description=description,
                 amount=amount,
@@ -1362,28 +1368,28 @@ class TransactionCategorizer:
                 plaid_category=plaid_category,
                 plaid_category_primary=plaid_category_primary
             )
-            
+
             results.append((txn, category_match))
-        
+
         return results
-    
+
     def categorize_transactions_batch(
         self,
         transactions: List[Dict]
     ) -> List[Tuple[Dict, CategoryMatch]]:
         """
         Categorize a list of transactions with optimized batch processing.
-        
+
         This method is more efficient than categorize_transactions() for large
         transaction lists because it performs recurring pattern detection once
         for the entire batch, rather than potentially analyzing patterns for
         each individual transaction.
-        
+
         Performance Benefits:
         - Single pass for recurring income detection (O(n²) once vs. potentially per-transaction)
         - Cached pattern lookup for individual categorizations (O(1) per transaction)
         - Dramatically faster for large transaction sets (100+ transactions)
-        
+
         Args:
             transactions: List of transaction dictionaries with:
                 - 'name': Transaction description
@@ -1391,10 +1397,10 @@ class TransactionCategorizer:
                 - 'date': Transaction date (YYYY-MM-DD)
                 - 'merchant_name': Optional merchant name
                 - 'personal_finance_category': Optional PLAID category (dict or flat fields)
-        
+
         Returns:
             List of tuples (transaction, category_match)
-        
+
         Example:
             >>> categorizer = TransactionCategorizer()
             >>> transactions = [
@@ -1410,11 +1416,11 @@ class TransactionCategorizer:
         self.income_detector.analyze_batch(transactions)
         self._current_batch_transactions = transactions
 
-        
+
         try:
             # Step 2: Categorize each transaction using cached patterns
             results = []
-            
+
             for idx, txn in enumerate(transactions):
                 txn["_batch_index"] = idx
 
@@ -1432,7 +1438,7 @@ class TransactionCategorizer:
                     or txn.get("plaid_category_primary")
                 )
 
-                
+
                 # Handle nested PLAID category if present
                 if "personal_finance_category" in txn:
                     pfc = txn.get("personal_finance_category", {})
@@ -1441,7 +1447,7 @@ class TransactionCategorizer:
                             plaid_category = pfc.get("detailed")
                         if not plaid_category_primary:
                             plaid_category_primary = pfc.get("primary")
-                
+
                 # Use optimized batch categorization
                 category_match = self._categorize_transaction_from_batch(
                     description=description,
@@ -1451,17 +1457,17 @@ class TransactionCategorizer:
                     plaid_category=plaid_category,
                     plaid_category_primary=plaid_category_primary
                 )
-                
+
                 results.append((txn, category_match))
-            
+
             return results
-        
+
         finally:
             # Step 3: Clean up cache to avoid memory leaks
             self.income_detector.clear_batch_cache()
             self._current_batch_transactions = None
 
-    
+
     def _categorize_transaction_from_batch(
         self,
         description: str,
@@ -1473,10 +1479,10 @@ class TransactionCategorizer:
     ) -> CategoryMatch:
         """
         Categorize a single transaction using cached batch patterns.
-        
+
         Internal method used by categorize_transactions_batch(). Uses the
         income detector's cached recurring patterns for efficient categorization.
-        
+
         Args:
             description: Transaction description/name
             amount: Transaction amount (negative = credit, positive = debit)
@@ -1484,7 +1490,7 @@ class TransactionCategorizer:
             merchant_name: Optional merchant name from PLAID
             plaid_category: Optional PLAID category (personal_finance_category.detailed)
             plaid_category_primary: Optional PLAID primary category
-        
+
         Returns:
             CategoryMatch with categorization result
         """
@@ -1492,22 +1498,22 @@ class TransactionCategorizer:
         text = self._normalize_text(description)
         merchant_text = self._normalize_text(merchant_name) if merchant_name else ""
         combined_text = f"{text} {merchant_text}".strip()
-        
+
         # Determine if income or expense
         is_credit = amount < 0
-        
+
         if is_credit:
             return self._categorize_income_from_batch(
-                combined_text, 
-                text, 
-                amount, 
+                combined_text,
+                text,
+                amount,
                 transaction_index,
-                plaid_category, 
+                plaid_category,
                 plaid_category_primary
             )
         else:
             return self._categorize_expense(combined_text, text, plaid_category)
-    
+
     def _categorize_income_from_batch(
         self,
         combined_text: str,
@@ -1519,7 +1525,7 @@ class TransactionCategorizer:
     ) -> CategoryMatch:
         """
         Categorize an income transaction using cached batch patterns.
-        
+
         Internal method that uses the optimized is_likely_income_from_batch()
         which leverages pre-computed recurring patterns.
         """
@@ -1538,7 +1544,7 @@ class TransactionCategorizer:
                 return strict_match
             transfer_fallback = strict_match
 
-        
+
         # **STEP 0B: AGGRESSIVE TRANSFER PROMOTION** (MOVED UP - MUST RUN FIRST)
         # Check if this TRANSFER_IN should be promoted to income
         if transfer_fallback is not None:
@@ -1548,7 +1554,7 @@ class TransactionCategorizer:
                 plaid_category=plaid_category,
                 plaid_category_primary=plaid_category_primary
             )
-            
+
             if should_promote:
                 # Determine subcategory from reason
                 if "payroll" in reason or "faster_payment" in reason or "company_suffix" in reason:
@@ -1563,7 +1569,7 @@ class TransactionCategorizer:
                 else:
                     subcategory = "other"
                     desc = "Other Income"
-                
+
                 return CategoryMatch(
                     category="income",
                     subcategory=subcategory,
@@ -1601,7 +1607,7 @@ class TransactionCategorizer:
                         match_method="plaid",
                         weight=0.0,
                         is_stable=False
-                    )       
+                    )
                 return CategoryMatch(
                     category="income",
                     subcategory="other",
@@ -1611,12 +1617,12 @@ class TransactionCategorizer:
                     weight=1.0,
                     is_stable=False
                 )
-               
+
         # STEP 1: Check PLAID categories for loan/transfer indicators (same as non-batch)
         if plaid_category or plaid_category_primary:
             plaid_cat_upper = (plaid_category or "").upper()
             plaid_primary_upper = (plaid_category_primary or "").upper()
-            
+
             # Check for LOAN_PAYMENTS category - these are loan disbursements/refunds, NOT income
             if "LOAN_PAYMENTS" in plaid_primary_upper or "LOAN_PAYMENTS" in plaid_cat_upper:
                 return CategoryMatch(
@@ -1628,7 +1634,7 @@ class TransactionCategorizer:
                     weight=0.0,
                     is_stable=False
                 )
-            
+
             if "CASH_ADVANCES" in plaid_cat_upper or "ADVANCES" in plaid_cat_upper or "LOANS" in plaid_cat_upper:
                 return CategoryMatch(
                     category="income",
@@ -1703,8 +1709,8 @@ class TransactionCategorizer:
                         match_method="keyword_credit_union",
                         weight=1.0,
                         is_stable=False
-                    )  
-        
+                    )
+
         # SIMPLIFIED: Use same logic as non-batch (Pragmatic Fix)
         # Just delegate to simplified income detector
         is_income, confidence, reason = self.income_detector.is_likely_income(
@@ -1716,7 +1722,7 @@ class TransactionCategorizer:
             current_txn_index=transaction_index
         )
 
-        
+
         # If PLAID identifies as income with high confidence, trust it
         if is_income and confidence >= 0.85:
             # Determine subcategory based on reason
@@ -1746,13 +1752,13 @@ class TransactionCategorizer:
                     weight=1.0,  # Lower weight for uncertain income
                     is_stable=False
                 )
-        
+
         # Check income patterns (keyword matching ONLY)
         for subcategory, patterns in self.income_patterns.items():
             match = self._match_patterns(combined_text, patterns)
             if match:
                 match_method, match_confidence = match
-                
+
                 return CategoryMatch(
                     category="income",
                     subcategory=subcategory,
@@ -1762,7 +1768,7 @@ class TransactionCategorizer:
                     weight=patterns.get("weight", 1.0),
                     is_stable=patterns.get("is_stable", False)
                 )
-        
+
         # STEP 4: Check for transfers (only if NOT identified as income above)
         if self._is_plaid_transfer(plaid_category_primary, plaid_category, description):
             return CategoryMatch(
@@ -1785,12 +1791,12 @@ class TransactionCategorizer:
                 match_method="keyword",
                 weight=0.0,
                 is_stable=False
-            )  
-        
+            )
+
         # If Plaid told us TRANSFER_IN and nothing else promoted it to income, keep it as transfer
         if transfer_fallback:
             return transfer_fallback
-        
+
         # Unknown income (default with low weight)
         return CategoryMatch(
             category="income",
@@ -1798,17 +1804,17 @@ class TransactionCategorizer:
             confidence=0.5,
             description="Other Income",
             match_method="default",
-            weight=1.0,  
+            weight=1.0,
             is_stable=False
         )
-    
+
     def get_category_summary(
-        self, 
+        self,
         categorized_transactions: List[Tuple[Dict, CategoryMatch]]
     ) -> Dict:
         """
         Generate a summary of categorized transactions.
-        
+
         Returns:
             Dictionary with category totals and counts
         """
@@ -1823,15 +1829,15 @@ class TransactionCategorizer:
                         recent_date = txn_date
                 except ValueError:
                     continue
-        
+
         if recent_date is None:
             recent_date = datetime.now()
-        
+
         hcstc_cutoff = recent_date - timedelta(days=90)
         failed_payment_cutoff = recent_date - timedelta(days=45)
         bank_charges_cutoff = recent_date - timedelta(days=90)
         new_credit_cutoff = recent_date - timedelta(days=90)
-        
+
         summary = {
             "income": {
                 "salary": {"total": 0.0, "count": 0},
@@ -1844,8 +1850,8 @@ class TransactionCategorizer:
             },
             "debt": {
                 "hcstc_payday": {
-                    "total": 0.0, 
-                    "count": 0, 
+                    "total": 0.0,
+                    "count": 0,
                     "lenders": set(),
                     "lenders_90d": set(),
                     "credit_providers_90d": set(),
@@ -1893,12 +1899,12 @@ class TransactionCategorizer:
             },
             "other": {"total": 0.0, "count": 0},
         }
-        
+
         for txn, match in categorized_transactions:
             amount = abs(txn.get("amount", 0))
             category = match.category
             subcategory = match.subcategory
-            
+
             txn_date = None
             txn_date_str = txn.get("date", "")
             if txn_date_str:
@@ -1906,7 +1912,7 @@ class TransactionCategorizer:
                     txn_date = datetime.strptime(txn_date_str, "%Y-%m-%d")
                 except ValueError:
                     pass
-            
+
             if category in summary and subcategory in summary.get(category, {}):
                 if category == "income":
                     summary[category][subcategory]["total"] += (amount * match.weight)
@@ -1925,7 +1931,7 @@ class TransactionCategorizer:
                             amount=raw_amt,
                             all_transactions=txns,
                             current_txn_index=idx
-                        )  
+                        )
                     if is_rec:
                         # recurring commitments (Netflix etc) count at 100%
                         summary[category][subcategory]["total"] += amount
@@ -1933,19 +1939,19 @@ class TransactionCategorizer:
                         # one-offs / noise discounted
                         summary[category][subcategory]["total"] += (amount * 0.5)
                     summary[category][subcategory]["count"] += 1
-                
+
                 else:
                     # All other categories and subcategories (including new expense subcategories)
                     summary[category][subcategory]["total"] += amount
                     summary[category][subcategory]["count"] += 1
-                    
+
                     # Track HCSTC lenders for risk assessment
                     if category == "debt" and subcategory == "hcstc_payday":
                         # Extract lender name from transaction
                         lender_name = txn.get("name", "").strip().upper()
                         if lender_name:
                             summary["debt"]["hcstc_payday"]["lenders"].add(lender_name)
-                            
+
                             # Also track lenders in last 90 days
                             if txn_date and txn_date >= hcstc_cutoff:
                                 summary["debt"]["hcstc_payday"]["lenders_90d"].add(lender_name)
