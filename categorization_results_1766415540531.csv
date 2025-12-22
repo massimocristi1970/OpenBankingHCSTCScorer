@@ -1,0 +1,981 @@
+date,description,amount,merchant_name,category,subcategory,confidence,match_method,description_text,plaid_category_primary,plaid_category_detailed,risk_level,weight,is_stable,is_housing
+15/10/2024,Claudia's Account to Chase Saver,8,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+15/10/2024,Claudia's Account to Chase Saver,21.11,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+15/10/2024,Claudia's Account to Chase Saver,29.84,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+15/10/2024,From MORREN CG,-29.84,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+14/10/2024,Apple,1.79,Apple,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_OTHER_GENERAL_MERCHANDISE,,1,FALSE,FALSE
+14/10/2024,Chase Saver to Claudia's Account,-260,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+14/10/2024,Chase Saver to Claudia's Account,-30,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+14/10/2024,Chase Saver to Claudia's Account,-21,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+14/10/2024,Claudia's Account to Chase Saver,5.22,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+14/10/2024,Claudia's Account to Chase Saver,57,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+14/10/2024,Claudia's Account to Chase Saver,120.23,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+14/10/2024,From MORREN CG,-120.23,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+14/10/2024,From Mangopay S. A.,-57,Mangopay,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+14/10/2024,MrLender.com,254.78,Mr Lender,debt,hcstc_payday,0.95,keyword,HCSTC / Payday Lenders,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,very_high,1,FALSE,FALSE
+14/10/2024,Oh Polly,20.41,Oh Polly,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+14/10/2024,SHEIN,-0.31,Shein,income,other,0.5,default,Other Income,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+13/10/2024,Claudia's Account to Chase Saver,0.52,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+10/10/2024,Chase Saver to Claudia's Account,-100,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+10/10/2024,Chase Saver to Claudia's Account,-4.99,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+10/10/2024,Rtrn Ship Sorelle-Pos,4.99,Rtrn Ship Sorelle,expense,gambling,0.98,plaid_strict,Gambling,ENTERTAINMENT,ENTERTAINMENT_CASINOS_AND_GAMBLING,,1,FALSE,FALSE
+10/10/2024,To Matthew Clapperton,100,Clapperton,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+09/10/2024,Chase Saver to Claudia's Account,-38,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+09/10/2024,Chase Saver to Claudia's Account,-14,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+09/10/2024,Claudia's Account to Chase Saver,29.94,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+09/10/2024,Khalid Hamid K - SumUp,38,Khalid Hamid,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+09/10/2024,Uber,13.48,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+09/10/2024,Vinted,-29.94,,income,gig_economy,0.95,keyword,Gig Economy Income,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+07/10/2024,7Klarna6 - Klarna,112.27,Klarna,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+07/10/2024,Chase Saver to Claudia's Account,-130,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+07/10/2024,Chase Saver to Claudia's Account,-112.27,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+07/10/2024,Chase Saver to Claudia's Account,-68.02,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+07/10/2024,Chase Saver to Claudia's Account,-56,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+07/10/2024,Chase Saver to Claudia's Account,-29.94,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+07/10/2024,Chase Saver to Claudia's Account,-25,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+07/10/2024,Chase Saver to Claudia's Account,-25,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+07/10/2024,Claudia's Account to Chase Saver,0.48,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+07/10/2024,Claudia's Account to Chase Saver,7,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+07/10/2024,Claudia's Account to Chase Saver,7.13,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+07/10/2024,From MORREN CG,-0.51,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+07/10/2024,Oh Polly,17.87,Oh Polly,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+07/10/2024,TikTok Shop,18,Tiktok,expense,discretionary,0.9,plaid,Discretionary Spending,ENTERTAINMENT,ENTERTAINMENT_OTHER_ENTERTAINMENT,,1,FALSE,FALSE
+07/10/2024,To Capital One,55.93,Capital One,debt,credit_cards,0.95,keyword,Credit Cards,LOAN_PAYMENTS,LOAN_PAYMENTS_CREDIT_CARD_PAYMENT,low,1,FALSE,FALSE
+07/10/2024,Vinted,29.94,Vinted,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_ONLINE_MARKETPLACES,,1,FALSE,FALSE
+07/10/2024,Zilch,68.02,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+07/10/2024,Zilch,130.1,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+06/10/2024,Chase Saver to Claudia's Account,-29,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+06/10/2024,Chase Saver to Claudia's Account,-5,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+06/10/2024,Claudia's Account to Chase Saver,2.84,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+06/10/2024,Claudia's Account to Chase Saver,6.5,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+06/10/2024,Claudia's Account to Chase Saver,726,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+06/10/2024,Credit,-642,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+06/10/2024,Credit,-84,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+06/10/2024,David Lloyd Clubs,2.16,David Lloyd Clubs,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+06/10/2024,Nando's,22.5,Nando's,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_FAST_FOOD,,1,FALSE,FALSE
+05/10/2024,Chase Saver to Claudia's Account,-0.3,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+05/10/2024,Claudia's Account to Chase Saver,1.05,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+05/10/2024,Claudia's Account to Chase Saver,1.67,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+05/10/2024,Claudia's Account to Chase Saver,29.85,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+05/10/2024,From Mangopay S. A.,-10,Mangopay,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+05/10/2024,Vinted,-29.85,,income,gig_economy,0.95,keyword,Gig Economy Income,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+05/10/2024,Zilch,8.33,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+04/10/2024,Chase Saver to Claudia's Account,-37,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+04/10/2024,Zilch,36.25,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+03/10/2024,ASOS,23.31,ASOS,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+03/10/2024,Chase Saver to Claudia's Account,-18.31,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+03/10/2024,Chase Saver to Claudia's Account,-5,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+03/10/2024,Claudia's Account to Chase Saver,60,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+03/10/2024,From Mangopay S. A.,-60,Mangopay,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+02/10/2024,Chase Saver to Claudia's Account,-23,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+02/10/2024,Chase Saver to Claudia's Account,-2,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+02/10/2024,To Claudia Morren,2,Morren,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+02/10/2024,To Claudia Morren,23,Morren,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+01/10/2024,Chase Saver to Claudia's Account,-39.99,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+01/10/2024,Chase Saver to Claudia's Account,-30,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+01/10/2024,Chase Saver to Claudia's Account,-21,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+01/10/2024,Chase Saver to Claudia's Account,-14,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+01/10/2024,Chase Saver to Claudia's Account,-3,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+01/10/2024,Claudia's Account to Chase Saver,24.88,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+01/10/2024,Claudia's Account to Chase Saver,68.73,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+01/10/2024,From C Morren,-95,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+01/10/2024,From C Morren,-23,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+01/10/2024,SHEIN,16.78,Shein,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+01/10/2024,Sp Peppermayo Uk,51,Pepper Mayo Uk,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_OTHER_TRANSFER_OUT,,1,FALSE,FALSE
+01/10/2024,Vinted,15.26,Vinted,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_ONLINE_MARKETPLACES,,1,FALSE,FALSE
+01/10/2024,Vinted,29.85,Vinted,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_ONLINE_MARKETPLACES,,1,FALSE,FALSE
+01/10/2024,Zilch,19.49,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+30/09/2024,Chase Saver to Claudia's Account,-39,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+30/09/2024,Chase Saver to Claudia's Account,-25,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+30/09/2024,Chase Saver to Claudia's Account,-0.45,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+30/09/2024,Claudia's Account to Chase Saver,39.91,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+30/09/2024,From MORREN CG,-17.73,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+30/09/2024,Vinted,20.98,Vinted,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_ONLINE_MARKETPLACES,,1,FALSE,FALSE
+30/09/2024,Vinted,21.29,Vinted,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_ONLINE_MARKETPLACES,,1,FALSE,FALSE
+28/09/2024,Claudia's Account to Chase Saver,64.45,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+28/09/2024,From C Morren,-25,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+26/09/2024,From MORREN CG,-6.2,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+26/09/2024,From Mangopay S. A.,-16,Mangopay,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+26/09/2024,Jaded London,-36,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+26/09/2024,Zilch,18.75,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+24/09/2024,Chase Saver to Claudia's Account,-0.57,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+24/09/2024,From C Morren,-45,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+24/09/2024,From MORREN CG,-11,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+24/09/2024,From Rewards,-2.45,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+24/09/2024,To Claudia Morren,5.03,Morren,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+24/09/2024,To Claudia Morren,45,Morren,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+24/09/2024,Zilch,10.41,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+23/09/2024,Chase Saver to Claudia's Account,-139,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+23/09/2024,Claudia's Account to Chase Saver,139.57,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+23/09/2024,From MORREN CG,-60,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+23/09/2024,From MORREN CG,-36.05,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+23/09/2024,From Mangopay S. A.,-103.52,Mangopay,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+23/09/2024,MrLender.com,191.58,Mr Lender,debt,hcstc_payday,0.95,keyword,HCSTC / Payday Lenders,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,very_high,1,FALSE,FALSE
+23/09/2024,NOW,6,NOW,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+17/09/2024,17klarna3 - Klarna,60.65,Klarna,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+17/09/2024,Chase Saver to Claudia's Account,-36.28,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+17/09/2024,Chase Saver to Claudia's Account,-35,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+17/09/2024,Claudia's Account to Chase Saver,35,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+17/09/2024,From C Morren,-35,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+17/09/2024,From MORREN CG,-60.65,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+17/09/2024,From MORREN CG,-39,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+17/09/2024,From Mangopay S. A.,-35,Mangopay,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+17/09/2024,To Claudia Morren,35,Morren,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+17/09/2024,To Claudia Morren,35,Morren,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+17/09/2024,To Claudia Morren,77.88,Morren,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+16/09/2024,Chase Saver to Claudia's Account,-5,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+16/09/2024,Claudia's Account to Chase Saver,41.28,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+16/09/2024,David Lloyd Clubs,2.4,David Lloyd Clubs,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+16/09/2024,From Mangopay S. A.,-23,Mangopay,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+16/09/2024,From Mangopay S. A.,-18,Mangopay,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+15/09/2024,Chase Saver to Claudia's Account,-5.28,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+15/09/2024,From MORREN CG,-3,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+15/09/2024,To Claudia Morren,8,Morren,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+14/09/2024,Claudia's Account to Chase Saver,0.64,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+13/09/2024,Apple,1.79,Apple,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_OTHER_GENERAL_MERCHANDISE,,1,FALSE,FALSE
+13/09/2024,Chase Saver to Claudia's Account,-529.99,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+13/09/2024,Chase Saver to Claudia's Account,-256,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+13/09/2024,Chase Saver to Claudia's Account,-177,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+13/09/2024,Chase Saver to Claudia's Account,-21,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+13/09/2024,Chase Saver to Claudia's Account,-2,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+13/09/2024,Claudia's Account to Chase Saver,6,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+13/09/2024,Claudia's Account to Chase Saver,703.84,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+13/09/2024,Creation Finance,20.79,Creation,debt,other_loans,0.8,plaid,Loan Payment,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,medium,1,FALSE,FALSE
+13/09/2024,DICE,170.82,DICE,expense,discretionary,0.9,plaid,Discretionary Spending,ENTERTAINMENT,ENTERTAINMENT_MUSIC_AND_AUDIO,,1,FALSE,FALSE
+13/09/2024,To Claudia Morren,529.99,Morren,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+13/09/2024,Zilch,255.96,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+12/09/2024,Chase Saver to Claudia's Account,-12,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+12/09/2024,Chase Saver to Claudia's Account,-10,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+12/09/2024,Chase Saver to Claudia's Account,-10,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+12/09/2024,Chase Saver to Claudia's Account,-6,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+12/09/2024,Chase Saver to Claudia's Account,-6,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+12/09/2024,Claudia's Account to Chase Saver,10.75,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+12/09/2024,Claudia's Account to Chase Saver,275.89,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+12/09/2024,Credit,-700,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+12/09/2024,David Lloyd Clubs,2.16,David Lloyd Clubs,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+12/09/2024,From Mangopay S. A.,-275,Mangopay,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+12/09/2024,From Rewards,-20.73,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+12/09/2024,Tanz Tanning,9.25,Tanz Tanning,expense,discretionary,0.9,plaid,Discretionary Spending,PERSONAL_CARE,PERSONAL_CARE_HAIR_AND_BEAUTY,,1,FALSE,FALSE
+12/09/2024,To Capital One,26,Capital One,debt,credit_cards,0.95,keyword,Credit Cards,LOAN_PAYMENTS,LOAN_PAYMENTS_CREDIT_CARD_PAYMENT,low,1,FALSE,FALSE
+12/09/2024,To Lucie Morren,12,Lucie Morren,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+11/09/2024,Chase Saver to Claudia's Account,-5,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+11/09/2024,To Claudia Morren,5,Morren,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+10/09/2024,Chase Saver to Claudia's Account,-40,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+10/09/2024,Jaded London,39.99,Ja Ded London,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_OTHER_TRANSFER_OUT,,1,FALSE,FALSE
+09/09/2024,Chase Saver to Claudia's Account,-4,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+09/09/2024,Tesco,3.85,Tesco,essential,groceries,0.95,keyword,Groceries,FOOD_AND_DRINK,FOOD_AND_DRINK_GROCERIES,,1,FALSE,FALSE
+08/09/2024,Chase Saver to Claudia's Account,-13,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+08/09/2024,Chase Saver to Claudia's Account,-12,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+08/09/2024,Chase Saver to Claudia's Account,-11.05,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+08/09/2024,Chase Saver to Claudia's Account,-1.8,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+08/09/2024,Claudia's Account to Chase Saver,13.24,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+08/09/2024,Claudia's Account to Chase Saver,86.91,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+08/09/2024,Credit,-84,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+08/09/2024,Freddy's Edinburgh,9.75,Freddy's Edinburgh,debt,other_loans,0.8,plaid,Loan Payment,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,medium,1,FALSE,FALSE
+08/09/2024,Freddy's Edinburgh,19.5,Freddy's Edinburgh,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+08/09/2024,From D Marandola,-20,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+08/09/2024,Uber,1.66,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+08/09/2024,Uber,8.43,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+08/09/2024,Uber,13.41,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+07/09/2024,Chase Saver to Claudia's Account,-60,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+07/09/2024,Chase Saver to Claudia's Account,-54,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+07/09/2024,Chase Saver to Claudia's Account,-30,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+07/09/2024,Chase Saver to Claudia's Account,-30,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+07/09/2024,Chase Saver to Claudia's Account,-20,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+07/09/2024,Chase Saver to Claudia's Account,-20,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+07/09/2024,Chase Saver to Claudia's Account,-20,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+07/09/2024,Chase Saver to Claudia's Account,-15,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+07/09/2024,Claudia's Account to Chase Saver,7.62,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+07/09/2024,Claudia's Account to Chase Saver,15.15,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+07/09/2024,Claudia's Account to Chase Saver,196.26,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+07/09/2024,Dice.fm,88.31,DICE,expense,discretionary,0.9,plaid,Discretionary Spending,ENTERTAINMENT,ENTERTAINMENT_MUSIC_AND_AUDIO,,1,FALSE,FALSE
+07/09/2024,Elios,18,El Ios,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+07/09/2024,Freddy's Edinburgh,9.75,Freddy's Edinburgh,debt,other_loans,0.8,plaid,Loan Payment,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,medium,1,FALSE,FALSE
+07/09/2024,Freddy's Edinburgh,9.75,Freddy's Edinburgh,debt,other_loans,0.8,plaid,Loan Payment,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,medium,1,FALSE,FALSE
+07/09/2024,From MORREN CG,-187.26,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+07/09/2024,From MORREN CG,-19,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+07/09/2024,Lulu,9.45,Lulu,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_OTHER_TRANSFER_OUT,,1,FALSE,FALSE
+07/09/2024,Private Indivi - SumUp,10,Private Indivi,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+07/09/2024,River Island,25,River Island,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+07/09/2024,Uber,16.07,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+07/09/2024,Wingstop,38.85,Wingstop,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_FAST_FOOD,,1,FALSE,FALSE
+06/09/2024,Chase Saver to Claudia's Account,-30,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+06/09/2024,Chase Saver to Claudia's Account,-15,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+06/09/2024,Claudia's Account to Chase Saver,5.75,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+06/09/2024,Claudia's Account to Chase Saver,18.68,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+06/09/2024,Claudia's Account to Chase Saver,75.39,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+06/09/2024,From Mangopay S. A.,-75,Mangopay,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+06/09/2024,Nintendo,11.32,Nintendo,expense,discretionary,0.9,plaid,Discretionary Spending,ENTERTAINMENT,ENTERTAINMENT_VIDEO_GAMES,,1,FALSE,FALSE
+06/09/2024,Tanz Tanning,9.25,Tanz Tanning,expense,discretionary,0.9,plaid,Discretionary Spending,PERSONAL_CARE,PERSONAL_CARE_HAIR_AND_BEAUTY,,1,FALSE,FALSE
+03/09/2024,To Capital One,9,Capital One,debt,credit_cards,0.95,keyword,Credit Cards,LOAN_PAYMENTS,LOAN_PAYMENTS_CREDIT_CARD_PAYMENT,low,1,FALSE,FALSE
+02/09/2024,Chase Saver to Claudia's Account,-39.3,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+02/09/2024,From MORREN CG,-140.93,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+02/09/2024,Zilch,40.97,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+02/09/2024,Zilch,47.39,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+02/09/2024,Zilch,82.48,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+01/09/2024,Chase Saver to Claudia's Account,-60,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+01/09/2024,Chase Saver to Claudia's Account,-60,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+01/09/2024,Chase Saver to Claudia's Account,-60,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+01/09/2024,Chase Saver to Claudia's Account,-17,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+01/09/2024,Claudia's Account to Chase Saver,33.46,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+01/09/2024,Claudia's Account to Chase Saver,76,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+01/09/2024,Freddy's Edinburgh,29.25,Freddy's Edinburgh,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+01/09/2024,Private Indivi - SumUp,20,Private Indivi,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+01/09/2024,Zara,43.97,Zara,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+31/08/2024,Chase Saver to Claudia's Account,-70,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+31/08/2024,Chase Saver to Claudia's Account,-60,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+31/08/2024,Claudia's Account to Chase Saver,185,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+31/08/2024,Co-op - ATM,70,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_WITHDRAWAL,,1,FALSE,FALSE
+31/08/2024,From MORREN CG,-200,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+31/08/2024,Interest earned,-0.02,,income,other,0.7,batch_plaid_plaid_detailed_income,Other Income,INCOME,INCOME_INTEREST_EARNED,,1,FALSE,FALSE
+31/08/2024,Le Monde Hotel,13.65,Le Monde Hotel,expense,other,0.3,default,Other Expense,TRAVEL,TRAVEL_LODGING,,1,FALSE,FALSE
+31/08/2024,Le Monde Hotel,13.65,Le Monde Hotel,expense,other,0.3,default,Other Expense,TRAVEL,TRAVEL_LODGING,,1,FALSE,FALSE
+31/08/2024,Le Monde Hotel,13.65,Le Monde Hotel,expense,other,0.3,default,Other Expense,TRAVEL,TRAVEL_LODGING,,1,FALSE,FALSE
+31/08/2024,Le Monde Hotel,13.65,Le Monde Hotel,expense,other,0.3,default,Other Expense,TRAVEL,TRAVEL_LODGING,,1,FALSE,FALSE
+31/08/2024,Le Monde Hotel,15.75,Le Monde Hotel,expense,other,0.3,default,Other Expense,TRAVEL,TRAVEL_LODGING,,1,FALSE,FALSE
+30/08/2024,Channel 4 Television,3.99,Channel 4 Television,expense,discretionary,0.9,plaid,Discretionary Spending,ENTERTAINMENT,ENTERTAINMENT_TV_AND_MOVIES,,1,FALSE,FALSE
+30/08/2024,Chase Saver to Claudia's Account,-5,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+30/08/2024,Claudia's Account to Chase Saver,5.65,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+30/08/2024,From MORREN CG,-354,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+30/08/2024,To Madison Gray,354,,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+29/08/2024,Chase Saver to Claudia's Account,-40,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+29/08/2024,From MORREN CG,-80,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+29/08/2024,Jaded London,38.49,Ja Ded London,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_OTHER_TRANSFER_OUT,,1,FALSE,FALSE
+29/08/2024,Oh Polly,77.24,Oh Polly,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+28/08/2024,Chase Saver to Claudia's Account,-195,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+28/08/2024,Chase Saver to Claudia's Account,-20,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+28/08/2024,Claudia's Account to Chase Saver,0.87,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+28/08/2024,Claudia's Account to Chase Saver,36.75,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+28/08/2024,From MORREN CG,-36.75,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+28/08/2024,Uber Eats,18.62,Uber Eats,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+28/08/2024,Zilch,4.88,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+28/08/2024,Zilch,47.37,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+28/08/2024,Zilch,59.42,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+28/08/2024,Zilch,82.46,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+27/08/2024,Schuh,23.33,Schuh,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+26/08/2024,Adanola,47.15,Ad Anola,essential,groceries,0.85,plaid,Groceries,FOOD_AND_DRINK,FOOD_AND_DRINK_GROCERIES,,1,FALSE,FALSE
+26/08/2024,Chase Saver to Claudia's Account,-60,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+26/08/2024,Chase Saver to Claudia's Account,-30,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+26/08/2024,Claudia's Account to Chase Saver,6.99,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+26/08/2024,From C Morren,-35,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+26/08/2024,Mango,33.94,Mango,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+26/08/2024,Schuh,21.66,Schuh,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+25/08/2024,Chase Saver to Claudia's Account,-70,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+25/08/2024,Chase Saver to Claudia's Account,-60,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+25/08/2024,Chase Saver to Claudia's Account,-40.13,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+25/08/2024,Chase Saver to Claudia's Account,-40,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+25/08/2024,Chase Saver to Claudia's Account,-22,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+25/08/2024,Claudia's Account to Chase Saver,56.26,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+25/08/2024,Claudia's Account to Chase Saver,124,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+25/08/2024,Dine,21,Dine,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+25/08/2024,Nando's,21.5,Nando's,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_FAST_FOOD,,1,FALSE,FALSE
+25/08/2024,Uber,15.93,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+25/08/2024,Uber,19.87,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+25/08/2024,Uber,24,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+25/08/2024,Whats on Tickets,16.5,Whats On Tickets,expense,discretionary,0.9,plaid,Discretionary Spending,ENTERTAINMENT,ENTERTAINMENT_SPORTING_EVENTS_AMUSEMENT_PARKS_AND_MUSEUMS,,1,FALSE,FALSE
+24/08/2024,Boots,90,Boots,expense,other,0.3,default,Other Expense,MEDICAL,MEDICAL_PHARMACIES_AND_SUPPLEMENTS,,1,FALSE,FALSE
+24/08/2024,Chase Saver to Claudia's Account,-100,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+24/08/2024,Chase Saver to Claudia's Account,-100,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+24/08/2024,Chase Saver to Claudia's Account,-100,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+24/08/2024,Chase Saver to Claudia's Account,-60,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+24/08/2024,Chase Saver to Claudia's Account,-60,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+24/08/2024,Chase Saver to Claudia's Account,-50,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+24/08/2024,Chase Saver to Claudia's Account,-20,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+24/08/2024,Chase Saver to Claudia's Account,-20,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+24/08/2024,Chase Saver to Claudia's Account,-20,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+24/08/2024,Claudia's Account to Chase Saver,11.45,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+24/08/2024,Claudia's Account to Chase Saver,155.22,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+24/08/2024,Dine,7,Dine,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+24/08/2024,Dine,28,Dine,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+24/08/2024,Dine,56,Dine,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+24/08/2024,Dine,56,Dine,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+24/08/2024,Uber,15.36,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+24/08/2024,Uber,17.42,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+24/08/2024,Uber Eats,18.55,Uber Eats,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+23/08/2024,Chase Saver to Claudia's Account,-374.49,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+23/08/2024,Chase Saver to Claudia's Account,-60,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+23/08/2024,Chase Saver to Claudia's Account,-60,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+23/08/2024,Chase Saver to Claudia's Account,-60,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+23/08/2024,Chase Saver to Claudia's Account,-37.76,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+23/08/2024,Chase Saver to Claudia's Account,-16.2,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+23/08/2024,Claudia's Account to Chase Saver,20.75,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+23/08/2024,Claudia's Account to Chase Saver,30,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+23/08/2024,Claudia's Account to Chase Saver,1344.01,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+23/08/2024,From MORREN CG,-1628.94,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+23/08/2024,MrLender.com,287,Mr Lender,debt,hcstc_payday,0.95,keyword,HCSTC / Payday Lenders,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,very_high,1,FALSE,FALSE
+23/08/2024,To Iona Nisbet,16.2,Iona Nisbet,expense,gambling,0.98,plaid_strict,Gambling,ENTERTAINMENT,ENTERTAINMENT_CASINOS_AND_GAMBLING,,1,FALSE,FALSE
+23/08/2024,To The Five Lamps Organisation Registered Charity 702314,374.49,The Five Lamps Organ,transfer,internal,0.9,keyword,Internal Transfer,GOVERNMENT_AND_NON_PROFIT,GOVERNMENT_AND_NON_PROFIT_DONATIONS,,0,FALSE,FALSE
+23/08/2024,Zilch,11.65,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+23/08/2024,Zilch,23.16,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+23/08/2024,Zilch,35.72,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+23/08/2024,Zilch,39.25,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+23/08/2024,Zilch,57.23,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+22/08/2024,Zilch,4.87,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+19/08/2024,Chase Saver to Claudia's Account,-33.34,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+19/08/2024,Zara,28.23,Zara,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+18/08/2024,Chase Saver to Claudia's Account,-22,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+18/08/2024,Chase Saver to Claudia's Account,-1,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+18/08/2024,Claudia's Account to Chase Saver,56.16,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+18/08/2024,From C Morren,-80,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+18/08/2024,Uber Eats,21.17,Uber Eats,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+18/08/2024,Uber Eats,23.84,Uber Eats,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+17/08/2024,Chase Saver to Claudia's Account,-14,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+17/08/2024,To Millie Duffy,14,Millie Duffy,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+16/08/2024,Claudia's Account to Chase Saver,14.17,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+15/08/2024,Uber Eats,12.96,Uber Eats,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+15/08/2024,ZigZag Global,2.49,Zigzag Global,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_OTHER_TRANSFER_OUT,,1,FALSE,FALSE
+14/08/2024,Standard Life,1.45,,expense,other,0.3,default,Other Expense,GENERAL_SERVICES,GENERAL_SERVICES_INSURANCE,,1,FALSE,FALSE
+14/08/2024,Tesco,4.05,Tesco,essential,groceries,0.95,keyword,Groceries,FOOD_AND_DRINK,FOOD_AND_DRINK_GROCERIES,,1,FALSE,FALSE
+14/08/2024,Tesco,4.5,Tesco,essential,groceries,0.95,keyword,Groceries,FOOD_AND_DRINK,FOOD_AND_DRINK_GROCERIES,,1,FALSE,FALSE
+14/08/2024,Uber,19.87,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+13/08/2024,From MORREN CG,-50,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+13/08/2024,From MORREN CG,-10,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+13/08/2024,Uber,6.24,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+12/08/2024,Apple,1.79,Apple,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_OTHER_GENERAL_MERCHANDISE,,1,FALSE,FALSE
+12/08/2024,David Lloyd Clubs,9.85,David Lloyd Clubs,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+12/08/2024,From MORREN CG,-10,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+11/08/2024,Chase Saver to Claudia's Account,-30,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+11/08/2024,Chase Saver to Claudia's Account,-6,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+11/08/2024,NOW,6,NOW,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+11/08/2024,Uber Eats,22.65,Uber Eats,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+10/08/2024,Chase Saver to Claudia's Account,-67,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+10/08/2024,Chase Saver to Claudia's Account,-50,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+10/08/2024,Chase Saver to Claudia's Account,-30,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+10/08/2024,Claudia's Account to Chase Saver,21.81,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+10/08/2024,Claudia's Account to Chase Saver,84.94,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+10/08/2024,Freddy's Edinburgh,9.75,Freddy's Edinburgh,debt,other_loans,0.8,plaid,Loan Payment,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,medium,1,FALSE,FALSE
+10/08/2024,Uber,14.93,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+10/08/2024,Uber,66.98,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+10/08/2024,Zara,-47.04,Zara,income,other,0.5,default,Other Income,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+10/08/2024,Zara,-25.99,Zara,income,other,0.5,default,Other Income,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+10/08/2024,Zilch,23.16,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+09/08/2024,Chase Saver to Claudia's Account,-60,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+09/08/2024,Chase Saver to Claudia's Account,-20,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+09/08/2024,Chase Saver to Claudia's Account,-20,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+09/08/2024,Chase Saver to Claudia's Account,-2,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+09/08/2024,Claudia's Account to Chase Saver,16.4,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+09/08/2024,Claudia's Account to Chase Saver,150,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+09/08/2024,Freddy's Edinburgh,9.75,Freddy's Edinburgh,debt,other_loans,0.8,plaid,Loan Payment,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,medium,1,FALSE,FALSE
+09/08/2024,Freddy's Edinburgh,10.65,Freddy's Edinburgh,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+09/08/2024,From C Morren,-150,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+09/08/2024,Musselburgh Rc,18.4,Mussel Burgh Rc,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_OTHER_TRANSFER_OUT,,1,FALSE,FALSE
+09/08/2024,Musselburgh Rc,25.2,Mussel Burgh Rc,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_OTHER_TRANSFER_OUT,,1,FALSE,FALSE
+09/08/2024,Uber,20.04,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+08/08/2024,Charlie Miller Holy C,38.75,Charlie Miller Holy,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+08/08/2024,Chase Saver to Claudia's Account,-60,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+08/08/2024,Chase Saver to Claudia's Account,-40,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+08/08/2024,Chase Saver to Claudia's Account,-40,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+08/08/2024,Chase Saver to Claudia's Account,-20,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+08/08/2024,Chase Saver to Claudia's Account,-20,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+08/08/2024,Chase Saver to Claudia's Account,-15,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+08/08/2024,Chase Saver to Claudia's Account,-12,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+08/08/2024,Chase Saver to Claudia's Account,-10,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+08/08/2024,Claudia's Account to Chase Saver,4,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+08/08/2024,Claudia's Account to Chase Saver,5.14,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+08/08/2024,Claudia's Account to Chase Saver,7.05,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+08/08/2024,Claudia's Account to Chase Saver,12.34,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+08/08/2024,Claudia's Account to Chase Saver,30,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+08/08/2024,From MORREN CG,-31,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+08/08/2024,From Mangopay S. A.,-30,Mangopay,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+08/08/2024,Starbucks,8.3,Starbucks,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_COFFEE,,1,FALSE,FALSE
+08/08/2024,Tanz Tanning,8.5,Tanz Tanning,expense,discretionary,0.9,plaid,Discretionary Spending,PERSONAL_CARE,PERSONAL_CARE_HAIR_AND_BEAUTY,,1,FALSE,FALSE
+08/08/2024,To Madison Gray,80,,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+08/08/2024,To Tat Nails & Spa,56,Tat Nails & Spa,expense,discretionary,0.9,plaid,Discretionary Spending,PERSONAL_CARE,PERSONAL_CARE_HAIR_AND_BEAUTY,,1,FALSE,FALSE
+08/08/2024,Uber,14.36,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+08/08/2024,Uber,20.61,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+08/08/2024,Zilch,4.87,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+07/08/2024,Chase Saver to Claudia's Account,-40,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+07/08/2024,Chase Saver to Claudia's Account,-30,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+07/08/2024,Chase Saver to Claudia's Account,-3,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+07/08/2024,To Claudia Morren,3,Morren,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+07/08/2024,Zara,38.71,Zara,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+07/08/2024,Zilch,19.37,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+06/08/2024,Chase Saver to Claudia's Account,-3,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+06/08/2024,Claudia's Account to Chase Saver,11.27,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+06/08/2024,To Claudia Morren,3,Morren,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+05/08/2024,ASOS,28.73,ASOS,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+05/08/2024,Chase Saver to Claudia's Account,-40,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+05/08/2024,Chase Saver to Claudia's Account,-27,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+05/08/2024,Claudia's Account to Chase Saver,27.41,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+05/08/2024,Claudia's Account to Chase Saver,274.51,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+05/08/2024,From MORREN CG,-282,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+05/08/2024,Zara,-17.32,Zara,income,other,0.5,default,Other Income,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+05/08/2024,Zara,-4.95,Zara,income,other,0.5,default,Other Income,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+05/08/2024,Zilch,34.49,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+04/08/2024,Chase Saver to Claudia's Account,-51,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+04/08/2024,Freddy's Edinburgh,9.75,Freddy's Edinburgh,debt,other_loans,0.8,plaid,Loan Payment,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,medium,1,FALSE,FALSE
+04/08/2024,From MORREN CG,-9,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+04/08/2024,Uber,4.7,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+04/08/2024,Uber,12.47,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+04/08/2024,Uber,21.65,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+04/08/2024,Uber Eats,21.25,Uber Eats,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+03/08/2024,Chase Saver to Claudia's Account,-60,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+03/08/2024,Chase Saver to Claudia's Account,-60,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+03/08/2024,Chase Saver to Claudia's Account,-40,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+03/08/2024,Chase Saver to Claudia's Account,-40,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+03/08/2024,Chase Saver to Claudia's Account,-20,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+03/08/2024,Claudia's Account to Chase Saver,24.66,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+03/08/2024,Claudia's Account to Chase Saver,26,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+03/08/2024,Claudia's Account to Chase Saver,40,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+03/08/2024,Dines Bristo Sqr Bar,14,D Ines Bristo Sqr Bar,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+03/08/2024,Dines Bristo Sqr Bar,19,D Ines Bristo Sqr Bar,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+03/08/2024,Dines Bristo Sqr Bar,28,D Ines Bristo Sqr Bar,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+03/08/2024,Dines Bristo Sqr Bar,49,D Ines Bristo Sqr Bar,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+03/08/2024,Dines Bristo Sqr Bar,56,D Ines Bristo Sqr Bar,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+03/08/2024,From MORREN CG,-105,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+03/08/2024,Private Indivi - SumUp,13,Private Indivi,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+03/08/2024,Tesco,16.3,Tesco,essential,groceries,0.95,keyword,Groceries,FOOD_AND_DRINK,FOOD_AND_DRINK_GROCERIES,,1,FALSE,FALSE
+03/08/2024,Uber,5.04,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+03/08/2024,Uber,19.04,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+02/08/2024,Booking.com,107,Booking.com,expense,other,0.3,default,Other Expense,TRAVEL,TRAVEL_OTHER_TRAVEL,,1,FALSE,FALSE
+02/08/2024,Chase Saver to Claudia's Account,-410.11,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+02/08/2024,Chase Saver to Claudia's Account,-162.44,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+02/08/2024,Chase Saver to Claudia's Account,-140,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+02/08/2024,Chase Saver to Claudia's Account,-107,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+02/08/2024,Claudia's Account to Chase Saver,26,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+02/08/2024,Claudia's Account to Chase Saver,26,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+02/08/2024,Claudia's Account to Chase Saver,207.96,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+02/08/2024,From MORREN CG,-207.05,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+02/08/2024,From MORREN CG,-26,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+02/08/2024,From MORREN CG,-26,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+02/08/2024,To Lucie Morren,140,Lucie Morren,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+02/08/2024,To The Five Lamps Organisation Registered Charity 702314,410.11,The Five Lamps Organ,transfer,internal,0.9,keyword,Internal Transfer,GOVERNMENT_AND_NON_PROFIT,GOVERNMENT_AND_NON_PROFIT_DONATIONS,,0,FALSE,FALSE
+02/08/2024,Zilch,34.1,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+02/08/2024,Zilch,44.75,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+02/08/2024,Zilch,83.59,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+01/08/2024,ASOS,33.95,ASOS,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+01/08/2024,Chase Saver to Claudia's Account,-70,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+01/08/2024,Chase Saver to Claudia's Account,-34,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+01/08/2024,Chase Saver to Claudia's Account,-6,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+01/08/2024,Chase Saver to Claudia's Account,-1,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+01/08/2024,NOW,6.99,NOW,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+01/08/2024,Zara Online,70.93,Zara,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+31/07/2024,Bonnie & Wild,3.6,Bonnie & Wild,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+31/07/2024,Bonnie & Wild,16.5,Bonnie & Wild,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+31/07/2024,Chase Saver to Claudia's Account,-560,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+31/07/2024,Chase Saver to Claudia's Account,-410.11,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+31/07/2024,Chase Saver to Claudia's Account,-40,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+31/07/2024,Chase Saver to Claudia's Account,-31,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+31/07/2024,Chase Saver to Claudia's Account,-30,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+31/07/2024,Chase Saver to Claudia's Account,-7,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+31/07/2024,Claudia's Account to Chase Saver,18.68,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+31/07/2024,Claudia's Account to Chase Saver,410.11,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+31/07/2024,Interest earned,-0.06,,income,other,0.7,batch_plaid_plaid_detailed_income,Other Income,INCOME,INCOME_INTEREST_EARNED,,1,FALSE,FALSE
+31/07/2024,Ticktock,560,Tick Tock,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+31/07/2024,Uber,15.18,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+31/07/2024,Uber,17.84,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+31/07/2024,Uber,34.48,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+30/07/2024,Chase Saver to Claudia's Account,-556,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+30/07/2024,Chase Saver to Claudia's Account,-62,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+30/07/2024,Chase Saver to Claudia's Account,-8.77,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+30/07/2024,Chase Saver to Claudia's Account,-5,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+30/07/2024,Claudia's Account to Chase Saver,3.63,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+30/07/2024,Claudia's Account to Chase Saver,40.78,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+30/07/2024,Claudia's Account to Chase Saver,556,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+30/07/2024,Claudia's Account to Chase Saver,1500,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+30/07/2024,From MORREN CG,-488.44,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+30/07/2024,From MORREN CG,-345,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+30/07/2024,From MORREN CG,-46,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+30/07/2024,From MR LENDER,-1500,Mr Lender,income,loans,0.95,plaid,Loan Payments/Disbursements,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,,0,FALSE,FALSE
+30/07/2024,From Mangopay S. A.,-29,Mangopay,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+30/07/2024,MrLender.com,346.64,Mr Lender,debt,hcstc_payday,0.95,keyword,HCSTC / Payday Lenders,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,very_high,1,FALSE,FALSE
+30/07/2024,To Capital One,497.21,Capital One,debt,credit_cards,0.95,keyword,Credit Cards,LOAN_PAYMENTS,LOAN_PAYMENTS_CREDIT_CARD_PAYMENT,low,1,FALSE,FALSE
+30/07/2024,Zara Online,45.93,Zara,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+30/07/2024,Zilch,61.8,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+29/07/2024,Claudia's Account to Chase Saver,31.36,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+29/07/2024,From MORREN CG,-40,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+29/07/2024,Zara Online,28.22,Zara,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+28/07/2024,ASOS,30.86,ASOS,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+28/07/2024,Deliveroo,29.08,Deliveroo,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+28/07/2024,From MORREN CG,-50,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+28/07/2024,From MORREN CG,-30,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+26/07/2024,ZigZag Global,2.49,Zigzag Global,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_OTHER_TRANSFER_OUT,,1,FALSE,FALSE
+26/07/2024,Zilch,44.5,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+25/07/2024,EGO,24.97,EGO,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+25/07/2024,From MORREN CG,-100,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+25/07/2024,From MORREN CG,-70,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+25/07/2024,Uber,23.6,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+25/07/2024,Zilch,74.25,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+24/07/2024,Zilch,-7.01,Zilch,income,loans,0.98,plaid_strict,Loan Payments/Disbursements,TRANSFER_IN,TRANSFER_IN_CASH_ADVANCES_AND_LOANS,,0,FALSE,FALSE
+22/07/2024,From MORREN CG,-39,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+22/07/2024,Nintendo,69.84,Nintendo,expense,discretionary,0.9,plaid,Discretionary Spending,ENTERTAINMENT,ENTERTAINMENT_VIDEO_GAMES,,1,FALSE,FALSE
+22/07/2024,From MORREN CG,-27.83,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+19/07/2024,CaffŠ Nero,4.35,Caff Ô Nero,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_COFFEE,,1,FALSE,FALSE
+19/07/2024,Zilch,-6.01,Zilch,income,loans,0.98,plaid_strict,Loan Payments/Disbursements,TRANSFER_IN,TRANSFER_IN_CASH_ADVANCES_AND_LOANS,,0,FALSE,FALSE
+18/07/2024,Chase Saver to Claudia's Account,-0.5,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+18/07/2024,From MORREN CG,-100,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+18/07/2024,From Mangopay S. A.,-12,Mangopay,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+18/07/2024,Zilch,5.48,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+18/07/2024,Zilch,13.5,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+18/07/2024,Zilch,13.97,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+18/07/2024,Zilch,31.96,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+18/07/2024,Zilch,44.03,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+18/07/2024,iTunes,4.99,Apple iTunes,expense,discretionary,0.9,plaid,Discretionary Spending,ENTERTAINMENT,ENTERTAINMENT_MUSIC_AND_AUDIO,,1,FALSE,FALSE
+17/07/2024,Boots,4,Boots,expense,other,0.3,default,Other Expense,MEDICAL,MEDICAL_PHARMACIES_AND_SUPPLEMENTS,,1,FALSE,FALSE
+17/07/2024,CaffŠ Nero,8.3,Caff Ô Nero,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_COFFEE,,1,FALSE,FALSE
+17/07/2024,Chase Saver to Claudia's Account,-15,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+17/07/2024,Chase Saver to Claudia's Account,-10,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+17/07/2024,Chase Saver to Claudia's Account,-10,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+17/07/2024,Chase Saver to Claudia's Account,-5,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+17/07/2024,David Lloyd Clubs,3.87,David Lloyd Clubs,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+17/07/2024,GoFundMe,10,GoFundMe,expense,other,0.3,default,Other Expense,GOVERNMENT_AND_NON_PROFIT,GOVERNMENT_AND_NON_PROFIT_DONATIONS,,1,FALSE,FALSE
+17/07/2024,Tesco,6.95,Tesco,essential,groceries,0.95,keyword,Groceries,FOOD_AND_DRINK,FOOD_AND_DRINK_GROCERIES,,1,FALSE,FALSE
+16/07/2024,Chase Saver to Claudia's Account,-80.7,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+16/07/2024,Claudia's Account to Chase Saver,9,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+16/07/2024,Claudia's Account to Chase Saver,28.28,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+16/07/2024,From MORREN CG,-70,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+16/07/2024,From Mangopay S. A.,-9,Mangopay,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+16/07/2024,Zara Online,41.72,Zara,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+16/07/2024,Zilch,15.97,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+16/07/2024,Zilch,64.73,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+15/07/2024,Claudia's Account to Chase Saver,54.06,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+15/07/2024,From Mangopay S. A.,-54,Mangopay,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+14/07/2024,Chase Saver to Claudia's Account,-0.81,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+14/07/2024,Private Indivi - SumUp,1,Private Indivi,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+14/07/2024,Private Indivi - SumUp,8,Private Indivi,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+14/07/2024,To Iona Nisbet,3,Iona Nisbet,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+14/07/2024,Uber Eats,7.65,Uber Eats,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+13/07/2024,Chase Saver to Claudia's Account,-40,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+13/07/2024,Chase Saver to Claudia's Account,-35,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+13/07/2024,Chase Saver to Claudia's Account,-30,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+13/07/2024,Chase Saver to Claudia's Account,-14,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+13/07/2024,Chase Saver to Claudia's Account,-8,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+13/07/2024,Claudia's Account to Chase Saver,16.6,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+13/07/2024,Freddy's Edinburgh,10.65,Freddy's Edinburgh,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+13/07/2024,From MORREN CG,-50,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+13/07/2024,Grand Cru,8.2,Grand Cru,expense,other,0.3,default,Other Expense,TRAVEL,TRAVEL_OTHER_TRAVEL,,1,FALSE,FALSE
+13/07/2024,Grand Cru,8.2,Grand Cru,expense,other,0.3,default,Other Expense,TRAVEL,TRAVEL_OTHER_TRAVEL,,1,FALSE,FALSE
+13/07/2024,Grand Cru,24.6,Grand Cru,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+13/07/2024,Ticketmaster,17.67,Ticketmaster,expense,discretionary,0.9,plaid,Discretionary Spending,ENTERTAINMENT,ENTERTAINMENT_SPORTING_EVENTS_AMUSEMENT_PARKS_AND_MUSEUMS,,1,FALSE,FALSE
+13/07/2024,To Iona Nisbet,14,Iona Nisbet,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+13/07/2024,Tonic Bar,30.43,Tonic Bar,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+13/07/2024,Zilch,27.75,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+12/07/2024,Chase Saver to Claudia's Account,-40,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+12/07/2024,Claudia's Account to Chase Saver,1.14,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+12/07/2024,Claudia's Account to Chase Saver,22.51,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+12/07/2024,Zilch,17.49,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+11/07/2024,CaffŠ Nero,4.05,Caff Ô Nero,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_COFFEE,,1,FALSE,FALSE
+11/07/2024,Chase Saver to Claudia's Account,-15,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+11/07/2024,Chase Saver to Claudia's Account,-11,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+11/07/2024,Chase Saver to Claudia's Account,-6,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+11/07/2024,Chase Saver to Claudia's Account,-5,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+11/07/2024,Checkout.com,4.35,Checkout,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_OTHER_TRANSFER_OUT,,1,FALSE,FALSE
+11/07/2024,Tesco,5.85,Tesco,essential,groceries,0.95,keyword,Groceries,FOOD_AND_DRINK,FOOD_AND_DRINK_GROCERIES,,1,FALSE,FALSE
+11/07/2024,Uber,10.51,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+11/07/2024,Uber,11.1,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+10/07/2024,Apple,1.79,Apple,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_OTHER_GENERAL_MERCHANDISE,,1,FALSE,FALSE
+10/07/2024,CaffŠ Nero,8.3,Caff Ô Nero,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_COFFEE,,1,FALSE,FALSE
+10/07/2024,Chase Saver to Claudia's Account,-20,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+10/07/2024,Chase Saver to Claudia's Account,-12,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+10/07/2024,Chase Saver to Claudia's Account,-10,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+10/07/2024,Chase Saver to Claudia's Account,-8.3,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+10/07/2024,Claudia's Account to Chase Saver,6.28,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+10/07/2024,Hilton,12,Abbi Hilton,expense,other,0.3,default,Other Expense,TRAVEL,TRAVEL_LODGING,,1,FALSE,FALSE
+10/07/2024,Tesco,4.75,Tesco,essential,groceries,0.95,keyword,Groceries,FOOD_AND_DRINK,FOOD_AND_DRINK_GROCERIES,,1,FALSE,FALSE
+10/07/2024,Uber,17.18,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+09/07/2024,Chase Saver to Claudia's Account,-57,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+09/07/2024,Claudia's Account to Chase Saver,265.58,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+09/07/2024,From Mangopay S. A.,-264.4,Mangopay,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+09/07/2024,To Lucie Morren,57,Lucie Morren,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+08/07/2024,Chase Saver to Claudia's Account,-29,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+08/07/2024,Chase Saver to Claudia's Account,-0.82,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+08/07/2024,Claudia's Account to Chase Saver,4.6,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+08/07/2024,From MORREN CG,-4.6,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+08/07/2024,Uber,13.65,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+08/07/2024,Zilch,14.99,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+07/07/2024,Chase Saver to Claudia's Account,-29,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+07/07/2024,Claudia's Account to Chase Saver,24.3,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+07/07/2024,Claudia's Account to Chase Saver,29.92,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+07/07/2024,Lulu,19.6,Lulu,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_OTHER_TRANSFER_OUT,,1,FALSE,FALSE
+07/07/2024,Uber,4.7,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+06/07/2024,Chase Saver to Claudia's Account,-70,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+06/07/2024,Chase Saver to Claudia's Account,-60,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+06/07/2024,Chase Saver to Claudia's Account,-40,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+06/07/2024,Chase Saver to Claudia's Account,-30,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+06/07/2024,Chase Saver to Claudia's Account,-19.77,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+06/07/2024,Claudia's Account to Chase Saver,41.03,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+06/07/2024,Freddy's Edinburgh,10.65,Freddy's Edinburgh,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+06/07/2024,Freddy's Edinburgh,19.5,Freddy's Edinburgh,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+06/07/2024,Freddy's Edinburgh,19.5,Freddy's Edinburgh,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+06/07/2024,Lulu,19.6,Lulu,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_OTHER_TRANSFER_OUT,,1,FALSE,FALSE
+06/07/2024,Private Indivi - SumUp,1,Private Indivi,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+06/07/2024,To Iona Nisbet,60,Iona Nisbet,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+05/07/2024,From MORREN CG,-20,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+05/07/2024,Weekday,18.97,Week Day,debt,other_loans,0.8,plaid,Loan Payment,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,medium,1,FALSE,FALSE
+03/07/2024,Claudia's Account to Chase Saver,178.74,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+03/07/2024,Credit,-178.74,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+02/07/2024,Chase Saver to Claudia's Account,-134,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+02/07/2024,Chase Saver to Claudia's Account,-40,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+02/07/2024,Chase Saver to Claudia's Account,-33.12,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+02/07/2024,Chase Saver to Claudia's Account,-3,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+02/07/2024,Chase Saver to Claudia's Account,-0.33,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+02/07/2024,Claudia's Account to Chase Saver,17.02,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+02/07/2024,Claudia's Account to Chase Saver,153.01,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+02/07/2024,Clearpay,9.48,Clearpay,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+02/07/2024,Clearpay,12.73,Clearpay,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+02/07/2024,Clearpay,12.99,Clearpay,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+02/07/2024,Clearpay,16.49,Clearpay,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+02/07/2024,Clearpay,22.49,Clearpay,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+02/07/2024,Clearpay,29.74,Clearpay,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+02/07/2024,Clearpay,29.75,Clearpay,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+02/07/2024,Clearpay,55.45,Clearpay,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+02/07/2024,From MORREN CG,-200,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+02/07/2024,From MORREN CG,-21.67,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+02/07/2024,House of CB,47.75,House Of Cb,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_OTHER_TRANSFER_OUT,,1,FALSE,FALSE
+02/07/2024,Zara Online,22.98,Zara,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+02/07/2024,ZigZag Global,2.49,Zigzag Global,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_OTHER_TRANSFER_OUT,,1,FALSE,FALSE
+01/07/2024,34747d-3,37.45,,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+01/07/2024,Chase Saver to Claudia's Account,-50,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+01/07/2024,Chase Saver to Claudia's Account,-5,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+01/07/2024,Claudia's Account to Chase Saver,0.09,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+01/07/2024,Claudia's Account to Chase Saver,12.55,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+01/07/2024,Uber,4.75,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+30/06/2024,Interest earned,-0.09,,income,other,0.7,batch_plaid_plaid_detailed_income,Other Income,INCOME,INCOME_INTEREST_EARNED,,1,FALSE,FALSE
+29/06/2024,Claudia's Account to Chase Saver,82.01,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+29/06/2024,To Eilidh Henderson,105,,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+29/06/2024,To Iona Nisbet,105,Iona Nisbet,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+29/06/2024,To Millie Duffy,105,Millie Duffy,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+29/06/2024,Zara Online,32.72,Zara,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+28/06/2024,Vele De Lobo Turismo,-423.9,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+27/06/2024,Albufeira 66,16.93,Albu Fe Ira,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_INVESTMENT_AND_RETIREMENT_FUNDS,,1,FALSE,FALSE
+27/06/2024,Albufissa,16.93,Albu Fi Ssa,expense,discretionary,0.9,plaid,Discretionary Spending,ENTERTAINMENT,ENTERTAINMENT_MUSIC_AND_AUDIO,,1,FALSE,FALSE
+27/06/2024,From MORREN CG,-20,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+27/06/2024,Uber,5,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+27/06/2024,Uber,20.07,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+26/06/2024,From MORREN CG,-60,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+26/06/2024,Matts,15.24,Matts,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+25/06/2024,Chase Saver to Claudia's Account,-30.06,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+25/06/2024,Chase Saver to Claudia's Account,-30,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+25/06/2024,Chase Saver to Claudia's Account,-10,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+25/06/2024,Irish Pub,12.3,Irish Pub,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+25/06/2024,To Claudia Morren,39.15,Morren,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+25/06/2024,Uber,3.05,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+25/06/2024,Zilch,26.42,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+24/06/2024,Apol¢nia Supermercados,119.43,Apol à Nia Supermercados,essential,groceries,0.85,plaid,Groceries,FOOD_AND_DRINK,FOOD_AND_DRINK_GROCERIES,,1,FALSE,FALSE
+24/06/2024,Chase Saver to Claudia's Account,-198,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+24/06/2024,Chase Saver to Claudia's Account,-10,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+24/06/2024,Chase Saver to Claudia's Account,-10,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+24/06/2024,Chase Saver to Claudia's Account,-10,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+24/06/2024,Claudia's Account to Chase Saver,89.16,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+24/06/2024,Uber,4.57,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+24/06/2024,Uber,4.57,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+24/06/2024,Uber,5.91,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+23/06/2024,Chase Saver to Claudia's Account,-426,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+23/06/2024,Chase Saver to Claudia's Account,-250,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+23/06/2024,Chase Saver to Claudia's Account,-50,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+23/06/2024,Chase Saver to Claudia's Account,-10,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+23/06/2024,Claudia's Account to Chase Saver,66.3,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+23/06/2024,Claudia's Account to Chase Saver,452.6,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+23/06/2024,Estrada Horta Vale Lob,196.44,Estrada Hor Ta Vale Lob,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_WITHDRAWAL,,1,FALSE,FALSE
+23/06/2024,From MORREN CG,-450,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+23/06/2024,Uber,3.5,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+23/06/2024,Vele De Lobo Turismo,423.4,Vele De Lobo Tur Ismo,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+23/06/2024,Well,37.26,Well,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+21/06/2024,Chase Saver to Claudia's Account,-373.43,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+21/06/2024,Claudia's Account to Chase Saver,374.7,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+21/06/2024,From MORREN CG,-374.7,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+21/06/2024,To Claudia Morren,373.43,Morren,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+20/06/2024,Chase Saver to Claudia's Account,-20,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+20/06/2024,Chase Saver to Claudia's Account,-2.99,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+20/06/2024,Chase Saver to Claudia's Account,-2,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+20/06/2024,Claudia's Account to Chase Saver,0.11,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+20/06/2024,Claudia's Account to Chase Saver,257.97,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+20/06/2024,From MORREN CG,-257.97,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+20/06/2024,To Claudia Morren,2.99,Morren,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+20/06/2024,Uber,21.89,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+19/06/2024,Claudia's Account to Chase Saver,191.5,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+19/06/2024,From MORREN CG,-210.27,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+19/06/2024,Zilch,16.5,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+18/06/2024,Chase Saver to Claudia's Account,-27,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+18/06/2024,Chase Saver to Claudia's Account,-10,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+18/06/2024,Chase Saver to Claudia's Account,-10,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+18/06/2024,Claudia's Account to Chase Saver,0.02,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+18/06/2024,Claudia's Account to Chase Saver,7.82,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+18/06/2024,Super Jumi,1.18,Super Jum,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+18/06/2024,Supermercado Andy's,11.23,Supermercado Andy's,essential,groceries,0.85,plaid,Groceries,FOOD_AND_DRINK,FOOD_AND_DRINK_GROCERIES,,1,FALSE,FALSE
+18/06/2024,To Lucie Morren,27,Lucie Morren,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+18/06/2024,Zilch,4.11,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+17/06/2024,Bijou Brigitte,12.62,Bijou Brigitte,debt,other_loans,0.8,plaid,Loan Payment,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,medium,1,FALSE,FALSE
+17/06/2024,Bona Etapa,35.11,Bona Eta Pa,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+17/06/2024,Can Flor,35.96,Can Flor,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+17/06/2024,Chase Saver to Claudia's Account,-50,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+17/06/2024,Chase Saver to Claudia's Account,-42,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+17/06/2024,Chase Saver to Claudia's Account,-20,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+17/06/2024,Chase Saver to Claudia's Account,-20,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+17/06/2024,Chase Saver to Claudia's Account,-5,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+17/06/2024,Claudia's Account to Chase Saver,6.49,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+17/06/2024,Claudia's Account to Chase Saver,12.11,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+17/06/2024,Claudia's Account to Chase Saver,17.72,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+17/06/2024,Domingos Souvenirs S L,8.69,Doming Os Souvenirs S,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_GIFTS_AND_NOVELTIES,,1,FALSE,FALSE
+17/06/2024,SPAR,2.53,Spar,essential,groceries,0.85,plaid,Groceries,FOOD_AND_DRINK,FOOD_AND_DRINK_GROCERIES,,1,FALSE,FALSE
+17/06/2024,Supermercado Andy's,7.89,Supermercado Andy's,essential,groceries,0.85,plaid,Groceries,FOOD_AND_DRINK,FOOD_AND_DRINK_GROCERIES,,1,FALSE,FALSE
+17/06/2024,TIB Transporte de les Illes Baleares,2.28,Tib Trans Porte De Les I Lles Bale Ares,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+16/06/2024,Chase Saver to Claudia's Account,-60,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+16/06/2024,Chase Saver to Claudia's Account,-20,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+16/06/2024,Chase Saver to Claudia's Account,-3,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+16/06/2024,Claudia's Account to Chase Saver,12.29,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+16/06/2024,Il Tano Pizzeria Resta,13.51,Il Tano Pizzeria Resta,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+16/06/2024,Supermercado Andy's,6.5,Supermercado Andy's,essential,groceries,0.85,plaid,Groceries,FOOD_AND_DRINK,FOOD_AND_DRINK_GROCERIES,,1,FALSE,FALSE
+16/06/2024,Zel Mallorca,44.21,,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+15/06/2024,Chase Saver to Claudia's Account,-175,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+15/06/2024,Chase Saver to Claudia's Account,-20,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+15/06/2024,Chase Saver to Claudia's Account,-10,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+15/06/2024,Chase Saver to Claudia's Account,-10,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+15/06/2024,Claudia's Account to Chase Saver,11.14,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+15/06/2024,Claudia's Account to Chase Saver,14.09,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+15/06/2024,Claudia's Account to Chase Saver,95.29,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+15/06/2024,MarSenses Hotels & Homes,3.8,Mar Senses Hotels & Homes,expense,other,0.3,default,Other Expense,TRAVEL,TRAVEL_LODGING,,1,FALSE,FALSE
+15/06/2024,To Lucie Morren,175,Lucie Morren,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+15/06/2024,Tres Uno Tres C B,5.06,Tres Uno Tres C,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+15/06/2024,Tres Uno Tres C B,5.91,Tres Uno Tres C,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+14/06/2024,Chase Saver to Claudia's Account,-100,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+14/06/2024,Chase Saver to Claudia's Account,-30,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+14/06/2024,Four Venues,84.6,Four Venues,expense,other,0.3,default,Other Expense,TRAVEL,TRAVEL_LODGING,,1,FALSE,FALSE
+14/06/2024,Super Jumi Iii,8.29,Super Jum I Iii,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+14/06/2024,Tres Uno Tres C B,0.85,Tres Uno Tres C,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+14/06/2024,Zara Online,-59.03,Zara,income,other,0.5,default,Other Income,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+13/06/2024,Calle Cala Blanca 2,23.03,Calle Cala Blanca,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_WITHDRAWAL,,1,FALSE,FALSE
+13/06/2024,Chase Saver to Claudia's Account,-50,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+13/06/2024,Chase Saver to Claudia's Account,-20,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+13/06/2024,Chase Saver to Claudia's Account,-10,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+13/06/2024,Chase Saver to Claudia's Account,-2,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+13/06/2024,Claudia's Account to Chase Saver,29.98,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+13/06/2024,Margarita Alzamora,16.57,Margarita Al Zamora,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+13/06/2024,Super Jumi,7.02,Super Jum,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+13/06/2024,Taxi 8 Andratx,18.61,Taxi 8 And Rat,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+12/06/2024,Chase Saver to Claudia's Account,-50,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+12/06/2024,Chase Saver to Claudia's Account,-40,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+12/06/2024,Chase Saver to Claudia's Account,-20,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+12/06/2024,Manuel Bugallo S L,5.45,Manuel Bu Gallo S,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+12/06/2024,MarSenses Hotels & Homes,7.62,Mar Senses Hotels & Homes,expense,other,0.3,default,Other Expense,TRAVEL,TRAVEL_LODGING,,1,FALSE,FALSE
+12/06/2024,MarSenses Hotels & Homes,8.47,Mar Senses Hotels & Homes,expense,other,0.3,default,Other Expense,TRAVEL,TRAVEL_LODGING,,1,FALSE,FALSE
+12/06/2024,Super Jumi,35.79,Super Jum,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+12/06/2024,Taxi 965 Palma,39.46,Taxi,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+11/06/2024,Chase Saver to Claudia's Account,-10,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+11/06/2024,Chase Saver to Claudia's Account,-6,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+11/06/2024,Chase Saver to Claudia's Account,-0.28,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+11/06/2024,Claudia's Account to Chase Saver,5.1,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+11/06/2024,Claudia's Account to Chase Saver,6.28,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+11/06/2024,Claudia's Account to Chase Saver,100,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+11/06/2024,Claudia's Account to Chase Saver,250,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+11/06/2024,From MORREN CG,-250,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+11/06/2024,From MORREN CG,-100,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+11/06/2024,From MORREN CG,-5.57,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+11/06/2024,Moonpig,10.28,Moon Pig,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+11/06/2024,Standard Life,0.9,,expense,other,0.3,default,Other Expense,GENERAL_SERVICES,GENERAL_SERVICES_INSURANCE,,1,FALSE,FALSE
+10/06/2024,Apple,1.79,Apple,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_OTHER_GENERAL_MERCHANDISE,,1,FALSE,FALSE
+10/06/2024,Chase Saver to Claudia's Account,-106,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+10/06/2024,Chase Saver to Claudia's Account,-1,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+10/06/2024,Claudia's Account to Chase Saver,1.78,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+10/06/2024,Starbucks,4.85,Starbucks,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_COFFEE,,1,FALSE,FALSE
+10/06/2024,Zilch,26.42,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+10/06/2024,Zilch,30.49,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+10/06/2024,Zilch,48.38,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+09/06/2024,Chase Saver to Claudia's Account,-60,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+09/06/2024,Chase Saver to Claudia's Account,-40,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+09/06/2024,Chase Saver to Claudia's Account,-30,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+09/06/2024,Chase Saver to Claudia's Account,-20,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+09/06/2024,Chase Saver to Claudia's Account,-20,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+09/06/2024,Chase Saver to Claudia's Account,-20,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+09/06/2024,Chase Saver to Claudia's Account,-20,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+09/06/2024,Claudia's Account to Chase Saver,20,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+09/06/2024,Claudia's Account to Chase Saver,21.6,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+09/06/2024,Claudia's Account to Chase Saver,25.13,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+09/06/2024,Clearpay,18.74,Clearpay,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+09/06/2024,Clearpay,29.75,Clearpay,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+09/06/2024,Depop,54.09,Depop,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_ONLINE_MARKETPLACES,,1,FALSE,FALSE
+09/06/2024,Grand Central,9.6,Grand Central,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+09/06/2024,Grand Central,28.8,Grand Central,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+08/06/2024,Chase Saver to Claudia's Account,-20,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+08/06/2024,Chase Saver to Claudia's Account,-5,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+08/06/2024,Claudia's Account to Chase Saver,336.4,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+08/06/2024,From MORREN CG,-336.4,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+08/06/2024,Uber,19.87,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+07/06/2024,Chase Saver to Claudia's Account,-300,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+07/06/2024,Chase Saver to Claudia's Account,-122.13,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+07/06/2024,Claudia's Account to Chase Saver,40.28,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+07/06/2024,Claudia's Account to Chase Saver,59.18,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+07/06/2024,Claudia's Account to Chase Saver,130,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+07/06/2024,DICE,260,DICE,expense,discretionary,0.9,plaid,Discretionary Spending,ENTERTAINMENT,ENTERTAINMENT_MUSIC_AND_AUDIO,,1,FALSE,FALSE
+07/06/2024,From MORREN CG,-130,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+07/06/2024,From MORREN CG,-69.95,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+07/06/2024,Zara Online,132.9,Zara,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+06/06/2024,Aena - Aeropuerto de Ibiza,6.44,A Ena,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+06/06/2024,Capital Cars,19.4,Capital Cars,expense,other,0.3,default,Other Expense,GENERAL_SERVICES,GENERAL_SERVICES_AUTOMOTIVE,,1,FALSE,FALSE
+06/06/2024,Chase Saver to Claudia's Account,-70,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+06/06/2024,Chase Saver to Claudia's Account,-40,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+06/06/2024,Chase Saver to Claudia's Account,-35,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+06/06/2024,Chase Saver to Claudia's Account,-30,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+06/06/2024,Chase Saver to Claudia's Account,-30,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+06/06/2024,Claudia's Account to Chase Saver,79.21,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+06/06/2024,Claudia's Account to Chase Saver,91.3,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+06/06/2024,Deliveroo,31.39,Deliveroo,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+06/06/2024,Ibiza Spotlight Sl,-62.74,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+06/06/2024,Zilch,39.72,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+05/06/2024,Claudia's Account to Chase Saver,50.52,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+05/06/2024,Claudia's Account to Chase Saver,64,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+05/06/2024,Claudia's Account to Chase Saver,300,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+05/06/2024,From MORREN CG,-400,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+05/06/2024,From MORREN CG,-64,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+05/06/2024,O Beach,48.57,O Be,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+05/06/2024,Sherpa Souvienirs,3.15,Sherpa Sou Vien Irs,expense,discretionary,0.9,plaid,Discretionary Spending,ENTERTAINMENT,ENTERTAINMENT_SPORTING_EVENTS_AMUSEMENT_PARKS_AND_MUSEUMS,,1,FALSE,FALSE
+05/06/2024,Taxi 15 S Antonio,5.03,Taxi 15 S Antonio,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+04/06/2024,Chase Saver to Claudia's Account,-68,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+04/06/2024,Chase Saver to Claudia's Account,-60,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+04/06/2024,Chase Saver to Claudia's Account,-40,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+04/06/2024,Ibiza Rocks,9.82,Ibiza Rocks,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+04/06/2024,Ibiza Rocks,9.82,Ibiza Rocks,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+04/06/2024,Ibiza Rocks,14.09,Ibiza Rocks,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+04/06/2024,Ibiza Rocks,14.09,Ibiza Rocks,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+04/06/2024,Ibiza Rocks,14.09,Ibiza Rocks,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+04/06/2024,Ibiza Rocks,18.36,Ibiza Rocks,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+04/06/2024,Ibiza Rocks,18.78,Ibiza Rocks,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+04/06/2024,Ibiza Rocks,28.18,Ibiza Rocks,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+04/06/2024,Ibiza Rocks,42.26,Ibiza Rocks,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+04/06/2024,Sherpa Souvienirs,1.11,Sherpa Sou Vien Irs,expense,discretionary,0.9,plaid,Discretionary Spending,ENTERTAINMENT,ENTERTAINMENT_SPORTING_EVENTS_AMUSEMENT_PARKS_AND_MUSEUMS,,1,FALSE,FALSE
+04/06/2024,Taxi Estacional Num 10,6.4,Taxi Estacion Al Num,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+04/06/2024,Zilch,4.11,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+03/06/2024,Chase Saver to Claudia's Account,-60,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+03/06/2024,Chase Saver to Claudia's Account,-30,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+03/06/2024,Chase Saver to Claudia's Account,-20,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+03/06/2024,Chase Saver to Claudia's Account,-10,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+03/06/2024,Comes&bebes sandwich Bruno,5.04,Come S Be Bes Sandwich Bruno,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+03/06/2024,El Turco Ii,6.83,El Tur Co Ii,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+03/06/2024,Marco Polo Ibiza,9.2,Marco Polo Ibiza,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+03/06/2024,S Mari Cocina Bar,3.84,S Mari Cocina Bar,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+03/06/2024,S Mari Cocina Bar,12.39,S Mari Cocina Bar,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+03/06/2024,Sherpa Souvienirs,4.6,Sherpa Sou Vien Irs,expense,discretionary,0.9,plaid,Discretionary Spending,ENTERTAINMENT,ENTERTAINMENT_SPORTING_EVENTS_AMUSEMENT_PARKS_AND_MUSEUMS,,1,FALSE,FALSE
+03/06/2024,Sherpa Souvienirs,10.94,Sherpa Sou Vien Irs,expense,discretionary,0.9,plaid,Discretionary Spending,ENTERTAINMENT,ENTERTAINMENT_SPORTING_EVENTS_AMUSEMENT_PARKS_AND_MUSEUMS,,1,FALSE,FALSE
+03/06/2024,Ss Marketing Promotion,10,Ss Marketing Promotion,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_OTHER_TRANSFER_OUT,,1,FALSE,FALSE
+03/06/2024,Taxi Vila 1032,17.93,Taxi Vila,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+03/06/2024,Ushua‹a Ibiza Beach Hotel,56.38,Ush Ua Ø A Ibiza Beach Hotel,expense,other,0.3,default,Other Expense,TRAVEL,TRAVEL_LODGING,,1,FALSE,FALSE
+03/06/2024,Wips Supermarket 5,5.04,Wi Ps Supermarket,essential,groceries,0.85,plaid,Groceries,FOOD_AND_DRINK,FOOD_AND_DRINK_GROCERIES,,1,FALSE,FALSE
+02/06/2024,Bar Highlander,17.09,Bar Highlander,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+02/06/2024,Chase Saver to Claudia's Account,-83.61,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+02/06/2024,Chase Saver to Claudia's Account,-50,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+02/06/2024,Chase Saver to Claudia's Account,-20,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+02/06/2024,Claudia's Account to Chase Saver,167.22,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+02/06/2024,From MORREN CG,-500,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+02/06/2024,Marco Polo Ibiza,416.71,Marco Polo Ibiza,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+02/06/2024,Sherpa Souvienirs,10.34,Sherpa Sou Vien Irs,expense,discretionary,0.9,plaid,Discretionary Spending,ENTERTAINMENT,ENTERTAINMENT_SPORTING_EVENTS_AMUSEMENT_PARKS_AND_MUSEUMS,,1,FALSE,FALSE
+02/06/2024,To Claudia Morren,72,Morren,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+01/06/2024,Freddy's Edinburgh,12.9,Freddy's Edinburgh,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+31/05/2024,Chase Saver to Claudia's Account,-150,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+31/05/2024,Claudia's Account to Chase Saver,425.26,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+31/05/2024,Freddy's Edinburgh,8.05,Freddy's Edinburgh,debt,other_loans,0.8,plaid,Loan Payment,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,medium,1,FALSE,FALSE
+31/05/2024,Freddy's Edinburgh,19.5,Freddy's Edinburgh,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+31/05/2024,Freddy's Edinburgh,29.25,Freddy's Edinburgh,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+31/05/2024,From MORREN CG,-425.26,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+31/05/2024,Interest earned,-0.02,,income,other,0.7,batch_plaid_plaid_detailed_income,Other Income,INCOME,INCOME_INTEREST_EARNED,,1,FALSE,FALSE
+31/05/2024,Private Indivi - SumUp,3,Private Indivi,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+31/05/2024,Private Indivi - SumUp,5,Private Indivi,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+30/05/2024,Chase Saver to Claudia's Account,-1524,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+30/05/2024,To Claudia Morren,1525.21,Morren,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+30/05/2024,Zilch,2.88,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+30/05/2024,Zilch,3,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+29/05/2024,Zilch,3.21,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+28/05/2024,Claudia's Account to Chase Saver,508,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+28/05/2024,From MORREN CG,-508,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+27/05/2024,Claudia's Account to Chase Saver,1016,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+27/05/2024,From MORREN CG,-1016,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+27/05/2024,Tanz Tanning,9.25,Tanz Tanning,expense,discretionary,0.9,plaid,Discretionary Spending,PERSONAL_CARE,PERSONAL_CARE_HAIR_AND_BEAUTY,,1,FALSE,FALSE
+27/05/2024,Tesco,5,Tesco,essential,groceries,0.95,keyword,Groceries,FOOD_AND_DRINK,FOOD_AND_DRINK_GROCERIES,,1,FALSE,FALSE
+25/05/2024,Ngm Wing Theory 2024,4,Ngm Wing Theory,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_PARKING,,1,FALSE,FALSE
+24/05/2024,Starbucks,7.7,Starbucks,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_COFFEE,,1,FALSE,FALSE
+24/05/2024,Zilch,-36,Zilch,income,loans,0.98,plaid_strict,Loan Payments/Disbursements,TRANSFER_IN,TRANSFER_IN_CASH_ADVANCES_AND_LOANS,,0,FALSE,FALSE
+22/05/2024,CaffŠ Nero,3.85,Caff Ô Nero,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_COFFEE,,1,FALSE,FALSE
+22/05/2024,Chase Saver to Claudia's Account,-0.11,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+22/05/2024,From MORREN CG,-2.01,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+21/05/2024,Chase Saver to Claudia's Account,-58,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+21/05/2024,Edinburgh Street Food,2.5,Edinburgh Street Food,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+21/05/2024,Edinburgh Street Food,3.5,Edinburgh Street Food,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+21/05/2024,Edinburgh Street Food,20,Edinburgh Street Food,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+21/05/2024,From MORREN CG,-4.68,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+21/05/2024,Zara Online,42.72,Zara,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+21/05/2024,Zilch,7.11,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+20/05/2024,Scotmid Coop,5.45,COOP,essential,groceries,0.9,regex,Groceries,FOOD_AND_DRINK,FOOD_AND_DRINK_GROCERIES,,1,FALSE,FALSE
+18/05/2024,From MORREN CG,-50,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+18/05/2024,Zilch,29.42,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+16/05/2024,Claudia's Account to Chase Saver,58.11,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+16/05/2024,From MORREN CG,-74,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+16/05/2024,Zara Online,20.99,Zara,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+16/05/2024,Zilch,5.88,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+16/05/2024,Zilch,8.55,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+16/05/2024,Zilch,12.62,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+15/05/2024,CaffŠ Nero,3.85,Caff Ô Nero,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_COFFEE,,1,FALSE,FALSE
+15/05/2024,Chase Saver to Claudia's Account,-47.57,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+15/05/2024,Chase Saver to Claudia's Account,-14,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+15/05/2024,Chase Saver to Claudia's Account,-1,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+15/05/2024,From MORREN CG,-41,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+15/05/2024,Tesco,4.75,Tesco,essential,groceries,0.95,keyword,Groceries,FOOD_AND_DRINK,FOOD_AND_DRINK_GROCERIES,,1,FALSE,FALSE
+15/05/2024,Uber,3.52,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+15/05/2024,Zara Online,13.22,Zara,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+15/05/2024,Zara Online,22.23,Zara,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+15/05/2024,Zilch,6.21,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+15/05/2024,Zilch,18.72,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+14/05/2024,Chase Saver to Claudia's Account,-237.69,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+14/05/2024,Zilch,237.69,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+12/05/2024,Boots,1.6,Boots,expense,other,0.3,default,Other Expense,MEDICAL,MEDICAL_PHARMACIES_AND_SUPPLEMENTS,,1,FALSE,FALSE
+03/05/2024,CaffŠ Nero,3.85,Caff Ô Nero,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_COFFEE,,1,FALSE,FALSE
+03/05/2024,Lifestyle Express,12.99,Lifestyle Express,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_GAS,,1,FALSE,FALSE
+02/05/2024,CaffŠ Nero,3.85,Caff Ô Nero,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_COFFEE,,1,FALSE,FALSE
+02/05/2024,Lifestyle Express,1.5,Lifestyle Express,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_GAS,,1,FALSE,FALSE
+02/05/2024,Lothian Buses,2,Lothian Buses,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_PUBLIC_TRANSIT,,1,FALSE,FALSE
+02/05/2024,Starbucks,2.6,Starbucks,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_COFFEE,,1,FALSE,FALSE
+02/05/2024,Tanz Tanning,9.25,Tanz Tanning,expense,discretionary,0.9,plaid,Discretionary Spending,PERSONAL_CARE,PERSONAL_CARE_HAIR_AND_BEAUTY,,1,FALSE,FALSE
+01/05/2024,CaffŠ Nero,3.6,Caff Ô Nero,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_COFFEE,,1,FALSE,FALSE
+01/05/2024,From MORREN CG,-3.7,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+01/05/2024,Lothian Buses,2,Lothian Buses,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_PUBLIC_TRANSIT,,1,FALSE,FALSE
+01/05/2024,Uber,13.13,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+30/04/2024,From MORREN CG,-120,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+30/04/2024,From MORREN CG,-57.71,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+30/04/2024,Ibiza Rocks,16.51,Ibiza Rocks,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_RESTAURANT,,1,FALSE,FALSE
+30/04/2024,Ibiza Spotlight Sl,107.55,Ibiza Spotlight Sl,transfer,internal,0.9,keyword,Internal Transfer,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,0,FALSE,FALSE
+30/04/2024,Interest earned,-0.05,,income,other,0.7,batch_plaid_plaid_detailed_income,Other Income,INCOME,INCOME_INTEREST_EARNED,,1,FALSE,FALSE
+30/04/2024,Zara Online,36.47,Zara,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+29/04/2024,Lothian Buses,2,Lothian Buses,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_PUBLIC_TRANSIT,,1,FALSE,FALSE
+27/04/2024,Clubtickets,103.06,Club Tickets,expense,discretionary,0.9,plaid,Discretionary Spending,ENTERTAINMENT,ENTERTAINMENT_SPORTING_EVENTS_AMUSEMENT_PARKS_AND_MUSEUMS,,1,FALSE,FALSE
+27/04/2024,Clubtickets,103.06,Club Tickets,expense,discretionary,0.9,plaid,Discretionary Spending,ENTERTAINMENT,ENTERTAINMENT_SPORTING_EVENTS_AMUSEMENT_PARKS_AND_MUSEUMS,,1,FALSE,FALSE
+27/04/2024,From MORREN CG,-220,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+27/04/2024,From MORREN CG,-110,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+27/04/2024,From MORREN CG,-110,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+27/04/2024,From MORREN CG,-60,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+27/04/2024,From MORREN CG,-10,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+27/04/2024,Ibiza Spotlight Sl,36,Ibiza Spotlight Sl,transfer,internal,0.9,keyword,Internal Transfer,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,0,FALSE,FALSE
+27/04/2024,O Beach Ibiza,229.36,O Beach Ibiza,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+26/04/2024,Claudia's Account to Chase Saver,300,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+26/04/2024,From MORREN CG,-302.11,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+24/04/2024,From MORREN CG,-3.27,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+24/04/2024,Tesco,1.75,Tesco,essential,groceries,0.95,keyword,Groceries,FOOD_AND_DRINK,FOOD_AND_DRINK_GROCERIES,,1,FALSE,FALSE
+24/04/2024,Uber,8.34,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+23/04/2024,From MORREN CG,-4.95,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+23/04/2024,Lothian Buses,3,Lothian Buses,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_PUBLIC_TRANSIT,,1,FALSE,FALSE
+23/04/2024,Zilch Uber* Pending,-3.74,Zilch,income,loans,0.98,plaid_strict,Loan Payments/Disbursements,TRANSFER_IN,TRANSFER_IN_CASH_ADVANCES_AND_LOANS,,0,FALSE,FALSE
+23/04/2024,Zilch Uber* Pending,6.74,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+22/04/2024,From MORREN CG,-24.02,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+22/04/2024,Vinted,22.27,Vinted,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_ONLINE_MARKETPLACES,,1,FALSE,FALSE
+20/04/2024,Zilch,7.07,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+20/04/2024,Zilch,7.37,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+20/04/2024,Zilch Uber* Pending,6.74,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+19/04/2024,Oh Polly,26.09,Oh Polly,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+18/04/2024,From MORREN CG,-26.12,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+17/04/2024,Chase Saver to Claudia's Account,-107.5,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+17/04/2024,To Katie Macpherson,90,Katie Macpherson,expense,account_transfer,0.98,plaid_strict,Account Transfer Out,TRANSFER_OUT,TRANSFER_OUT_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+17/04/2024,Zilch,10.48,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+15/04/2024,From MORREN CG,-32.44,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+15/04/2024,Zilch,52.96,Zilch,debt,bnpl,0.95,keyword,Buy Now Pay Later,LOAN_PAYMENTS,LOAN_PAYMENTS_PERSONAL_LOAN_PAYMENT,high,1,FALSE,FALSE
+14/04/2024,EE Live,10,Ee Live,expense,gambling,0.98,plaid_strict,Gambling,ENTERTAINMENT,ENTERTAINMENT_CASINOS_AND_GAMBLING,,1,FALSE,FALSE
+14/04/2024,EE Live,11,Ee Live,expense,gambling,0.98,plaid_strict,Gambling,ENTERTAINMENT,ENTERTAINMENT_CASINOS_AND_GAMBLING,,1,FALSE,FALSE
+14/04/2024,EE Live,20,Ee Live,expense,gambling,0.98,plaid_strict,Gambling,ENTERTAINMENT,ENTERTAINMENT_CASINOS_AND_GAMBLING,,1,FALSE,FALSE
+14/04/2024,EE Live,21,Ee Live,expense,gambling,0.98,plaid_strict,Gambling,ENTERTAINMENT,ENTERTAINMENT_CASINOS_AND_GAMBLING,,1,FALSE,FALSE
+14/04/2024,EE Live,22,Ee Live,expense,gambling,0.98,plaid_strict,Gambling,ENTERTAINMENT,ENTERTAINMENT_CASINOS_AND_GAMBLING,,1,FALSE,FALSE
+14/04/2024,EE Live,22,Ee Live,expense,gambling,0.98,plaid_strict,Gambling,ENTERTAINMENT,ENTERTAINMENT_CASINOS_AND_GAMBLING,,1,FALSE,FALSE
+14/04/2024,From MORREN CG,-140,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
+14/04/2024,Marks & Spencer,2.5,Marks & Spencer,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_DEPARTMENT_STORES,,1,FALSE,FALSE
+10/04/2024,Boots,34.33,Boots,expense,other,0.3,default,Other Expense,MEDICAL,MEDICAL_PHARMACIES_AND_SUPPLEMENTS,,1,FALSE,FALSE
+10/04/2024,Pret A Manger,4.6,Pret A Manger,expense,food_dining,0.85,plaid,Food & Dining,FOOD_AND_DRINK,FOOD_AND_DRINK_FAST_FOOD,,1,FALSE,FALSE
+10/04/2024,Tanz Tanning,8.5,Tanz Tanning,expense,discretionary,0.9,plaid,Discretionary Spending,PERSONAL_CARE,PERSONAL_CARE_HAIR_AND_BEAUTY,,1,FALSE,FALSE
+10/04/2024,Uber,13.91,Uber,expense,other,0.3,default,Other Expense,TRANSPORTATION,TRANSPORTATION_TAXIS_AND_RIDE_SHARES,,1,FALSE,FALSE
+10/04/2024,Urban Outfitters,39,Urban Outfitters,expense,discretionary,0.9,plaid,Discretionary Spending,GENERAL_MERCHANDISE,GENERAL_MERCHANDISE_CLOTHING_AND_ACCESSORIES,,1,FALSE,FALSE
+09/04/2024,Claudia's Account to Chase Saver,107.5,,expense,other,0.98,plaid_strict,Plaid Transfer Out,TRANSFER_OUT,TRANSFER_OUT_SAVINGS,,1,FALSE,FALSE
+09/04/2024,From MORREN CG,-215,,income,account_transfer,0.98,plaid_strict,Account Transfer in,TRANSFER_IN,TRANSFER_IN_ACCOUNT_TRANSFER,,1,FALSE,FALSE
