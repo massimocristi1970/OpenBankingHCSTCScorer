@@ -449,6 +449,13 @@ class MetricsCalculator:
             except Exception:
                 continue
 
+        logger.debug(
+            "[INCOME FILTER DEBUG] Found %d income months:  %s, selected %d months, returning %d transactions",
+            len(income_months),
+            sorted(income_months, reverse=True),
+            months,
+            len(filtered_income_txns)
+        )
         return filtered_income_txns
 
     def _filter_month_to_date_transactions(self, transactions: List[Dict]) -> List[Dict]:
@@ -1119,6 +1126,7 @@ class MetricsCalculator:
         unauthorised_overdraft = expense_data.get("unauthorised_overdraft", {}).get("total", 0) / actual_months
         gambling = expense_data.get("gambling", {}).get("total", 0) / actual_months
 
+
         # Housing is rent OR mortgage (not both)
         housing = max(rent, mortgage)
 
@@ -1138,6 +1146,26 @@ class MetricsCalculator:
         # Total spend used for affordability
         monthly_total_spend = essential_total + discretionary_total
 
+        # DEBUG: Log expense breakdown
+        logger.debug(
+            "[EXPENSE FILTER DEBUG]\n"
+            "Other: £%.2f\n"
+            "Food Dining: £%.2f\n"
+            "Discretionary: £%.2f\n"
+            "Account Transfer: £%.2f\n"
+            "Gambling: £%.2f\n"
+            "Essential Total: £%.2f\n"
+            "Discretionary Total: £%.2f\n"
+            "Months: %d",
+            other_expenses * actual_months,
+            food_dining * actual_months,
+            discretionary * actual_months,
+            account_transfer_expenses * actual_months,
+            gambling * actual_months,
+            essential_total * actual_months,
+            discretionary_total * actual_months,
+            actual_months
+        )
 
         # --- Optional month-to-date (MTD) spend trend flag (NOT part of the averages) ---
         mtd_total_spend = 0.0
@@ -1206,27 +1234,6 @@ class MetricsCalculator:
             }
         )
 
-    # DEBUG: Log expense breakdown
-    logger.debug(
-        "[EXPENSE FILTER DEBUG]\n"
-        "Other: £%.2f\n"
-        "Food Dining: £%.2f\n"
-        "Discretionary: £%.2f\n"
-        "Account Transfer: £%.2f\n"
-        "Gambling: £%.2f\n"
-        "Essential Total: £%.2f\n"
-        "Discretionary Total: £%.2f\n"
-        "Months: %d",
-        other_expenses * actual_months,
-        food_dining * actual_months,
-        discretionary * actual_months,
-        account_transfer_expenses * actual_months,
-        gambling * actual_months,
-        essential_total * actual_months,
-        discretionary_total * actual_months,
-        actual_months
-    )
-
     def calculate_debt_metrics(self, category_summary: Dict) -> DebtMetrics:
         """Calculate debt-related metrics."""
         debt_data = category_summary.get("debt", {})
@@ -1251,6 +1258,21 @@ class MetricsCalculator:
         # Total debt commitments
         total_debt = hcstc + other_loans + credit_cards + bnpl + catalogue
 
+        # DEBUG: Log debt breakdown
+        logger.debug(
+            "[DEBT FILTER DEBUG]\n"
+            "HCSTC: £%.2f (monthly)\n"
+            "BNPL: £%.2f (monthly)\n"
+            "Credit Cards: £%.2f (monthly)\n"
+            "Other Loans: £%.2f (monthly)\n"
+            "Total Debt: £%.2f (monthly)",
+            hcstc,
+            bnpl,
+            credit_cards,
+            other_loans + catalogue,
+            total_debt
+        )
+
         return DebtMetrics(
             monthly_debt_payments=total_debt,
             monthly_hcstc_payments=hcstc,
@@ -1268,6 +1290,8 @@ class MetricsCalculator:
                 "catalogue": catalogue,
             }
         )
+
+
 
     def calculate_affordability_metrics(
         self,
