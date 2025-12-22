@@ -952,6 +952,8 @@ class MetricsCalculator:
                 "pension": pension_total / actual_months,
                 "gig_economy": monthly_gig,
                 "other": monthly_other,
+                "account_transfer": account_transfer_total / actual_months,
+
             }
         )
 
