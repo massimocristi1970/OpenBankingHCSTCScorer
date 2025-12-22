@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from collections import defaultdict
 import statistics
 import logging
+from unicodedata import category
 
 from openbanking_engine.categorisation.engine import CategoryMatch
 
@@ -665,6 +666,12 @@ class MetricsCalculator:
                 # For income, apply weight; for expenses, use full amount
                 if category == "income":
                     summary[category][subcategory]["total"] += (amount * match.weight)
+                    # DEBUG: Log weighted income
+                    if match.weight < 1.0:
+                        logger.debug(
+                            "[INCOME WEIGHTING] Txn: %s, Amount: £%.2f, Weight: %.2f, Weighted:  £%.2f, Category: %s/%s",
+                            txn.get("date"), amount, match.weight, amount * match.weight, category, subcategory
+                )
                 else:
                     summary[category][subcategory]["total"] += amount
                 summary[category][subcategory]["count"] += 1
