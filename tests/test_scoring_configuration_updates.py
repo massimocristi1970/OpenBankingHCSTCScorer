@@ -4,9 +4,9 @@ This test validates the changes made to increase approval rate.
 """
 
 import unittest
-from config.categorization_patterns import SCORING_CONFIG
-from scoring_engine import ScoringEngine, Decision
-from metrics_calculator import (
+from openbanking_engine.config.scoring_config import SCORING_CONFIG
+from openbanking_engine.scoring.scoring_engine import ScoringEngine, Decision
+from openbanking_engine.scoring.feature_builder import (
     IncomeMetrics,
     ExpenseMetrics,
     DebtMetrics,

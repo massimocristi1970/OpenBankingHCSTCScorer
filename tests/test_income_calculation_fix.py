@@ -4,7 +4,7 @@ This test demonstrates the problem described in the issue and validates the fix.
 """
 
 import unittest
-from transaction_categorizer import TransactionCategorizer
+from openbanking_engine.categorisation.engine import TransactionCategorizer
 
 
 class TestIncomeCalculationFix(unittest.TestCase):

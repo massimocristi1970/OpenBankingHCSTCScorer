@@ -10,7 +10,7 @@ were being recategorized as income/salary or income/other.
 """
 
 import unittest
-from transaction_categorizer import TransactionCategorizer
+from openbanking_engine.categorisation.engine import TransactionCategorizer
 
 
 class TestLoanDisbursementCategorization(unittest.TestCase):

@@ -3,7 +3,7 @@ Test to verify the dashboard is truly non-intrusive and doesn't modify core beha
 """
 
 import json
-from transaction_categorizer import TransactionCategorizer
+from openbanking_engine.categorisation. engine import TransactionCategorizer
 from dashboard import process_transaction_file
 
 def test_non_intrusive():

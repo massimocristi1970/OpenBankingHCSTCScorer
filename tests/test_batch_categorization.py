@@ -7,8 +7,8 @@ detection by analyzing all transactions at once rather than individually.
 
 import unittest
 from datetime import datetime, timedelta
-from transaction_categorizer import TransactionCategorizer
-from income_detector import IncomeDetector
+from openbanking_engine.categorisation.engine import TransactionCategorizer
+from openbanking_engine.income.income_detector import IncomeDetector
 
 
 class TestBatchAnalysis(unittest.TestCase):

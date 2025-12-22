@@ -8,8 +8,8 @@ payroll keywords, benefits, and distinguishes genuine income from transfers.
 import unittest
 from datetime import datetime, timedelta
 from unittest import result
-from transaction_categorizer import TransactionCategorizer
-from income_detector import IncomeDetector
+from openbanking_engine.categorisation.engine import TransactionCategorizer
+from openbanking_engine.income.income_detector import IncomeDetector
 
 
 class TestRecurringIncomeDetection(unittest.TestCase):
