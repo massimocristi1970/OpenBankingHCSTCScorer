@@ -909,9 +909,10 @@ class MetricsCalculator:
         monthly_gig = gig_total / actual_months
         monthly_other = other_total / actual_months
         monthly_income = total_income / actual_months
+        monthly_account_transfer = account_transfer_total / actual_months
 
         # Effective income (gig weighted at 100%, other at 100%)
-        effective_monthly = monthly_stable + (monthly_gig * 1.0) + monthly_other
+        effective_monthly = monthly_stable + (monthly_gig * 1.0) + monthly_other + monthly_account_transfer
 
         # Income stability score
         stability_score = self._calculate_income_stability(transactions)
