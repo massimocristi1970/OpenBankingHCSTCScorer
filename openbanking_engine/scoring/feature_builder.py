@@ -887,6 +887,7 @@ class MetricsCalculator:
             "Pension: £%.2f (%d txns)\n"
             "Gig Economy: £%.2f (%d txns)\n"
             "Other: £%.2f (%d txns)\n"
+            "Account Transfer: £%.2f (%d txns)\n"
             "Total: £%.2f",
             salary_total, salary_count,
             benefits_total, benefits_count,
