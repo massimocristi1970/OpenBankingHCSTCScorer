@@ -455,19 +455,19 @@ class MetricsCalculator:
             try:
                 if getattr(match, "category", None) != "income":
                     continue
-                    amt = txn.get("amount", 0)
-                    if amt is None or float(amt) >= 0:
-                        continue
-
-                    date_str = txn. get("date")
-                    if not date_str:
-                        continue
-                    dt = datetime.strptime(date_str, "%Y-%m-%d")
-
-                    if (dt.year, dt.month) in selected_months:
-                        filtered_income_txns.append(txn)
-            except Exception:
+                amt = txn.get("amount", 0)
+                if amt is None or float(amt) >= 0:
                     continue
+
+                date_str = txn. get("date")
+                if not date_str:
+                    continue
+                dt = datetime.strptime(date_str, "%Y-%m-%d")
+
+                if (dt.year, dt.month) in selected_months:
+                    filtered_income_txns.append(txn)
+            except Exception:
+                continue
 
         logger.debug(
             "[INCOME FILTER DEBUG] Anchor month (excluded): %s, Found %d income months: %s, selected %d months, returning %d transactions",
