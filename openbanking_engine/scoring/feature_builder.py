@@ -541,6 +541,7 @@ class MetricsCalculator:
                 "gig_economy": {"total": 0.0, "count": 0},
                 "loans": {"total": 0.0, "count": 0},
                 "other": {"total": 0.0, "count": 0},
+                "account_transfer": {"total":  0.0, "count":  0},
             },
 
             "essential": {
@@ -561,6 +562,7 @@ class MetricsCalculator:
                 "unpaid": {"total": 0.0, "count": 0},
                 "unauthorised_overdraft": {"total": 0.0, "count": 0},
                 "gambling": {"total": 0.0, "count": 0},
+                "account_transfer": {"total":  0.0, "count":  0},
             },
 
             "debt": {

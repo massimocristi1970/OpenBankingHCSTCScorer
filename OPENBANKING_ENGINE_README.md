@@ -286,6 +286,26 @@ print(f"Decision: {scoring_result.decision.value}")
 print(f"Score: {scoring_result.score}")
 ```
 
+### Account Transfer Categorization (Updated 2025-12-22)
+
+**PLAID Account Transfers:**
+
+- `TRANSFER_IN_ACCOUNT_TRANSFER` → `income/account_transfer` (weight=1. 0)
+- `TRANSFER_OUT_ACCOUNT_TRANSFER` → `expense/account_transfer` (weight=1.0)
+
+**Keyword-Based Transfers:**
+
+- Pattern-matched transfers (e.g., "OWN ACCOUNT") → `transfer/internal` (weight=0.0)
+
+**Rationale:**
+PLAID's `ACCOUNT_TRANSFER` category indicates legitimate bank-to-bank transfers that should be included in affordability calculations, unlike internal pot/savings movements which are excluded via keyword matching.
+
+**Impact on Scoring:**
+
+- Account transfers are now included in income/expense totals
+- Affects DTI, disposable income, and affordability calculations
+- Provides more accurate view of cash flow vs previous exclusion approach
+
 ## Design Principles
 
 ### 1. Domain-Driven Structure
@@ -511,6 +531,7 @@ This ensures:
 ```
 
 **Example with concentrated recent debt:**
+
 ```
 Scenario: 12 months of transaction history
 - £1,800 in credit card payments (all in last 3 months)

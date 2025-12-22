@@ -461,12 +461,12 @@ class TransactionCategorizer:
             # Explicit account transfers should NOT be promoted to income
             if "ACCOUNT_TRANSFER" in detailed_upper:
                 return CategoryMatch(
-                    category="transfer",
-                    subcategory="internal",
+                    category="income",
+                    subcategory="Account Transfer",
                     confidence=0.98,
-                    description="Account Transfer",
+                    description="Account Transfer in",
                     match_method="plaid_strict",
-                    weight=0.0,
+                    weight=1.0,
                     is_stable=False
                 )
             # Generic TRANSFER_IN is a holding category for potential income promotion
@@ -476,7 +476,7 @@ class TransactionCategorizer:
                 confidence=0.98,
                 description="Plaid Transfer In",
                 match_method="plaid_strict",
-                weight=0.0,
+                weight=1.0,
                 is_stable=False
             )
 
@@ -485,12 +485,12 @@ class TransactionCategorizer:
             # Explicit account transfers should be categorized as transfers, not expenses
             if "ACCOUNT_TRANSFER" in detailed_upper:
                 return CategoryMatch(
-                    category="transfer",
-                    subcategory="external",
+                    category="expense",
+                    subcategory="Account Transfer",
                     confidence=0.98,
                     description="Account Transfer Out",
                     match_method="plaid_strict",
-                    weight=0.0,
+                    weight=1.0,
                     is_stable=False
                 )
             # Other TRANSFER_OUT (e.g., payments) are expenses
@@ -1530,8 +1530,8 @@ class TransactionCategorizer:
         # STEP 0A: Check strict PLAID categories FIRST (before any other logic)
         strict_match = self._check_strict_plaid_categories(plaid_category)
 
-        # IMPORTANT: Treat Plaid TRANSFER_IN as a holding category.
-        # Allow batch IncomeDetector logic below to promote true income where appropriate.
+        # IMPORTANT:  TRANSFER_IN_ACCOUNT_TRANSFER is now categorized as income.
+        # Other TRANSFER_IN types are treated as holding categories for potential promotion.
         transfer_fallback = None
         if strict_match:
             if strict_match.category != "transfer":
@@ -1840,6 +1840,7 @@ class TransactionCategorizer:
                 "gig_economy": {"total": 0.0, "count": 0},
                 "loans": {"total": 0.0, "count": 0},
                 "other": {"total": 0.0, "count": 0},
+                "account_transfer": {"total": 0.0, "count": 0},
             },
             "debt": {
                 "hcstc_payday": {
@@ -1873,6 +1874,7 @@ class TransactionCategorizer:
                 "unauthorised_overdraft": {"total": 0.0, "count": 0},
                 "gambling": {"total": 0.0, "count": 0},
                 "other": {"total": 0.0, "count": 0},
+                "account_transfer": {"total": 0.0, "count": 0},
             },
 
 

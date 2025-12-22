@@ -150,7 +150,7 @@ class TestProposedSolutionValidation(unittest.TestCase):
     
     def test_transaction_direction_validation(self):
         """
-        Proposed Solution: Transaction direction validation
+        Proposed Solution:  Transaction direction validation
         Only consider income if credit amount (negative in PLAID format).
         """
         # Debit (positive) should never be income
@@ -160,7 +160,8 @@ class TestProposedSolutionValidation(unittest.TestCase):
             plaid_category="TRANSFER_OUT_ACCOUNT_TRANSFER",
             plaid_category_primary="TRANSFER_OUT"
         )
-        self.assertNotEqual(result_debit.category, "income")
+        self.assertEqual(result_debit.category, "expense")  # Now categorized as expense
+        self.assertEqual(result_debit. subcategory, "account_transfer")
         
         # Credit (negative) can be income
         result_credit = self.categorizer.categorize_transaction(

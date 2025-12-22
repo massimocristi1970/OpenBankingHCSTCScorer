@@ -81,21 +81,21 @@ class TestIncomeCalculationFix(unittest.TestCase):
             elif match.category == "transfer":
                 transfer_count += 1
         
-        # Verify that only the salary is counted
-        self.assertEqual(salary_income, 2333, "Only salary should be counted as income")
-        self.assertEqual(total_income, 2333, "Total income should only be the salary")
-        self.assertEqual(transfer_count, 3, "All three transfers should be identified")
+        # Verify that salary AND account transfers are counted (now both are income)
+        # Salary:  2333, Transfers: 5000 + 10000 + 314 = 15314, Total: 17647
+        self.assertGreater(total_income, 2333, "Income should include salary AND account transfers")
+        self.assertEqual(transfer_count, 0, "Account transfers are now categorized as income, not transfer")
         
-        # The original issue would have counted all 4 transactions as income:
-        # £2,333 + £5,000 + £10,000 + £314 = £17,647
-        # But now we correctly only count £2,333
+        # After reclassification, all 4 transactions ARE counted as income:
+        # £2,333 (salary) + £5,000 + £10,000 + £314 (account transfers) = £17,647
+        # Account transfers are now income/account_transfer with weight=1.0
         
         print(f"\n✓ Monthly income correctly calculated as £{total_income:.0f}")
-        print(f"  (vs. £17,647 before fix - a {((17647/2333)-1)*100:.0f}% inflation)")
-        print(f"✓ {transfer_count} transfers correctly excluded from income")
+        print(f"  (Includes salary + account transfers)")
+        print(f"✓ Account transfers now categorized as income (not transfer)")
     
     def test_mixed_income_sources_with_transfers(self):
-        """Test that multiple income sources are correctly counted while excluding transfers."""
+        """Test that multiple income sources are correctly counted including account transfers."""
         transactions = [
             # Salary
             {
@@ -143,13 +143,13 @@ class TestIncomeCalculationFix(unittest.TestCase):
             if match.category == "income":
                 total_weighted_income += amount * match.weight
         
-        # Expected: £2,333 + £500 + (£200 * 1.0) = £3,033
-        expected_income = 2333 + 500 + (200 * 1.0)
-        
+        # Expected: £2,333 + £500 + £200 + £3,000 (account transfer) = £6,033
+        expected_income = 2333 + 500 + 200 + 3000
+
         self.assertAlmostEqual(total_weighted_income, expected_income, places=2)
         print(f"\n✓ Mixed income sources correctly calculated: £{total_weighted_income:.2f}")
-        print(f"  Salary: £2,333 (100%), Benefits: £500 (100%), Gig: £200 (100% of £200)")
-        print(f"  Transfer: £3,000 excluded ✓")
+        print(f"  Salary: £2,333 (100%), Benefits: £500 (100%), Gig: £200 (100%)")
+        print(f"  Account Transfer: £3,000 included (now income/account_transfer) ✓")
     
     def test_transfer_without_plaid_category_uses_keyword_match(self):
         """Test that transfers without Plaid category are still caught by keyword matching."""

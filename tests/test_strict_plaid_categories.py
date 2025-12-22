@@ -12,6 +12,7 @@ Addresses the issue where:
 """
 
 import unittest
+from unittest import result
 from openbanking_engine.categorisation.engine import TransactionCategorizer
 
 
@@ -42,9 +43,9 @@ class TestStrictPlaidCategories(unittest.TestCase):
             plaid_category_primary="TRANSFER_IN"
         )
         
-        self.assertEqual(result.category, "transfer")
-        self.assertEqual(result.subcategory, "internal")
-        self.assertEqual(result.weight, 0.0)
+        self.assertEqual(result.category, "income")
+        self.assertEqual(result.subcategory, "account_transfer")
+        self.assertEqual(result.weight, 1.0)
         self.assertEqual(result.match_method, "plaid_strict")
         self.assertGreaterEqual(result.confidence, 0.98)
         self.assertFalse(result.is_stable)
@@ -68,9 +69,9 @@ class TestStrictPlaidCategories(unittest.TestCase):
             plaid_category_primary="TRANSFER_IN"
         )
         
-        self.assertEqual(result.category, "transfer")
-        self.assertEqual(result.subcategory, "internal")
-        self.assertEqual(result.weight, 0.0)
+        self.assertEqual(result.category, "income")
+        self.assertEqual(result.subcategory, "account_transfer")
+        self.assertEqual(result.weight, 1.0)
         self.assertEqual(result.match_method, "plaid_strict")
     
     def test_transfer_in_account_transfer_simple(self):
@@ -84,9 +85,9 @@ class TestStrictPlaidCategories(unittest.TestCase):
             plaid_category_primary="TRANSFER_IN"
         )
         
-        self.assertEqual(result.category, "transfer")
-        self.assertEqual(result.subcategory, "internal")
-        self.assertEqual(result.weight, 0.0)
+        self.assertEqual(result.category, "income")
+        self.assertEqual(result.subcategory, "account_transfer")
+        self.assertEqual(result.weight, 1.0)
     
     # ====================================================================
     # TRANSFER_OUT_ACCOUNT_TRANSFER Tests
@@ -112,9 +113,9 @@ class TestStrictPlaidCategories(unittest.TestCase):
             plaid_category_primary="TRANSFER_OUT"
         )
         
-        self.assertEqual(result.category, "transfer")
-        self.assertEqual(result.subcategory, "external")
-        self.assertEqual(result.weight, 0.0)
+        self.assertEqual(result. category, "expense")
+        self.assertEqual(result. subcategory, "account_transfer")
+        self.assertEqual(result. weight, 1.0)
         self.assertEqual(result.match_method, "plaid_strict")
         self.assertGreaterEqual(result.confidence, 0.98)
     
@@ -133,9 +134,9 @@ class TestStrictPlaidCategories(unittest.TestCase):
             plaid_category_primary="TRANSFER_OUT"
         )
         
-        self.assertEqual(result.category, "transfer")
-        self.assertEqual(result.subcategory, "external")
-        self.assertEqual(result.weight, 0.0)
+        self.assertEqual(result.category, "expense")
+        self.assertEqual(result.subcategory, "account_transfer")
+        self.assertEqual(result.weight, 1.0)
     
     # ====================================================================
     # TRANSFER_IN_CASH_ADVANCES_AND_LOANS Tests
@@ -180,9 +181,10 @@ class TestStrictPlaidCategories(unittest.TestCase):
     # ====================================================================
     
     def test_keyword_does_not_override_transfer_in_account_transfer(self):
+        
         """
-        Even with strong salary keywords, TRANSFER_IN_ACCOUNT_TRANSFER
-        must remain transfer > internal.
+        TRANSFER_IN_ACCOUNT_TRANSFER is now categorized as income > account_transfer,
+        even with salary keywords (no longer a transfer).
         """
         result = self.categorizer.categorize_transaction(
             description="SALARY PAYMENT FROM EMPLOYER LIMITED",
@@ -190,14 +192,14 @@ class TestStrictPlaidCategories(unittest.TestCase):
             plaid_category="TRANSFER_IN_ACCOUNT_TRANSFER",
             plaid_category_primary="TRANSFER_IN"
         )
-        
-        self.assertEqual(result.category, "transfer")
-        self.assertEqual(result.subcategory, "internal")
-        self.assertNotEqual(result.category, "income")
-        self.assertEqual(result.weight, 0.0)
+
+        self.assertEqual(result.category, "income")
+        self.assertEqual(result.subcategory, "account_transfer")
+        self.assertEqual(result.weight, 1.0)
     
     def test_keyword_does_not_override_transfer_out_account_transfer(self):
         """
+        
         Even with grocery/shopping keywords, TRANSFER_OUT_ACCOUNT_TRANSFER
         must remain transfer > external.
         """
@@ -207,7 +209,7 @@ class TestStrictPlaidCategories(unittest.TestCase):
             plaid_category="TRANSFER_OUT_ACCOUNT_TRANSFER",
             plaid_category_primary="TRANSFER_OUT"
         )
-        
+
         self.assertEqual(result.category, "transfer")
         self.assertEqual(result.subcategory, "external")
         self.assertNotEqual(result.category, "essential")

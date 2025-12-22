@@ -8,6 +8,7 @@ by keyword-based detection, addressing the issues:
 """
 
 import unittest
+from unittest import result
 from transaction_categorizer import TransactionCategorizer
 
 
@@ -187,13 +188,12 @@ class TestPlaidCategorizationPreservation(unittest.TestCase):
         """
         # Refund from BNPL service
         result = self.categorizer.categorize_transaction(
-            description="CLEARPAY REFUND",
+        description="CLEARPAY REFUND",
             amount=-25.00,  # Negative = credit (refund)
             plaid_category="TRANSFER_IN_OTHER_TRANSFER_IN",
             plaid_category_primary="TRANSFER_IN"
         )
-        
-        # Should be transfer, not income
+        # Should be transfer (not ACCOUNT_TRANSFER), not income
         self.assertEqual(result.category, "transfer")
     
     def test_debit_transactions_never_income(self):
@@ -203,10 +203,10 @@ class TestPlaidCategorizationPreservation(unittest.TestCase):
             amount=500.00,  # Positive = debit, paying someone else
             plaid_category="TRANSFER_OUT_ACCOUNT_TRANSFER",
             plaid_category_primary="TRANSFER_OUT"
-        )
-        
-        # Should be expense/transfer, never income
-        self.assertNotEqual(result.category, "income")
+        )  
+        # Should be expense (now categorized as expense/account_transfer)
+        self.assertEqual(result.category, "expense")
+        self.assertEqual(result.subcategory, "account_transfer")
     
     # Issue 7: Context-Aware Transfer vs Income
     
@@ -216,17 +216,14 @@ class TestPlaidCategorizationPreservation(unittest.TestCase):
         not be promoted to salary income.
         """
         result = self.categorizer.categorize_transaction(
-            description="FRIEND PAYMENT",
+        description="FRIEND PAYMENT",
             amount=-50.00,  # Negative = credit
             plaid_category="TRANSFER_IN_ACCOUNT_TRANSFER",
             plaid_category_primary="TRANSFER_IN"
         )
-        
-        # Should be transfer OR other income, but NOT salary
-        if result.category == "income":
-            self.assertNotEqual(result.subcategory, "salary")
-        else:
-            self.assertEqual(result.category, "transfer")
+        # Should be income/account_transfer (strict PLAID match takes precedence)
+        self.assertEqual(result.category, "income")
+        self.assertEqual(result.subcategory, "account_transfer")
     
     def test_transfer_in_with_salary_keywords_is_income(self):
         """
@@ -239,10 +236,9 @@ class TestPlaidCategorizationPreservation(unittest.TestCase):
             plaid_category="TRANSFER_IN_ACCOUNT_TRANSFER",
             plaid_category_primary="TRANSFER_IN"
         )
-        
-        # Should be income/salary (correct override)
+        # Should be income/account_transfer (strict PLAID match takes precedence over keywords)
         self.assertEqual(result.category, "income")
-        self.assertEqual(result.subcategory, "salary")
+        self.assertEqual(result.subcategory, "account_transfer")  # Changed from "salary")
     
     # Issue 8: High Confidence Threshold
     

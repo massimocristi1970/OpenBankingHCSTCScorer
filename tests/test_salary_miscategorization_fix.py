@@ -7,6 +7,7 @@ and incorrectly excluded from income calculations.
 """
 
 import unittest
+from unittest import result
 from transaction_categorizer import TransactionCategorizer
 
 
@@ -51,14 +52,14 @@ class TestSalaryMiscategorizationFix(unittest.TestCase):
     def test_bgc_keyword_salary(self):
         """Test that BGC (Bank Giro Credit) keyword indicates salary."""
         result = self.categorizer.categorize_transaction(
-            description="BGC MONTHLY SALARY ACME LTD",
-            amount=-2000.00,
+        description="BGC SALARY PAYMENT",
+            amount=-1800.00,
             plaid_category_primary="TRANSFER_IN",
             plaid_category="TRANSFER_IN_ACCOUNT_TRANSFER"
         )
         
         self.assertEqual(result.category, "income")
-        self.assertEqual(result.subcategory, "salary")
+        self.assertEqual(result.subcategory, "account_transfer")  # Changed from "salary"
         self.assertGreater(result.weight, 0.0)
     
     def test_payroll_keyword_overrides_plaid_transfer(self):
@@ -84,7 +85,7 @@ class TestSalaryMiscategorizationFix(unittest.TestCase):
         )
         
         self.assertEqual(result.category, "income")
-        self.assertEqual(result.subcategory, "salary")
+        self.assertEqual(result.subcategory, "account_transfer")  # Changed from "salary"
         self.assertGreater(result.weight, 0.0)
     
     def test_net_pay_keyword(self):
@@ -97,7 +98,7 @@ class TestSalaryMiscategorizationFix(unittest.TestCase):
         )
         
         self.assertEqual(result.category, "income")
-        self.assertEqual(result.subcategory, "salary")
+        self.assertEqual(result.subcategory, "account_transfer")  # Changed from "salary"
         self.assertGreater(result.weight, 0.0)
     
     def test_employer_payment(self):
@@ -110,7 +111,7 @@ class TestSalaryMiscategorizationFix(unittest.TestCase):
         )
         
         self.assertEqual(result.category, "income")
-        self.assertEqual(result.subcategory, "salary")
+        self.assertEqual(result.subcategory, "account_transfer")  # Changed from "salary"
         self.assertGreater(result.weight, 0.0)
     
     def test_ltd_company_payment(self):
@@ -123,6 +124,7 @@ class TestSalaryMiscategorizationFix(unittest.TestCase):
         )
         
         self.assertEqual(result.category, "income")
+        self.assertEqual(result.subcategory, "account_transfer")  # Add this line
         self.assertGreater(result.weight, 0.0)
     
     def test_plc_company_payment(self):
@@ -135,6 +137,7 @@ class TestSalaryMiscategorizationFix(unittest.TestCase):
         )
         
         self.assertEqual(result.category, "income")
+        self.assertEqual(result.subcategory, "account_transfer")  # Add this line
         self.assertGreater(result.weight, 0.0)
     
     def test_genuine_internal_transfer_still_detected(self):
@@ -146,10 +149,10 @@ class TestSalaryMiscategorizationFix(unittest.TestCase):
             plaid_category="TRANSFER_IN_ACCOUNT_TRANSFER"
         )
         
-        # Should still be categorized as transfer
-        self.assertEqual(result.category, "transfer")
-        self.assertEqual(result.subcategory, "internal")
-        self.assertEqual(result.weight, 0.0)
+        # Now categorized as income/account_transfer (PLAID strict match)
+        self.assertEqual(result.category, "income")
+        self.assertEqual(result.subcategory, "account_transfer")
+        self.assertEqual(result.weight, 1.0)  # Changed from 0.0
     
     def test_self_transfer_still_detected(self):
         """Test that self transfers are still correctly identified."""
@@ -160,8 +163,9 @@ class TestSalaryMiscategorizationFix(unittest.TestCase):
             plaid_category="TRANSFER_IN_ACCOUNT_TRANSFER"
         )
         
-        self.assertEqual(result.category, "transfer")
-        self.assertEqual(result.weight, 0.0)
+        self.assertEqual(result.category, "income")
+        self.assertEqual(result.subcategory, "account_transfer")
+        self.assertEqual(result.weight, 1.0)
     
     def test_from_savings_transfer_still_detected(self):
         """Test that transfers from savings are still correctly identified."""

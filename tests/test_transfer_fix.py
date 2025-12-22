@@ -23,10 +23,10 @@ class TestTransferCategorization(unittest.TestCase):
             plaid_category="TRANSFER_IN_ACCOUNT_TRANSFER"
         )
         
-        self.assertEqual(result.category, "transfer")
-        self.assertEqual(result.subcategory, "internal")
-        self.assertEqual(result.weight, 0.0)
-        self.assertEqual(result.match_method, "plaid")
+        self.assertEqual(result.category, "income")
+        self.assertEqual(result.subcategory, "account_transfer")
+        self.assertEqual(result.weight, 1.0)
+        self.assertEqual(result.match_method, "plaid_strict")
         self.assertGreater(result.confidence, 0.9)
     
     def test_plaid_transfer_in_detailed(self):
@@ -37,9 +37,9 @@ class TestTransferCategorization(unittest.TestCase):
             plaid_category="TRANSFER_IN_ACCOUNT_TRANSFER"
         )
         
-        self.assertEqual(result.category, "transfer")
-        self.assertEqual(result.subcategory, "internal")
-        self.assertEqual(result.weight, 0.0)
+        self.assertEqual(result.category, "income")
+        self.assertEqual(result.subcategory, "account_transfer")
+        self.assertEqual(result.weight, 1.0)
     
     def test_keyword_transfer_fallback(self):
         """Test that keyword matching still works as fallback when Plaid category is absent."""
@@ -93,8 +93,9 @@ class TestTransferCategorization(unittest.TestCase):
         
         self.assertEqual(len(results), 1)
         txn, match = results[0]
-        self.assertEqual(match.category, "transfer")
-        self.assertEqual(match.weight, 0.0)
+        self.assertEqual(match.category, "income")
+        self.assertEqual(match.subcategory, "account_transfer")
+        self.assertEqual(match.weight, 1.0)
     
     def test_categorize_transactions_with_flat_plaid(self):
         """Test the categorize_transactions method with flat personal_finance_category fields."""
@@ -111,8 +112,9 @@ class TestTransferCategorization(unittest.TestCase):
         
         self.assertEqual(len(results), 1)
         txn, match = results[0]
-        self.assertEqual(match.category, "transfer")
-        self.assertEqual(match.weight, 0.0)
+        self.assertEqual(match.category, "income")
+        self.assertEqual(match.subcategory, "account_transfer")
+        self.assertEqual(match.weight, 1.0)
 
 
 if __name__ == "__main__":

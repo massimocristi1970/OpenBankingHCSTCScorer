@@ -118,15 +118,15 @@ def test_export_error_handling():
                 'amount': -2800.0,
                 'merchant_name': 'ACME CORP LTD',
                 'category': 'income',
-                'subcategory': 'salary',
-                'confidence': 0.95,
-                'match_method': 'behavioral_income',
+                'subcategory': 'account_transfer',  # Changed from 'salary'
+                'confidence': 0.98,  # Changed from 0.95 (strict PLAID match)
+                'match_method': 'plaid_strict',  # Changed from 'behavioral_income'
                 'description_text': 'BANK GIRO CREDIT ACME CORP LTD',
                 'plaid_category_primary': 'TRANSFER_IN',
-                'plaid_category_detailed': 'TRANSFER_IN_ACCOUNT_TRANSFER',
+                'plaid_category_detailed': 'TRANSFER_IN_ACCOUNT_TRANSFER',  
                 'risk_level': 'low',
                 'weight': 1.0,
-                'is_stable': True,
+                'is_stable':  False,  # Changed from True (account_transfer is not stable)
                 'is_housing': False
             }
         ]
