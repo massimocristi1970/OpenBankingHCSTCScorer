@@ -1008,7 +1008,7 @@ class MetricsCalculator:
         monthly_account_transfer = account_transfer_total / actual_months
 
         # Effective income (gig weighted at 100%, other at 100%)
-        effective_monthly = (
+        effective_monthly = abs(
             monthly_stable
             + (monthly_gig * 1.0)
             + monthly_other
@@ -1445,6 +1445,10 @@ class MetricsCalculator:
             essential_ratio = (buffered_expenses / effective_income) * 100
         else:
             essential_ratio = 100.0
+
+        print(
+            f"[DEBUG] effective_income={effective_income}, buffered_expenses={buffered_expenses}, debt_payments={debt_payments}"
+        )
 
         # Disposable Income (using buffered expenses)
         monthly_disposable = effective_income - buffered_expenses - debt_payments
