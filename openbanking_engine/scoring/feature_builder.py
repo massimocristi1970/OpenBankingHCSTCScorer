@@ -21,14 +21,14 @@ logger = logging.getLogger(__name__)
 # TEMPORARY: Enable debug logging for income validation
 # TODO: Remove in production or configure via logging config
 logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 
 
 @dataclass
 class IncomeMetrics:
     """Income-related metrics."""
+
     total_income: float = 0.0
     monthly_income: float = 0.0
     monthly_stable_income: float = 0.0  # Salary + Benefits + Pension
@@ -44,6 +44,7 @@ class IncomeMetrics:
 @dataclass
 class ExpenseMetrics:
     """Expense-related metrics."""
+
     monthly_housing: float = 0.0  # Rent OR Mortgage
     monthly_council_tax: float = 0.0
     monthly_utilities: float = 0.0
@@ -58,7 +59,6 @@ class ExpenseMetrics:
     monthly_discretionary_total: float = 0.0
     monthly_total_spend: float = 0.0
 
-
     # Optional: current month-to-date spend trend (not included in the base averages)
     mtd_total_spend: float = 0.0
     mtd_spend_vs_3m_avg_ratio: float = 0.0
@@ -70,6 +70,7 @@ class ExpenseMetrics:
 @dataclass
 class DebtMetrics:
     """Debt-related metrics."""
+
     monthly_debt_payments: float = 0.0
     monthly_hcstc_payments: float = 0.0
     active_hcstc_count: int = 0
@@ -84,6 +85,7 @@ class DebtMetrics:
 @dataclass
 class AffordabilityMetrics:
     """Affordability-related metrics."""
+
     debt_to_income_ratio: float = 0.0  # Target < 50%
     essential_ratio: float = 0.0  # Target < 70%
     monthly_disposable: float = 0.0
@@ -100,6 +102,7 @@ class AffordabilityMetrics:
 @dataclass
 class BalanceMetrics:
     """Account balance metrics."""
+
     average_balance: float = 0.0
     minimum_balance: float = 0.0
     maximum_balance: float = 0.0
@@ -111,6 +114,7 @@ class BalanceMetrics:
 @dataclass
 class RiskMetrics:
     """Risk indicator metrics."""
+
     gambling_total: float = 0.0
     gambling_percentage: float = 0.0
     gambling_frequency: int = 0
@@ -132,7 +136,12 @@ class RiskMetrics:
 class MetricsCalculator:
     """Calculates financial metrics from categorized transactions."""
 
-    def __init__(self, lookback_months: int = 3, months_of_data: Optional[int] = None, transactions: Optional[List[Dict]] = None):
+    def __init__(
+        self,
+        lookback_months: int = 3,
+        months_of_data: Optional[int] = None,
+        transactions: Optional[List[Dict]] = None,
+    ):
         """
         Initialize the metrics calculator.
 
@@ -223,7 +232,9 @@ class MetricsCalculator:
         # Return at least 1 month
         return max(1, months)
 
-    def _filter_recent_transactions(self, transactions: List[Dict], months: int) -> List[Dict]:
+    def _filter_recent_transactions(
+        self, transactions: List[Dict], months: int
+    ) -> List[Dict]:
         """
         Filter transactions to only include the last N *complete* calendar months.
 
@@ -286,7 +297,9 @@ class MetricsCalculator:
 
         return filtered
 
-    def _filter_last_complete_calendar_months(self, transactions: List[Dict], months:  int) -> List[Dict]:
+    def _filter_last_complete_calendar_months(
+        self, transactions: List[Dict], months: int
+    ) -> List[Dict]:
         """
         Return transactions from the last N COMPLETE calendar months that have expenses,
         excluding the current (partial) month.
@@ -378,13 +391,10 @@ class MetricsCalculator:
             except ValueError:
                 continue
 
-
         return filtered
 
     def _filter_last_n_income_months(
-        self,
-        categorized_transactions: List[Tuple[Dict, "CategoryMatch"]],
-        months: int
+        self, categorized_transactions: List[Tuple[Dict, "CategoryMatch"]], months: int
     ) -> List[Dict]:
         """
         Return INCOME transactions from the most recent N COMPLETE calendar months that contain income.
@@ -451,7 +461,7 @@ class MetricsCalculator:
         selected_months = set(selected_months)
 
         # 3) Return only income transactions that fall in those months
-        filtered_income_txns:  List[Dict] = []
+        filtered_income_txns: List[Dict] = []
         for txn, match in categorized_transactions:
             try:
                 if getattr(match, "category", None) != "income":
@@ -460,7 +470,7 @@ class MetricsCalculator:
                 if amt is None or float(amt) >= 0:
                     continue
 
-                date_str = txn. get("date")
+                date_str = txn.get("date")
                 if not date_str:
                     continue
                 dt = datetime.strptime(date_str, "%Y-%m-%d")
@@ -476,12 +486,14 @@ class MetricsCalculator:
             len(income_months),
             sorted(income_months, reverse=True),
             months,
-            len(filtered_income_txns)
+            len(filtered_income_txns),
         )
 
         return filtered_income_txns
 
-    def _filter_month_to_date_transactions(self, transactions: List[Dict]) -> List[Dict]:
+    def _filter_month_to_date_transactions(
+        self, transactions: List[Dict]
+    ) -> List[Dict]:
         """
         Filter transactions to the current month-to-date based on the most recent transaction date.
 
@@ -531,7 +543,7 @@ class MetricsCalculator:
     def _build_filtered_category_summary(
         self,
         categorized_transactions: List[Tuple[Dict, CategoryMatch]],
-        recent_transactions: List[Dict]
+        recent_transactions: List[Dict],
     ) -> Dict:
         """
         Build a category summary from only the recent transactions.
@@ -557,8 +569,9 @@ class MetricsCalculator:
             cleaned = "".join(ch if (ch.isalnum() or ch.isspace()) else " " for ch in s)
             return " ".join(cleaned.split())
 
-
-        def _is_recurring_like_local(txn: Dict, amount_tolerance: float = 0.25, min_similar: int = 2) -> bool:
+        def _is_recurring_like_local(
+            txn: Dict, amount_tolerance: float = 0.25, min_similar: int = 2
+        ) -> bool:
             # We only care about cadence of same-ish description + amount
             this_norm = _normalize_desc(txn.get("name", ""))
             if not this_norm:
@@ -581,7 +594,6 @@ class MetricsCalculator:
                 if other_norm != this_norm:
                     continue
 
-
                 # similar amount band
                 if abs(abs(a) - this_amt) / this_amt > amount_tolerance:
                     continue
@@ -598,13 +610,15 @@ class MetricsCalculator:
                 return False
 
             dates_sorted = sorted(dates)
-            intervals = [(dates_sorted[i] - dates_sorted[i - 1]).days for i in range(1, len(dates_sorted))]
+            intervals = [
+                (dates_sorted[i] - dates_sorted[i - 1]).days
+                for i in range(1, len(dates_sorted))
+            ]
             if not intervals:
                 return False
 
             avg = sum(intervals) / len(intervals)
             return (5 <= avg <= 9) or (11 <= avg <= 17) or (25 <= avg <= 35)
-
 
         # Initialize summary structure
         summary = {
@@ -615,18 +629,17 @@ class MetricsCalculator:
                 "gig_economy": {"total": 0.0, "count": 0},
                 "loans": {"total": 0.0, "count": 0},
                 "other": {"total": 0.0, "count": 0},
-                "account_transfer": {"total":  0.0, "count":  0},
+                "account_transfer": {"total": 0.0, "count": 0},
             },
-
             "essential": {
-                "rent": {"total":  0.0, "count":  0},
-                "mortgage":  {"total": 0.0, "count": 0},
-                "council_tax": {"total":  0.0, "count":  0},
-                "utilities":  {"total": 0.0, "count": 0},
+                "rent": {"total": 0.0, "count": 0},
+                "mortgage": {"total": 0.0, "count": 0},
+                "council_tax": {"total": 0.0, "count": 0},
+                "utilities": {"total": 0.0, "count": 0},
                 "communications": {"total": 0.0, "count": 0},
                 "insurance": {"total": 0.0, "count": 0},
                 "transport": {"total": 0.0, "count": 0},
-                "groceries": {"total":  0.0, "count":  0},
+                "groceries": {"total": 0.0, "count": 0},
                 "childcare": {"total": 0.0, "count": 0},
             },
             "expense": {
@@ -636,11 +649,15 @@ class MetricsCalculator:
                 "unpaid": {"total": 0.0, "count": 0},
                 "unauthorised_overdraft": {"total": 0.0, "count": 0},
                 "gambling": {"total": 0.0, "count": 0},
-                "account_transfer": {"total":  0.0, "count":  0},
+                "account_transfer": {"total": 0.0, "count": 0},
             },
-
             "debt": {
-                "hcstc_payday": {"total": 0.0, "count": 0, "lenders": set(), "lenders_90d": set()},
+                "hcstc_payday": {
+                    "total": 0.0,
+                    "count": 0,
+                    "lenders": set(),
+                    "lenders_90d": set(),
+                },
                 "other_loans": {"total": 0.0, "count": 0},
                 "credit_cards": {"total": 0.0, "count": 0},
                 "bnpl": {"total": 0.0, "count": 0},
@@ -649,7 +666,6 @@ class MetricsCalculator:
         }
 
         transfer_income_supplement = 0.0
-
 
         # Filter categorized transactions and rebuild summary
         for txn, match in categorized_transactions:
@@ -662,19 +678,38 @@ class MetricsCalculator:
             subcategory = match.subcategory
 
             # Track income and ALL expense categories in filtered summary
-            if category in ["income", "essential", "expense", "debt"] and subcategory in summary.get(category, {}):
+            if category in [
+                "income",
+                "essential",
+                "expense",
+                "debt",
+            ] and subcategory in summary.get(category, {}):
                 # For income, apply weight; for expenses, use full amount
                 if category == "income":
-                    summary[category][subcategory]["total"] += (amount * match.weight)
+                    summary[category][subcategory]["total"] += amount * match.weight
                     # DEBUG: Log weighted income
                     if match.weight < 1.0:
                         logger.debug(
-                            "[INCOME WEIGHTING] Txn: %s, Amount: £%.2f, Weight: %.2f, Weighted:  £%.2f, Category: %s/%s",
-                            txn.get("date"), amount, match.weight, amount * match.weight, category, subcategory
-                )
+                            "[INCOME WEIGHTING] Txn:  %s, Amount: £%.2f, Weight: %.2f, Weighted: £%.2f, Category: %s/%s",
+                            txn.get("date"),
+                            amount,
+                            match.weight,
+                            amount * match.weight,
+                            category,
+                            subcategory,
+                        )
+                    summary[category][subcategory]["count"] += 1
+                # EXCLUDE expense/account_transfer from affordability (internal transfers out)
+                elif category == "expense" and subcategory == "account_transfer":
+                    # Skip - don't count internal transfers out as expenses
+                    pass
+                # EXCLUDE transfer/internal from affordability (internal transfers)
+                elif category == "transfer" and subcategory == "internal":
+                    # Skip - don't count internal transfers as expenses
+                    pass
                 else:
                     summary[category][subcategory]["total"] += amount
-                summary[category][subcategory]["count"] += 1
+                    summary[category][subcategory]["count"] += 1
 
             if category == "transfer" and subcategory == "internal":
                 raw_amt = float(txn.get("amount", 0) or 0)
@@ -705,7 +740,7 @@ class MetricsCalculator:
         accounts: List[Dict],
         loan_amount: float = 500,
         loan_term: int = 4,
-        categorized_transactions: Optional[List[Tuple[Dict, 'CategoryMatch']]] = None
+        categorized_transactions: Optional[List[Tuple[Dict, "CategoryMatch"]]] = None,
     ) -> Dict:
         """
         Calculate all metrics from categorized transactions.
@@ -727,7 +762,9 @@ class MetricsCalculator:
             Dictionary containing all metric objects
         """
         # Filter transactions to last N months for income/expense calculations
-        recent_transactions = self._filter_recent_transactions(transactions, self.lookback_months)
+        recent_transactions = self._filter_recent_transactions(
+            transactions, self.lookback_months
+        )
 
         # Month-to-date transactions for the optional trend flag (NOT used in averages)
         mtd_transactions = self._filter_month_to_date_transactions(transactions)
@@ -765,8 +802,7 @@ class MetricsCalculator:
 
         # Calculate income and expenses using their own windows
         income_metrics = self.calculate_income_metrics(
-            filtered_category_summary_income,
-            income_transactions
+            filtered_category_summary_income, income_transactions
         )
 
         expense_metrics = self.calculate_expense_metrics(
@@ -786,9 +822,13 @@ class MetricsCalculator:
         # Calculate debt metrics using the same filtered period as expenses
         # This ensures consistent time basis for affordability calculations
         # (Monthly debt must be calculated over the same period as monthly expenses)
-        filtered_category_summary_debt = self._build_filtered_category_summary(
-            categorized_transactions, expense_transactions
-        ) if categorized_transactions is not None else filtered_category_summary_expense
+        filtered_category_summary_debt = (
+            self._build_filtered_category_summary(
+                categorized_transactions, expense_transactions
+            )
+            if categorized_transactions is not None
+            else filtered_category_summary_expense
+        )
 
         # Calculate debt payments from filtered period
         debt_metrics = self.calculate_debt_metrics(filtered_category_summary_debt)
@@ -801,8 +841,14 @@ class MetricsCalculator:
         full_lenders_90d = full_hcstc_data.get("lenders_90d", set())
 
         # Convert sets to length (lenders are always stored as sets in the category summary)
-        debt_metrics.active_hcstc_count = len(full_lenders) if isinstance(full_lenders, set) else full_lenders
-        debt_metrics.active_hcstc_count_90d = len(full_lenders_90d) if isinstance(full_lenders_90d, set) else full_lenders_90d
+        debt_metrics.active_hcstc_count = (
+            len(full_lenders) if isinstance(full_lenders, set) else full_lenders
+        )
+        debt_metrics.active_hcstc_count_90d = (
+            len(full_lenders_90d)
+            if isinstance(full_lenders_90d, set)
+            else full_lenders_90d
+        )
         balance_metrics = self.calculate_balance_metrics(transactions, accounts)
         risk_metrics = self.calculate_risk_metrics(category_summary, income_metrics)
 
@@ -811,7 +857,7 @@ class MetricsCalculator:
             expense_metrics=expense_metrics,
             debt_metrics=debt_metrics,
             loan_amount=loan_amount,
-            loan_term=loan_term
+            loan_term=loan_term,
         )
 
         return {
@@ -823,7 +869,6 @@ class MetricsCalculator:
             "risk": risk_metrics,
             "mtd_category_summary": mtd_category_summary,
             "mtd_transactions": mtd_transactions,
-
         }
 
     def _count_unique_income_months(self, transactions: List[Dict]) -> int:
@@ -882,9 +927,7 @@ class MetricsCalculator:
         return max(1, len(months))
 
     def calculate_income_metrics(
-        self,
-        category_summary: Dict,
-        transactions: List[Dict]
+        self, category_summary: Dict, transactions: List[Dict]
     ) -> IncomeMetrics:
         """
         Calculate income-related metrics from recent transactions.
@@ -903,10 +946,17 @@ class MetricsCalculator:
         benefits_total = income_data.get("benefits", {}).get("total", 0)
         pension_total = income_data.get("pension", {}).get("total", 0)
         gig_total = income_data.get("gig_economy", {}).get("total", 0)
-        other_total = income_data. get("other", {}).get("total", 0)
+        other_total = income_data.get("other", {}).get("total", 0)
         account_transfer_total = income_data.get("account_transfer", {}).get("total", 0)
 
-        total_income = salary_total + benefits_total + pension_total + gig_total + other_total + account_transfer_total
+        total_income = (
+            salary_total
+            + benefits_total
+            + pension_total
+            + gig_total
+            + other_total
+            + account_transfer_total
+        )
 
         # **ADD VALIDATION LOGGING**
         salary_count = income_data.get("salary", {}).get("count", 0)
@@ -925,20 +975,30 @@ class MetricsCalculator:
             "Other: £%.2f (%d txns)\n"
             "Account Transfer: £%.2f (%d txns)\n"
             "Total: £%.2f",
-            salary_total, salary_count,
-            benefits_total, benefits_count,
-            pension_total, pension_count,
-            gig_total, gig_count,
-            other_total, other_count,
-            account_transfer_total, account_transfer_count,
-            total_income  # Use the already calculated total_income
+            salary_total,
+            salary_count,
+            benefits_total,
+            benefits_count,
+            pension_total,
+            pension_count,
+            gig_total,
+            gig_count,
+            other_total,
+            other_count,
+            account_transfer_total,
+            account_transfer_count,
+            total_income,  # Use the already calculated total_income
         )
 
         # **CRITICAL FIX**: Count months in FILTERED transactions, not total history
         actual_months = self._count_unique_income_months(transactions)
 
-        logger.debug("[INCOME VALIDATION] Using %d months for averaging (lookback=%d, total_history=%d)",
-                    actual_months, self.lookback_months, self.months_of_data)
+        logger.debug(
+            "[INCOME VALIDATION] Using %d months for averaging (lookback=%d, total_history=%d)",
+            actual_months,
+            self.lookback_months,
+            self.months_of_data,
+        )
 
         # Monthly calculations - divide by ACTUAL months in recent period
         monthly_stable = (salary_total + benefits_total + pension_total) / actual_months
@@ -948,7 +1008,12 @@ class MetricsCalculator:
         monthly_account_transfer = account_transfer_total / actual_months
 
         # Effective income (gig weighted at 100%, other at 100%)
-        effective_monthly = monthly_stable + (monthly_gig * 1.0) + monthly_other + monthly_account_transfer
+        effective_monthly = (
+            monthly_stable
+            + (monthly_gig * 1.0)
+            + monthly_other
+            + monthly_account_transfer
+        )
 
         # Income stability score
         stability_score = self._calculate_income_stability(transactions)
@@ -968,11 +1033,7 @@ class MetricsCalculator:
             income_sources.append("Gig Economy")
 
         # Verifiable income check
-        has_verifiable = (
-            salary_total > 0 or
-            benefits_total > 0 or
-            pension_total > 0
-        )
+        has_verifiable = salary_total > 0 or benefits_total > 0 or pension_total > 0
 
         return IncomeMetrics(
             total_income=total_income,
@@ -991,8 +1052,7 @@ class MetricsCalculator:
                 "gig_economy": monthly_gig,
                 "other": monthly_other,
                 "account_transfer": account_transfer_total / actual_months,
-
-            }
+            },
         )
 
     def _calculate_income_stability(self, transactions: List[Dict]) -> float:
@@ -1136,25 +1196,37 @@ class MetricsCalculator:
         # Get monthly averages based on actual months in filtered period
         rent = essential_data.get("rent", {}).get("total", 0) / actual_months
         mortgage = essential_data.get("mortgage", {}).get("total", 0) / actual_months
-        council_tax = essential_data.get("council_tax", {}).get("total", 0) / actual_months
+        council_tax = (
+            essential_data.get("council_tax", {}).get("total", 0) / actual_months
+        )
         utilities = essential_data.get("utilities", {}).get("total", 0) / actual_months
         transport = essential_data.get("transport", {}).get("total", 0) / actual_months
         groceries = essential_data.get("groceries", {}).get("total", 0) / actual_months
-        communications = essential_data.get("communications", {}).get("total", 0) / actual_months
+        communications = (
+            essential_data.get("communications", {}).get("total", 0) / actual_months
+        )
         insurance = essential_data.get("insurance", {}).get("total", 0) / actual_months
         childcare = essential_data.get("childcare", {}).get("total", 0) / actual_months
 
         # Add other expenses that aren't in "essential" category
         other_expenses = expense_data.get("other", {}).get("total", 0) / actual_months
-        food_dining = expense_data.get("food_dining", {}).get("total", 0) / actual_months
-        discretionary = expense_data.get("discretionary", {}).get("total", 0) / actual_months
-        account_transfer_expenses = expense_data.get("account_transfer", {}).get("total", 0) / actual_months
+        food_dining = (
+            expense_data.get("food_dining", {}).get("total", 0) / actual_months
+        )
+        discretionary = (
+            expense_data.get("discretionary", {}).get("total", 0) / actual_months
+        )
+        account_transfer_expenses = (
+            expense_data.get("account_transfer", {}).get("total", 0) / actual_months
+        )
 
         # New expense subcategories
         unpaid = expense_data.get("unpaid", {}).get("total", 0) / actual_months
-        unauthorised_overdraft = expense_data.get("unauthorised_overdraft", {}).get("total", 0) / actual_months
+        unauthorised_overdraft = (
+            expense_data.get("unauthorised_overdraft", {}).get("total", 0)
+            / actual_months
+        )
         gambling = expense_data.get("gambling", {}).get("total", 0) / actual_months
-
 
         # Housing is rent OR mortgage (not both)
         housing = max(rent, mortgage)
@@ -1162,10 +1234,19 @@ class MetricsCalculator:
         # Essential costs (fixed/necessary spend)
         # Include unpaid + unauthorised_overdraft as essential-like spend
         essential_total = (
-            housing + council_tax + utilities + transport +
-            groceries + communications + insurance + childcare +
-            other_expenses + food_dining + account_transfer_expenses +
-            unpaid + unauthorised_overdraft
+            housing
+            + council_tax
+            + utilities
+            + transport
+            + groceries
+            + communications
+            + insurance
+            + childcare
+            + other_expenses
+            + food_dining
+            + account_transfer_expenses
+            + unpaid
+            + unauthorised_overdraft
         )
 
         # Discretionary costs (separate bucket)
@@ -1193,7 +1274,7 @@ class MetricsCalculator:
             gambling * actual_months,
             essential_total * actual_months,
             discretionary_total * actual_months,
-            actual_months
+            actual_months,
         )
 
         # --- Optional month-to-date (MTD) spend trend flag (NOT part of the averages) ---
@@ -1207,7 +1288,9 @@ class MetricsCalculator:
             for sub, data in category_summary.get("expense", {}).items():
                 discretionary_total_period += abs(float(data.get("total", 0.0)))
 
-            monthly_discretionary = discretionary_total_period / max(self.lookback_months, 1)
+            monthly_discretionary = discretionary_total_period / max(
+                self.lookback_months, 1
+            )
             baseline_monthly_spend = essential_total + monthly_discretionary
 
             if mtd_category_summary:
@@ -1247,11 +1330,11 @@ class MetricsCalculator:
             mtd_spend_flag=mtd_flag,
             essential_breakdown={
                 "housing": housing,
-                "council_tax":  council_tax,
+                "council_tax": council_tax,
                 "utilities": utilities,
-                "transport":  transport,
-                "groceries":  groceries,
-                "communications":  communications,
+                "transport": transport,
+                "groceries": groceries,
+                "communications": communications,
                 "insurance": insurance,
                 "childcare": childcare,
                 "other_expenses": other_expenses,
@@ -1260,7 +1343,7 @@ class MetricsCalculator:
                 "unauthorised_overdraft": unauthorised_overdraft,
                 "discretionary": discretionary,
                 "gambling": gambling,
-            }
+            },
         )
 
     def calculate_debt_metrics(self, category_summary: Dict) -> DebtMetrics:
@@ -1270,10 +1353,16 @@ class MetricsCalculator:
         # Get monthly averages using the same lookback period as expenses
         # This ensures consistent time basis for affordability calculations
         hcstc = debt_data.get("hcstc_payday", {}).get("total", 0) / self.lookback_months
-        other_loans = debt_data.get("other_loans", {}).get("total", 0) / self.lookback_months
-        credit_cards = debt_data.get("credit_cards", {}).get("total", 0) / self.lookback_months
+        other_loans = (
+            debt_data.get("other_loans", {}).get("total", 0) / self.lookback_months
+        )
+        credit_cards = (
+            debt_data.get("credit_cards", {}).get("total", 0) / self.lookback_months
+        )
         bnpl = debt_data.get("bnpl", {}).get("total", 0) / self.lookback_months
-        catalogue = debt_data.get("catalogue", {}).get("total", 0) / self.lookback_months
+        catalogue = (
+            debt_data.get("catalogue", {}).get("total", 0) / self.lookback_months
+        )
 
         # Active HCSTC lender count (all time and 90 days)
         # Handle both set and int types for backward compatibility
@@ -1282,7 +1371,9 @@ class MetricsCalculator:
 
         # Convert sets to length (lenders are stored as sets in the filtered category summary)
         active_hcstc_count = len(lenders) if isinstance(lenders, set) else lenders
-        active_hcstc_count_90d = len(lenders_90d) if isinstance(lenders_90d, set) else lenders_90d
+        active_hcstc_count_90d = (
+            len(lenders_90d) if isinstance(lenders_90d, set) else lenders_90d
+        )
 
         # Total debt commitments
         total_debt = hcstc + other_loans + credit_cards + bnpl + catalogue
@@ -1299,7 +1390,7 @@ class MetricsCalculator:
             bnpl,
             credit_cards,
             other_loans + catalogue,
-            total_debt
+            total_debt,
         )
 
         return DebtMetrics(
@@ -1317,10 +1408,8 @@ class MetricsCalculator:
                 "credit_cards": credit_cards,
                 "bnpl": bnpl,
                 "catalogue": catalogue,
-            }
+            },
         )
-
-
 
     def calculate_affordability_metrics(
         self,
@@ -1328,7 +1417,7 @@ class MetricsCalculator:
         expense_metrics: ExpenseMetrics,
         debt_metrics: DebtMetrics,
         loan_amount: float,
-        loan_term: int
+        loan_term: int,
     ) -> AffordabilityMetrics:
         """Calculate affordability metrics."""
 
@@ -1344,8 +1433,6 @@ class MetricsCalculator:
         essential_costs = expense_metrics.monthly_essential_total or 0.0
         discretionary_costs = expense_metrics.monthly_discretionary_total or 0.0
         buffered_expenses = (essential_costs * expense_buffer) + discretionary_costs
-
-
 
         # Debt-to-Income Ratio
         if effective_income > 0:
@@ -1377,7 +1464,7 @@ class MetricsCalculator:
         # Total interest capped at 100%
         total_interest = min(
             loan_amount * monthly_rate * loan_term,
-            loan_amount * self.product_config["total_cost_cap"]
+            loan_amount * self.product_config["total_cost_cap"],
         )
 
         total_repayable = loan_amount + total_interest
@@ -1395,7 +1482,6 @@ class MetricsCalculator:
             f"Post-loan £{post_loan_disposable:.2f}"
         )
 
-
         # Repayment-to-disposable ratio (MI / reporting ONLY)
         if monthly_disposable > 0:
             repayment_to_disp = (proposed_repayment / monthly_disposable) * 100
@@ -1407,15 +1493,13 @@ class MetricsCalculator:
 
         # Affordability decision
         # NOTE: repayment_to_disp is NOT used here
-        is_affordable = (
-            post_loan_disposable >= min_buffer
-        )
+        is_affordable = post_loan_disposable >= min_buffer
 
         # Calculate max affordable amount
         max_affordable = self._calculate_max_affordable_amount(
             monthly_disposable=monthly_disposable,
             min_buffer=min_buffer,
-            max_term=loan_term
+            max_term=loan_term,
         )
 
         return AffordabilityMetrics(
@@ -1427,14 +1511,11 @@ class MetricsCalculator:
             post_loan_disposable=round(post_loan_disposable, 2),
             repayment_to_disposable_ratio=round(repayment_to_disp, 1),
             is_affordable=is_affordable,
-            max_affordable_amount=round(max_affordable, 2)
+            max_affordable_amount=round(max_affordable, 2),
         )
 
     def _calculate_max_affordable_amount(
-        self,
-        monthly_disposable: float,
-        min_buffer: float,
-        max_term: int
+        self, monthly_disposable: float, min_buffer: float, max_term: int
     ) -> float:
         """Calculate maximum affordable loan amount."""
         # Max monthly payment = disposable - buffer
@@ -1464,9 +1545,7 @@ class MetricsCalculator:
         return min(max_amount, self.product_config["max_loan_amount"])
 
     def calculate_balance_metrics(
-        self,
-        transactions: List[Dict],
-        accounts: List[Dict]
+        self, transactions: List[Dict], accounts: List[Dict]
     ) -> BalanceMetrics:
         """Calculate account balance metrics."""
 
@@ -1490,7 +1569,7 @@ class MetricsCalculator:
             # Count times balance went from positive to negative
             overdraft_count = 0
             for i in range(1, len(daily_balances)):
-                if daily_balances[i-1] >= 0 and daily_balances[i] < 0:
+                if daily_balances[i - 1] >= 0 and daily_balances[i] < 0:
                     overdraft_count += 1
         else:
             avg_balance = sum(balances) / len(balances) if balances else 0
@@ -1505,13 +1584,11 @@ class MetricsCalculator:
             maximum_balance=round(max_balance, 2),
             days_in_overdraft=days_negative,
             overdraft_frequency=overdraft_count,
-            end_of_month_average=round(avg_balance, 2)  # Simplified
+            end_of_month_average=round(avg_balance, 2),  # Simplified
         )
 
     def _calculate_daily_balances(
-        self,
-        transactions: List[Dict],
-        accounts: List[Dict]
+        self, transactions: List[Dict], accounts: List[Dict]
     ) -> List[float]:
         """Calculate estimated daily balances from transactions."""
         # Get starting balance from accounts
@@ -1524,7 +1601,7 @@ class MetricsCalculator:
         sorted_txns = sorted(
             transactions,
             key=lambda x: x.get("date", "9999-99-99"),
-            reverse=True  # Most recent first
+            reverse=True,  # Most recent first
         )
 
         if not sorted_txns:
@@ -1553,9 +1630,7 @@ class MetricsCalculator:
         return list(daily_balances.values()) if daily_balances else [starting_balance]
 
     def calculate_risk_metrics(
-        self,
-        category_summary: Dict,
-        income_metrics: IncomeMetrics
+        self, category_summary: Dict, income_metrics: IncomeMetrics
     ) -> RiskMetrics:
         """Calculate risk indicator metrics."""
         risk_data = category_summary.get("risk", {})
@@ -1585,7 +1660,9 @@ class MetricsCalculator:
 
         # New credit providers in last 90 days
         debt_data = category_summary.get("debt", {})
-        new_credit_providers_90d = debt_data.get("hcstc_payday", {}).get("new_credit_providers_90d", 0)
+        new_credit_providers_90d = debt_data.get("hcstc_payday", {}).get(
+            "new_credit_providers_90d", 0
+        )
 
         # Savings activity
         savings_total = positive_data.get("savings", {}).get("total", 0)
@@ -1594,8 +1671,12 @@ class MetricsCalculator:
         has_gambling_concern = gambling_pct > 5 or gambling_count > 5
         has_failed_payment_concern = failed_count >= 3
         has_dca_concern = dca_distinct >= 2
-        has_bank_charges_concern = bank_charges_count_90d > 2  # Allow 1-2 bank charges without referral
-        has_new_credit_burst = new_credit_providers_90d >= 5  # Allow up to 4 new credit providers without referral
+        has_bank_charges_concern = (
+            bank_charges_count_90d > 2
+        )  # Allow 1-2 bank charges without referral
+        has_new_credit_burst = (
+            new_credit_providers_90d >= 5
+        )  # Allow up to 4 new credit providers without referral
 
         return RiskMetrics(
             gambling_total=round(gambling_total, 2),
@@ -1613,5 +1694,5 @@ class MetricsCalculator:
             has_failed_payment_concern=has_failed_payment_concern,
             has_debt_collection_concern=has_dca_concern,
             has_bank_charges_concern=has_bank_charges_concern,
-            has_new_credit_burst=has_new_credit_burst
+            has_new_credit_burst=has_new_credit_burst,
         )
