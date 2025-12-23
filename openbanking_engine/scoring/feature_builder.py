@@ -949,7 +949,7 @@ class MetricsCalculator:
         other_total = income_data.get("other", {}).get("total", 0)
         account_transfer_total = income_data.get("account_transfer", {}).get("total", 0)
 
-        total_income = (
+        total_income = abs(
             salary_total
             + benefits_total
             + pension_total
