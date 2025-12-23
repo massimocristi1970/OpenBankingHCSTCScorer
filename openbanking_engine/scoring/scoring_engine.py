@@ -22,6 +22,7 @@ from .feature_builder import (
 
 class Decision(Enum):
     """Loan decision outcomes."""
+
     APPROVE = "APPROVE"
     REFER = "REFER"
     DECLINE = "DECLINE"
@@ -29,6 +30,7 @@ class Decision(Enum):
 
 class RiskLevel(Enum):
     """Risk level classifications."""
+
     LOW = "Low"
     MEDIUM = "Medium"
     HIGH = "High"
@@ -38,18 +40,19 @@ class RiskLevel(Enum):
 @dataclass
 class ScoreBreakdown:
     """Detailed score breakdown by component."""
+
     affordability_score: float = 0.0
     affordability_breakdown: Dict = field(default_factory=dict)
-    
+
     income_quality_score: float = 0.0
     income_breakdown: Dict = field(default_factory=dict)
-    
+
     account_conduct_score: float = 0.0
     conduct_breakdown: Dict = field(default_factory=dict)
-    
+
     risk_indicators_score: float = 0.0
     risk_breakdown: Dict = field(default_factory=dict)
-    
+
     total_score: float = 0.0
     penalties_applied: List[str] = field(default_factory=list)
 
@@ -57,6 +60,7 @@ class ScoreBreakdown:
 @dataclass
 class LoanOffer:
     """Loan offer details."""
+
     approved_amount: float = 0.0
     approved_term: int = 0
     monthly_repayment: float = 0.0
@@ -68,31 +72,32 @@ class LoanOffer:
 @dataclass
 class ScoringResult:
     """Complete scoring result for an application."""
+
     application_ref: str = ""
     decision: Decision = Decision.DECLINE
     score: float = 0.0
     risk_level: RiskLevel = RiskLevel.HIGH
-    
+
     loan_offer: Optional[LoanOffer] = None
     score_breakdown: Optional[ScoreBreakdown] = None
-    
+
     # Affordability summary
     monthly_income: float = 0.0
     monthly_expenses: float = 0.0
     monthly_disposable: float = 0.0
     post_loan_disposable: float = 0.0
-    
+
     # Risk flags
     risk_flags: List[str] = field(default_factory=list)
     decline_reasons: List[str] = field(default_factory=list)
-    
+
     # Processing info
     processing_notes: List[str] = field(default_factory=list)
 
 
 class ScoringEngine:
     """HCSTC loan scoring engine."""
-    
+
     def __init__(self):
         """Initialize the scoring engine with configuration."""
         self.scoring_config = SCORING_CONFIG
@@ -101,23 +106,23 @@ class ScoringEngine:
         self.thresholds = self.scoring_config["thresholds"]
         self.hard_decline_rules = self.scoring_config["hard_decline_rules"]
         self.score_based_limits = self.scoring_config["score_based_limits"]
-    
+
     def score_application(
         self,
         metrics: Dict,
         requested_amount: float = 350,
         requested_term: int = 6,
-        application_ref: str = ""
+        application_ref: str = "",
     ) -> ScoringResult:
         """
         Score a loan application based on calculated metrics.
-        
+
         Args:
             metrics: Dictionary containing all metric objects
             requested_amount: Requested loan amount
             requested_term: Requested loan term in months
             application_ref: Application reference number
-        
+
         Returns:
             ScoringResult with decision and details
         """
@@ -127,16 +132,18 @@ class ScoringEngine:
         affordability = metrics.get("affordability", AffordabilityMetrics())
         balance = metrics.get("balance", BalanceMetrics())
         risk = metrics.get("risk", RiskMetrics())
-        
+
         # Initialize result
         result = ScoringResult(
             application_ref=application_ref,
             monthly_income=income.effective_monthly_income,
-            monthly_expenses=expenses.monthly_essential_total + debt.monthly_debt_payments,
+            monthly_expenses=expenses.monthly_essential_total
+            + expenses.monthly_discretionary_total
+            + debt.monthly_debt_payments,
             monthly_disposable=affordability.monthly_disposable,
             post_loan_disposable=affordability.post_loan_disposable,
         )
-        
+
         # Check rule violations
         decline_reasons, refer_reasons = self._check_rule_violations(
             income=income,
@@ -144,37 +151,39 @@ class ScoringEngine:
             affordability=affordability,
             risk=risk,
             requested_amount=requested_amount,
-            requested_term=requested_term
+            requested_term=requested_term,
         )
-    
+
         # Handle hard declines first
-        if decline_reasons: 
-            result. decision = Decision.DECLINE
+        if decline_reasons:
+            result.decision = Decision.DECLINE
             result.decline_reasons = decline_reasons
             result.score = 0.0
             result.risk_level = RiskLevel.VERY_HIGH
             # Include refer reasons in processing notes
             if refer_reasons:
-                result. processing_notes = [f"Additional concerns: {', '.join(refer_reasons)}"]
+                result.processing_notes = [
+                    f"Additional concerns: {', '.join(refer_reasons)}"
+                ]
             return result
-    
+
         # Calculate score breakdown
         score_breakdown = self._calculate_scores(
             income=income,
             affordability=affordability,
             balance=balance,
             risk=risk,
-            debt=debt
+            debt=debt,
         )
-    
+
         result.score_breakdown = score_breakdown
         result.score = score_breakdown.total_score
-    
+
         # Determine decision based on score
         decision, risk_level = self._determine_decision(score_breakdown.total_score)
         result.decision = decision
         result.risk_level = risk_level
-    
+
         # If there are refer reasons, force decision to REFER regardless of score
         if refer_reasons:
             result.decision = Decision.REFER
@@ -183,17 +192,17 @@ class ScoringEngine:
             result.processing_notes.append(
                 f"Score ({result.score:.1f}) suggests approval but manual review required"
             )
-        
+
         # Collect risk flags
         result.risk_flags = self._collect_risk_flags(risk, debt, affordability, balance)
-        
+
         # Determine loan offer if approved
         if decision == Decision.APPROVE:
             loan_offer = self._determine_loan_offer(
                 score=score_breakdown.total_score,
                 affordability=affordability,
                 requested_amount=requested_amount,
-                requested_term=requested_term
+                requested_term=requested_term,
             )
             result.loan_offer = loan_offer
             result.post_loan_disposable = (
@@ -201,52 +210,62 @@ class ScoringEngine:
             )
         elif decision == Decision.REFER:
             result.processing_notes = ["Manual review required"]
-        
+
         return result
-    
+
     def _check_rule_violations(
         self,
         income: IncomeMetrics,
-        debt:  DebtMetrics,
+        debt: DebtMetrics,
         affordability: AffordabilityMetrics,
-        risk:  RiskMetrics,
+        risk: RiskMetrics,
         requested_amount: float,
-        requested_term: int
+        requested_term: int,
     ) -> Tuple[List[str], List[str]]:
         """
         Check all rules and return violations by action type.
-    
+
         Returns:
             Tuple of (decline_reasons, refer_reasons)
         """
         decline_reasons = []
         refer_reasons = []
         rules = self.scoring_config["rules"]
-    
+
         # Rule 1: Monthly income
         rule = rules["min_monthly_income"]
-        if income.effective_monthly_income is not None and income.effective_monthly_income < rule["threshold"]:
+        if (
+            income.effective_monthly_income is not None
+            and income.effective_monthly_income < rule["threshold"]
+        ):
             reason = (
                 f"Monthly income (£{income.effective_monthly_income:.2f}) "
                 f"below minimum (£{rule['threshold']})"
             )
-            if rule["action"] == "DECLINE": 
+            if rule["action"] == "DECLINE":
                 decline_reasons.append(reason)
             else:
                 refer_reasons.append(reason)
-    
+
         # Rule 2: No identifiable income source
         rule = rules["no_verifiable_income"]
-        if not income.has_verifiable_income and income.effective_monthly_income is not None and income.effective_monthly_income < rule["threshold"]:
+        if (
+            not income.has_verifiable_income
+            and income.effective_monthly_income is not None
+            and income.effective_monthly_income < rule["threshold"]
+        ):
             reason = "No verifiable income source identified"
             if rule["action"] == "DECLINE":
                 decline_reasons.append(reason)
             else:
                 refer_reasons.append(reason)
-    
+
         # Rule 3: Active HCSTC lenders
         rule = rules["max_active_hcstc_lenders"]
-        if debt.active_hcstc_count_90d is not None and debt.active_hcstc_count_90d > rule["threshold"]:
+        if (
+            debt.active_hcstc_count_90d is not None
+            and debt.active_hcstc_count_90d > rule["threshold"]
+        ):
             reason = (
                 f"Active HCSTC with {debt.active_hcstc_count_90d} lenders in last "
                 f"{rule['lookback_days']} days (maximum {rule['threshold']})"
@@ -255,10 +274,13 @@ class ScoringEngine:
                 decline_reasons.append(reason)
             else:
                 refer_reasons.append(reason)
-    
+
         # Rule 4: Gambling
         rule = rules["max_gambling_percentage"]
-        if risk.gambling_percentage is not None and risk.gambling_percentage > rule["threshold"]:
+        if (
+            risk.gambling_percentage is not None
+            and risk.gambling_percentage > rule["threshold"]
+        ):
             reason = (
                 f"Gambling ({risk.gambling_percentage:.1f}%) exceeds "
                 f"maximum ({rule['threshold']}%)"
@@ -267,98 +289,115 @@ class ScoringEngine:
                 decline_reasons.append(reason)
             else:
                 refer_reasons.append(reason)
-    
+
         # Rule 5: Post-loan disposable
         rule = rules["min_post_loan_disposable"]
-        if affordability.post_loan_disposable is not None and affordability.post_loan_disposable < rule["threshold"]:
+        if (
+            affordability.post_loan_disposable is not None
+            and affordability.post_loan_disposable < rule["threshold"]
+        ):
             reason = (
                 f"Post-loan disposable (£{affordability.post_loan_disposable:.2f}) "
                 f"below minimum (£{rule['threshold']})"
             )
-            if rule["action"] == "DECLINE": 
+            if rule["action"] == "DECLINE":
                 decline_reasons.append(reason)
             else:
                 refer_reasons.append(reason)
-    
+
         # Rule 6: Failed payments
         rule = rules["max_failed_payments"]
-        if risk.failed_payments_count_45d is not None and risk.failed_payments_count_45d > rule["threshold"]:
+        if (
+            risk.failed_payments_count_45d is not None
+            and risk.failed_payments_count_45d > rule["threshold"]
+        ):
             reason = (
                 f"Failed payments ({risk.failed_payments_count_45d}) in last "
                 f"{rule['lookback_days']} days exceed maximum ({rule['threshold']})"
             )
-            if rule["action"] == "DECLINE": 
+            if rule["action"] == "DECLINE":
                 decline_reasons.append(reason)
             else:
                 refer_reasons.append(reason)
-    
+
         # Rule 7: Debt collection
         rule = rules["max_dca_count"]
-        if risk.debt_collection_distinct is not None and risk.debt_collection_distinct > rule["threshold"]: 
+        if (
+            risk.debt_collection_distinct is not None
+            and risk.debt_collection_distinct > rule["threshold"]
+        ):
             reason = (
                 f"Active debt collection with {risk.debt_collection_distinct} agencies "
                 f"(maximum {rule['threshold']})"
             )
-            if rule["action"] == "DECLINE": 
+            if rule["action"] == "DECLINE":
                 decline_reasons.append(reason)
             else:
                 refer_reasons.append(reason)
-    
+
         # Rule 8: DTI with new loan
         rule = rules["max_dti_with_new_loan"]
-        new_loan_payment = self._calculate_monthly_payment(requested_amount, requested_term)
-        if income.effective_monthly_income is not None and income.effective_monthly_income > 0:
+        new_loan_payment = self._calculate_monthly_payment(
+            requested_amount, requested_term
+        )
+        if (
+            income.effective_monthly_income is not None
+            and income.effective_monthly_income > 0
+        ):
             projected_dti = (
-                (debt.monthly_debt_payments + new_loan_payment) / 
-                income.effective_monthly_income * 100
+                (debt.monthly_debt_payments + new_loan_payment)
+                / income.effective_monthly_income
+                * 100
             )
             if projected_dti > rule["threshold"]:
                 reason = (
-                f"Projected DTI ({projected_dti:.1f}%) would exceed "
+                    f"Projected DTI ({projected_dti:.1f}%) would exceed "
                     f"maximum ({rule['threshold']}%)"
                 )
                 if rule["action"] == "DECLINE":
                     decline_reasons.append(reason)
                 else:
                     refer_reasons.append(reason)
-    
+
         return decline_reasons, refer_reasons
-    
+
     def _calculate_scores(
         self,
         income: IncomeMetrics,
         affordability: AffordabilityMetrics,
         balance: BalanceMetrics,
         risk: RiskMetrics,
-        debt: DebtMetrics
+        debt: DebtMetrics,
     ) -> ScoreBreakdown:
         """Calculate detailed score breakdown."""
         breakdown = ScoreBreakdown()
         penalties = []
-        
+
         # TO: "# 1. Affordability Score (45 points)"
         aff_weights = self.weights["affordability"]
-        
+
         # DTI Ratio (18 points)
         dti_points = self._score_threshold(
             affordability.debt_to_income_ratio,
             self.thresholds["dti_ratio"],
-            is_lower_better=True
+            is_lower_better=True,
         )
-            
+
         # Disposable Income (15 points)
         disp_points = self._score_threshold(
             affordability.monthly_disposable,
             self.thresholds["disposable_income"],
-            is_lower_better=False
+            is_lower_better=False,
         )
-        
+
         # Post-loan Affordability (12 points)
         if affordability.post_loan_disposable is not None:
-            post_loan_points = min(12, max(0, affordability.post_loan_disposable / 50 * 12))
+            post_loan_points = min(
+                12, max(0, affordability.post_loan_disposable / 50 * 12)
+            )
         else:
             post_loan_points = 0
-        
+
         affordability_score = dti_points + disp_points + post_loan_points
         breakdown.affordability_score = min(affordability_score, aff_weights["total"])
         breakdown.affordability_breakdown = {
@@ -366,26 +405,26 @@ class ScoringEngine:
             "disposable_income": round(disp_points, 1),
             "post_loan_affordability": round(post_loan_points, 1),
         }
-        
+
         # 2. Income Quality Score (25 points)
         inc_weights = self.weights["income_quality"]
-        
+
         # Income Stability (12 points)
         stability_points = self._score_threshold(
             income.income_stability_score,
             self.thresholds["income_stability"],
-            is_lower_better=False
+            is_lower_better=False,
         )
-        
+
         # Income Regularity (8 points)
         if income.income_regularity_score is not None:
             regularity_points = min(8, income.income_regularity_score / 100 * 8)
         else:
             regularity_points = 0
-        
+
         # Income Verification (5 points)
         verification_points = 5 if income.has_verifiable_income else 2.5
-        
+
         income_score = stability_points + regularity_points + verification_points
         breakdown.income_quality_score = min(income_score, inc_weights["total"])
         breakdown.income_breakdown = {
@@ -393,16 +432,16 @@ class ScoringEngine:
             "income_regularity": round(regularity_points, 1),
             "income_verification": round(verification_points, 1),
         }
-        
+
         # 3. Account Conduct Score (20 points)
         conduct_weights = self.weights["account_conduct"]
-        
+
         # Failed Payments (8 points)
         if risk.failed_payments_count is not None:
             failed_points = max(0, 8 - risk.failed_payments_count * 1.5)
         else:
             failed_points = 0
-        
+
         # Overdraft Usage (7 points)
         if balance.days_in_overdraft is not None:
             if balance.days_in_overdraft == 0:
@@ -410,12 +449,12 @@ class ScoringEngine:
             elif balance.days_in_overdraft <= 5:
                 overdraft_points = 5
             elif balance.days_in_overdraft <= 15:
-                overdraft_points = 5 - ((balance.days_in_overdraft - 5) * 0.5) 
+                overdraft_points = 5 - ((balance.days_in_overdraft - 5) * 0.5)
             else:
                 overdraft_points = 0
         else:
             overdraft_points = 0
-        
+
         # Balance Management (5 points)
         if balance.average_balance is not None:
             if balance.average_balance >= 500:
@@ -428,7 +467,7 @@ class ScoringEngine:
                 balance_points = 0
         else:
             balance_points = 0
-        
+
         conduct_score = failed_points + overdraft_points + balance_points
         breakdown.account_conduct_score = min(conduct_score, conduct_weights["total"])
         breakdown.conduct_breakdown = {
@@ -436,17 +475,17 @@ class ScoringEngine:
             "overdraft_usage": round(overdraft_points, 1),
             "balance_management": round(balance_points, 1),
         }
-        
+
         # 4. Risk Indicators Score (10 points)
         risk_weights = self.weights["risk_indicators"]
-        
+
         # Gambling Activity (5 points)
         gambling_points = self._score_threshold(
             risk.gambling_percentage,
             self.thresholds["gambling_percentage"],
-            is_lower_better=True
+            is_lower_better=True,
         )
-        
+
         # HCSTC History (5 points)
         if debt.active_hcstc_count is not None:
             if debt.active_hcstc_count == 0:
@@ -458,48 +497,49 @@ class ScoringEngine:
                 penalties.append(f"Multiple HCSTC lenders ({debt.active_hcstc_count})")
         else:
             hcstc_points = 0
-        
+
         risk_score = gambling_points + hcstc_points
         breakdown.risk_indicators_score = risk_score
         breakdown.risk_breakdown = {
             "gambling_activity": round(gambling_points, 1),
             "hcstc_history": round(hcstc_points, 1),
         }
-        
+
         # Apply penalties (scaled by 1.75x)
         if risk.gambling_percentage is not None and risk.gambling_percentage > 5:
-            penalty = -5  
+            penalty = -5
             penalties.append(f"Gambling penalty: {penalty}")
             risk_score += penalty
-        
+
         if debt.active_hcstc_count is not None and debt.active_hcstc_count >= 2:
-            penalty = -10  
+            penalty = -10
             penalties.append(f"Multiple HCSTC penalty: {penalty}")
             risk_score += penalty
-        
+
         breakdown.penalties_applied = penalties
-        
+
         # Total Score (max 100)
-        breakdown.total_score = max(0, min(100, 
-            breakdown.affordability_score +
-            breakdown.income_quality_score +
-            breakdown.account_conduct_score +
-            breakdown.risk_indicators_score
-        ))
-        
+        breakdown.total_score = max(
+            0,
+            min(
+                100,
+                breakdown.affordability_score
+                + breakdown.income_quality_score
+                + breakdown.account_conduct_score
+                + breakdown.risk_indicators_score,
+            ),
+        )
+
         return breakdown
-    
+
     def _score_threshold(
-        self, 
-        value: float, 
-        thresholds: List[Dict],
-        is_lower_better: bool
+        self, value: float, thresholds: List[Dict], is_lower_better: bool
     ) -> float:
         """Score a value against threshold table."""
         # Handle None values - return lowest score (0 points)
         if value is None:
             return 0
-        
+
         for threshold in thresholds:
             if is_lower_better:
                 if "max" in threshold and value <= threshold["max"]:
@@ -507,60 +547,69 @@ class ScoringEngine:
             else:
                 if "min" in threshold and value >= threshold["min"]:
                     return threshold["points"]
-        
+
         # Return last threshold's points as default
         return thresholds[-1].get("points", 0)
-    
+
     def _determine_decision(self, score: float) -> Tuple[Decision, RiskLevel]:
         """Determine decision and risk level from score."""
         ranges = self.scoring_config["score_ranges"]
-        
+
         if score >= ranges["approve"]["min"]:
             return Decision.APPROVE, RiskLevel.LOW
         elif score >= ranges["refer"]["min"]:
             return Decision.REFER, RiskLevel.HIGH
         else:
             return Decision.DECLINE, RiskLevel.VERY_HIGH
-    
+
     def _collect_risk_flags(
         self,
         risk: RiskMetrics,
         debt: DebtMetrics,
         affordability: AffordabilityMetrics,
-        balance: BalanceMetrics
+        balance: BalanceMetrics,
     ) -> List[str]:
         """Collect risk flags for the application."""
         flags = []
-        
+
         if risk.gambling_percentage is not None and risk.gambling_percentage > 0:
             flags.append(f"Gambling: {risk.gambling_percentage:.1f}% of income")
-        
+
         if debt.active_hcstc_count_90d is not None and debt.active_hcstc_count_90d > 0:
             flags.append(f"Active HCSTC (90d): {debt.active_hcstc_count_90d} lenders")
-        
-        if risk.failed_payments_count_45d is not None and risk.failed_payments_count_45d > 0:
+
+        if (
+            risk.failed_payments_count_45d is not None
+            and risk.failed_payments_count_45d > 0
+        ):
             flags.append(f"Failed payments (45d): {risk.failed_payments_count_45d}")
-        
-        if risk.debt_collection_distinct is not None and risk.debt_collection_distinct > 0:
+
+        if (
+            risk.debt_collection_distinct is not None
+            and risk.debt_collection_distinct > 0
+        ):
             flags.append(f"Debt collection: {risk.debt_collection_distinct} agencies")
-        
+
         if balance.days_in_overdraft is not None and balance.days_in_overdraft > 10:
             flags.append(f"Overdraft: {balance.days_in_overdraft} days")
-        
-        if affordability.debt_to_income_ratio is not None and affordability.debt_to_income_ratio > 40:
+
+        if (
+            affordability.debt_to_income_ratio is not None
+            and affordability.debt_to_income_ratio > 40
+        ):
             flags.append(f"High DTI: {affordability.debt_to_income_ratio:.1f}%")
-        
+
         return flags
-    
+
     def _determine_loan_offer(
         self,
         score: float,
         affordability: AffordabilityMetrics,
         requested_amount: float,
-        requested_term: int
+        requested_term: int,
     ) -> LoanOffer:
         """Determine the loan offer based on score and affordability."""
-        
+
         # Get score-based limits
         score_limit = 0
         max_term = 0
@@ -569,31 +618,37 @@ class ScoringEngine:
                 score_limit = limit["max_amount"]
                 max_term = limit["max_term"]
                 break
-        
+
         # Calculate affordability-based maximum
-        aff_max = affordability.max_affordable_amount if affordability.max_affordable_amount is not None else 0
-        
+        aff_max = (
+            affordability.max_affordable_amount
+            if affordability.max_affordable_amount is not None
+            else 0
+        )
+
         # Final approved amount is minimum of all limits
         approved_amount = min(
             requested_amount,
             self.product_config["max_loan_amount"],
             score_limit,
-            aff_max
+            aff_max,
         )
-        
+
         # Ensure minimum loan amount
         if approved_amount < self.product_config["min_loan_amount"]:
             approved_amount = 0
-        
+
         # Adjust term
         approved_term = min(requested_term, max_term)
         if approved_term < 3:
             approved_term = 3
-        
+
         # Calculate repayment
-        monthly_payment = self._calculate_monthly_payment(approved_amount, approved_term)
+        monthly_payment = self._calculate_monthly_payment(
+            approved_amount, approved_term
+        )
         total_repayable = monthly_payment * approved_term
-        
+
         # Calculate simplified APR for display purposes only.
         # NOTE: For production use, this should implement the proper APR calculation
         # methodology required by UK Consumer Credit Act and FCA regulations.
@@ -605,34 +660,29 @@ class ScoringEngine:
             apr = (interest / approved_amount) * (12 / approved_term) * 100
         else:
             apr = 0
-        
+
         return LoanOffer(
             approved_amount=round(approved_amount, 2),
             approved_term=approved_term,
             monthly_repayment=round(monthly_payment, 2),
             total_repayable=round(total_repayable, 2),
             apr=round(apr, 1),
-            interest_rate=self.product_config["daily_interest_rate"] * 100
+            interest_rate=self.product_config["daily_interest_rate"] * 100,
         )
-    
-    def _calculate_monthly_payment(
-        self, 
-        amount: float, 
-        term: int
-    ) -> float:
+
+    def _calculate_monthly_payment(self, amount: float, term: int) -> float:
         """Calculate monthly payment for a loan."""
         if amount <= 0 or term <= 0:
             return 0.0
-        
+
         daily_rate = self.product_config["daily_interest_rate"]
         days_per_month = 30.4
         monthly_rate = daily_rate * days_per_month
-        
+
         # Total interest capped at 100%
         total_interest = min(
-            amount * monthly_rate * term,
-            amount * self.product_config["total_cost_cap"]
+            amount * monthly_rate * term, amount * self.product_config["total_cost_cap"]
         )
-        
+
         total_repayable = amount + total_interest
         return total_repayable / term
