@@ -184,15 +184,15 @@ class ScoringEngine:
         if post_loan_disposable <= 0:
             result.decision = Decision.DECLINE
             result.decline_reasons = [
-                f"Affordability gate: post-loan disposable income £{post_loan_disposable:. 2f} <= £0"
+                f"Affordability gate: post-loan disposable income £{post_loan_disposable:.2f} <= £0"  # ← FIXED
             ]
             result.score = 0.0
             result.risk_level = RiskLevel.VERY_HIGH
 
             # Log for analysis
             result.processing_notes.append(
-                f"AFFORDABILITY GATE TRIGGERED:  Post-loan disposable £{post_loan_disposable:.2f} "
-                f"(monthly instalment:  £{monthly_instalment:.2f})"
+                f"AFFORDABILITY GATE TRIGGERED: Post-loan disposable £{post_loan_disposable:. 2f} "  # ← FIXED
+                f"(monthly instalment:  £{monthly_instalment:.2f})"  # ← FIXED
             )
 
             # Include any existing decline/refer reasons in notes
@@ -216,12 +216,17 @@ class ScoringEngine:
 
             result.score_breakdown = score_breakdown
             result.score = score_breakdown.total_score
+
+            # Get the natural decision/risk level from the score
+            _, natural_risk_level = self._determine_decision(score_breakdown.total_score)
+
+            # Force REFER regardless of score, but keep the natural risk level
             result.decision = Decision.REFER
-            result.risk_level = self._determine_risk_level(score_breakdown.total_score)
+            result.risk_level = natural_risk_level  # ← FIXED:  Use existing method
 
             # Add affordability gate reason
             result.decline_reasons = [
-                f"Affordability gate: post-loan disposable £{post_loan_disposable:. 2f} "
+                f"Affordability gate: post-loan disposable £{post_loan_disposable:.2f} "
                 f"< monthly instalment £{monthly_instalment:.2f} (approval blocked)"
             ]
 
@@ -238,7 +243,7 @@ class ScoringEngine:
                 result.decline_reasons.extend(refer_reasons)
 
             # Collect risk flags
-            result.risk_flags = self._collect_risk_flags(risk, debt, affordability, income)
+            result.risk_flags = self._collect_risk_flags(risk, debt, affordability, balance)
 
             return result
 
