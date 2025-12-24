@@ -296,8 +296,8 @@ class ScoringEngine:
         # If there are refer reasons, force decision to REFER regardless of score
         if refer_reasons:
             result.decision = Decision.REFER
-        result.processing_notes = refer_reasons
-        if decision == Decision.APPROVE:
+        result.processing_notes.extend(refer_reasons)
+        if result.decision == Decision.APPROVE:
             result.processing_notes.append(
                 f"Score ({result.score:.1f}) suggests approval but manual review required"
             )
@@ -306,7 +306,7 @@ class ScoringEngine:
         result.risk_flags = self._collect_risk_flags(risk, debt, affordability, balance)
 
         # Determine loan offer if approved
-        if decision == Decision.APPROVE:
+        if result.decision == Decision.APPROVE:
             loan_offer = self._determine_loan_offer(
                 score=score_breakdown.total_score,
                 affordability=affordability,
@@ -317,11 +317,11 @@ class ScoringEngine:
             result.post_loan_disposable = (
                 affordability.monthly_disposable - loan_offer.monthly_repayment
             )
-        elif decision == Decision.REFER:
-            result.processing_notes = ["Manual review required"]
+        elif result.decision == Decision.REFER:
+            result.processing_notes.append("Manual review required")
 
         # DEBUG: confirm nothing overrides after the gate
-        result.processing_notes.append(f"FINAL_DECISION: {decision}")
+        result.processing_notes.append(f"FINAL_DECISION: {result.decision.value}")
 
         return result
 
@@ -371,6 +371,10 @@ class ScoringEngine:
                 decline_reasons.append(reason)
             else:
                 refer_reasons.append(reason)
+
+        # Behavioural Gate: Low income stability (blocks APPROVE)
+        if income.income_stability_score is not None and income.income_stability_score < 60:
+            refer_reasons.append(f"Behavioural gate: low income stability score ({income.income_stability_score:.1f} < 60)")
 
         # Rule 3: Active HCSTC lenders
         rule = rules["max_active_hcstc_lenders"]
