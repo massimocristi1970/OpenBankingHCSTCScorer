@@ -598,14 +598,15 @@ Example: £500 loan for 3 months = £500 × 2.0 / 3 = £333.33/month
 #### Disposable Income & DTI
 
 ```
-Expense Shock Buffer: 10% (multiplier: 1.1)
-Buffered Expenses = Monthly Expenses × 1.1
+Monthly Disposable Income (Reported to User): Monthly Disposable = Monthly Income - Actual Expenses - Debt Payments
 
-Monthly Disposable = Monthly Income - Buffered Expenses
-Post-Loan Disposable = Monthly Disposable - Monthly Loan Repayment
+Affordability Assessment (Internal Stress Test): Expense Shock Buffer: 10% on essential expenses only Buffered Essential Expenses = Essential Expenses × 1.1 Buffered Total Expenses = (Essential × 1.1) + Discretionary
 
-DTI Ratio = (Total Debt Payments / Gross Income) × 100
-Projected DTI = ((Total Debt + New Loan Payment) / Gross Income) × 100
+Post-Loan Disposable = Monthly Disposable - Monthly Loan Repayment Affordability Check: Post-Loan Disposable ≥ £50 (minimum buffer)
+
+Note: The 10% shock buffer is applied ONLY for affordability decisions to ensure customers can still afford the loan if essential expenses increase. The monthly disposable income shown to customers uses actual expenses without the buffer.
+
+DTI Ratio = (Total Debt Payments / Gross Income) × 100 Projected DTI = ((Total Debt + New Loan Payment) / Gross Income) × 100
 ```
 
 ### Product Parameters

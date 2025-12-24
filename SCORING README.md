@@ -86,10 +86,13 @@ The engine reads specific fields from these objects. Key ones include:
 
 ### Affordability
 
-- `monthly_disposable`
-- `post_loan_disposable`
+- `monthly_disposable` - calculated using **actual expenses** (no buffer applied)
+- `post_loan_disposable` - monthly disposable minus proposed repayment
 - `debt_to_income_ratio` (percentage, e.g., 45.0 for 45%)
 - `max_affordable_amount` (upper bound derived from affordability logic)
+- `is_affordable` - decision uses **10% shock buffer on essential expenses**
+
+**Note:** The 10% expense shock buffer is applied internally for the affordability decision (`is_affordable`) to ensure resilience if essential expenses increase. However, the `monthly_disposable` value shown to users reflects actual expenses without the buffer.
 
 ### Balance
 

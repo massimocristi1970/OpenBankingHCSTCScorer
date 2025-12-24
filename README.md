@@ -473,9 +473,18 @@ PRODUCT_CONFIG = {
     "total_cost_cap": 1.0,                   # 100% total cost cap
     "min_disposable_buffer": 50,             # Minimum post-loan disposable (£)
     "max_repayment_to_disposable": 0.70,     # Max 70% of disposable for repayment
-    "expense_shock_buffer": 1.1,             # 10% expense buffer for resilience
+    "expense_shock_buffer": 1.1,             # 10% buffer on essential expenses (affordability stress-test only, NOT used for displayed disposable income)
 }
 ```
+
+### Expense Buffer Clarification
+
+**Important:** The 10% expense shock buffer is used **only for affordability decisions**, not for calculating monthly disposable income shown to customers.
+
+- **Monthly Disposable Income** (displayed): `Income - Actual Expenses - Debt`
+- **Affordability Decision** (internal): Uses `Income - (Essential × 1.1) - Discretionary - Debt` to stress-test
+
+This ensures customers can afford the loan even if essential expenses (rent, utilities, groceries) increase by 10%.
 
 ### Decision Thresholds
 
