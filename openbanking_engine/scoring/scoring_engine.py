@@ -177,8 +177,22 @@ class ScoringEngine:
         # Gate 2: Post-loan disposable < monthly instalment → FORCE REFER
         # ================================================================
 
-        post_loan_disposable = affordability.post_loan_disposable or 0.0
-        monthly_instalment = affordability.proposed_repayment or 0.0
+        # --- Affordability gate: recompute values safely ---
+
+        # Use proposed_repayment if present; otherwise calculate from requested terms
+        monthly_instalment = (
+            float(affordability.proposed_repayment)
+            if getattr(affordability, "proposed_repayment", None) not in (None, 0)
+            else self._calculate_monthly_payment(requested_amount, requested_term)
+        )
+
+        # Always compute post-loan disposable explicitly for gating
+        post_loan_disposable = float(affordability.monthly_disposable or 0.0) - float(monthly_instalment or 0.0)
+
+        result.processing_notes.append(
+            f"[AFF_GATE_DEBUG] monthly_disp={affordability.monthly_disposable:.2f} "
+            f"instalment={monthly_instalment:.2f} post_disp={post_loan_disposable:.2f}"
+        )
 
         # Gate 1: Hard decline if no disposable income after loan
         if post_loan_disposable <= 0:
