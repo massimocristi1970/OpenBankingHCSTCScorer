@@ -1450,8 +1450,11 @@ class MetricsCalculator:
             f"[DEBUG] effective_income={effective_income}, buffered_expenses={buffered_expenses}, debt_payments={debt_payments}"
         )
 
-        # Disposable Income (using buffered expenses)
-        monthly_disposable = effective_income - buffered_expenses - debt_payments
+        # Disposable Income (using actual expenses, not buffered)
+        actual_expenses = (expense_metrics.monthly_essential_total or 0.0) + (
+            expense_metrics.monthly_discretionary_total or 0.0
+        )
+        monthly_disposable = effective_income - actual_expenses - debt_payments
 
         # Disposable Ratio
         if effective_income > 0:
