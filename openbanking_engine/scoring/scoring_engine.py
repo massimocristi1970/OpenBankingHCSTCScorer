@@ -179,20 +179,31 @@ class ScoringEngine:
 
         # --- Affordability gate: recompute values safely ---
 
-        # Use proposed_repayment if present; otherwise calculate from requested terms
-        monthly_instalment = (
-            float(affordability.proposed_repayment)
-            if getattr(affordability, "proposed_repayment", None) not in (None, 0)
-            else self._calculate_monthly_payment(requested_amount, requested_term)
-        )
+        # Compute the instalment from the requested loan terms (do NOT rely on proposed_repayment)
+        monthly_instalment = self._calculate_monthly_payment(requested_amount, requested_term)
 
-        # Always compute post-loan disposable explicitly for gating
+        # Compute post-loan disposable explicitly for gating
         post_loan_disposable = float(affordability.monthly_disposable or 0.0) - float(monthly_instalment or 0.0)
 
+        # DEBUG: always log the values
         result.processing_notes.append(
-            f"[AFF_GATE_DEBUG] monthly_disp={affordability.monthly_disposable:.2f} "
-            f"instalment={monthly_instalment:.2f} post_disp={post_loan_disposable:.2f}"
+            f"AFF_GATE_DEBUG: disp={float(affordability.monthly_disposable or 0.0):.2f}, "
+            f"inst={float(monthly_instalment or 0.0):.2f}, "
+            f"post={float(post_loan_disposable or 0.0):.2f}"
         )
+
+        # Apply the gate
+        gate_applied = False
+        if post_loan_disposable <= 0:
+            decision = "DECLINE"
+            result.processing_notes.append("AFF_GATE_APPLIED: DECLINE (post<=0)")
+            gate_applied = True
+        elif post_loan_disposable < monthly_instalment:
+            decision = "REFER"
+            result.processing_notes.append("AFF_GATE_APPLIED: REFER (post<inst)")
+            gate_applied = True
+
+
 
         # Gate 1: Hard decline if no disposable income after loan
         if post_loan_disposable <= 0:
@@ -308,6 +319,9 @@ class ScoringEngine:
             )
         elif decision == Decision.REFER:
             result.processing_notes = ["Manual review required"]
+
+        # DEBUG: confirm nothing overrides after the gate
+        result.processing_notes.append(f"FINAL_DECISION: {decision}")
 
         return result
 
