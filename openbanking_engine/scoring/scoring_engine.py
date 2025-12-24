@@ -150,6 +150,7 @@ class ScoringEngine:
             debt=debt,
             affordability=affordability,
             risk=risk,
+            balance=balance,
             requested_amount=requested_amount,
             requested_term=requested_term,
         )
@@ -326,14 +327,16 @@ class ScoringEngine:
         return result
 
     def _check_rule_violations(
-        self,
-        income: IncomeMetrics,
-        debt: DebtMetrics,
-        affordability: AffordabilityMetrics,
-        risk: RiskMetrics,
-        requested_amount: float,
-        requested_term: int,
+            self,
+            income: IncomeMetrics,
+            debt: DebtMetrics,
+            affordability: AffordabilityMetrics,
+            risk: RiskMetrics,
+            balance: BalanceMetrics,
+            requested_amount: float,
+            requested_term: int,
     ) -> Tuple[List[str], List[str]]:
+
         """
         Check all rules and return violations by action type.
 
@@ -373,8 +376,14 @@ class ScoringEngine:
                 refer_reasons.append(reason)
 
         # Behavioural Gate: Low income stability (blocks APPROVE)
-        if income.income_stability_score is not None and income.income_stability_score < 60:
-            refer_reasons.append(f"Behavioural gate: low income stability score ({income.income_stability_score:.1f} < 60)")
+        if income.income_stability_score is not None and income.income_stability_score < 70:
+            refer_reasons.append(f"Behavioural gate: low income stability score ({income.income_stability_score:.1f} < 70)")
+
+        # Behavioural Gate 2 (Hard Decline): Persistent overdraft usage
+        if balance.days_in_overdraft is not None and balance.days_in_overdraft >= 10:
+            decline_reasons.append(
+                f"Behavioural gate: overdraft days ({balance.days_in_overdraft} >= 10)"
+            )
 
         # Rule 3: Active HCSTC lenders
         rule = rules["max_active_hcstc_lenders"]
