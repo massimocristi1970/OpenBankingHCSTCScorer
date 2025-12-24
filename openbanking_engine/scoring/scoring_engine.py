@@ -167,6 +167,85 @@ class ScoringEngine:
                 ]
             return result
 
+        # ================================================================
+        # AFFORDABILITY GATE (Hard Override - Cannot be bypassed by score)
+        # ================================================================
+        # This gate ensures that no loan is approved if the customer cannot
+        # afford the repayment, regardless of their credit score or other factors.
+        #
+        # Gate 1: Post-loan disposable <= £0 → HARD DECLINE
+        # Gate 2: Post-loan disposable < monthly instalment → FORCE REFER
+        # ================================================================
+
+        post_loan_disposable = affordability.post_loan_disposable or 0.0
+        monthly_instalment = affordability.proposed_repayment or 0.0
+
+        # Gate 1: Hard decline if no disposable income after loan
+        if post_loan_disposable <= 0:
+            result.decision = Decision.DECLINE
+            result.decline_reasons = [
+                f"Affordability gate: post-loan disposable income £{post_loan_disposable:. 2f} <= £0"
+            ]
+            result.score = 0.0
+            result.risk_level = RiskLevel.VERY_HIGH
+
+            # Log for analysis
+            result.processing_notes.append(
+                f"AFFORDABILITY GATE TRIGGERED:  Post-loan disposable £{post_loan_disposable:.2f} "
+                f"(monthly instalment:  £{monthly_instalment:.2f})"
+            )
+
+            # Include any existing decline/refer reasons in notes
+            if decline_reasons:
+                result.processing_notes.extend([f"Also failed:  {r}" for r in decline_reasons])
+            if refer_reasons:
+                result.processing_notes.extend([f"Also flagged: {r}" for r in refer_reasons])
+
+            return result
+
+        # Gate 2: Force refer if disposable < 1x instalment (approval not allowed)
+        if post_loan_disposable < monthly_instalment:
+            # Still calculate score for MI/reporting purposes
+            score_breakdown = self._calculate_scores(
+                income=income,
+                affordability=affordability,
+                balance=balance,
+                risk=risk,
+                debt=debt,
+            )
+
+            result.score_breakdown = score_breakdown
+            result.score = score_breakdown.total_score
+            result.decision = Decision.REFER
+            result.risk_level = self._determine_risk_level(score_breakdown.total_score)
+
+            # Add affordability gate reason
+            result.decline_reasons = [
+                f"Affordability gate: post-loan disposable £{post_loan_disposable:. 2f} "
+                f"< monthly instalment £{monthly_instalment:.2f} (approval blocked)"
+            ]
+
+            # Log for analysis
+            result.processing_notes.append(
+                f"AFFORDABILITY GATE TRIGGERED: Post-loan disposable £{post_loan_disposable:.2f} "
+                f"< 1x instalment £{monthly_instalment:.2f} - APPROVAL BLOCKED, score was {score_breakdown.total_score:.0f}"
+            )
+
+            # Include any existing decline/refer reasons
+            if decline_reasons:
+                result.decline_reasons.extend(decline_reasons)
+            if refer_reasons:
+                result.decline_reasons.extend(refer_reasons)
+
+            # Collect risk flags
+            result.risk_flags = self._collect_risk_flags(risk, debt, affordability, income)
+
+            return result
+
+        # ================================================================
+        # END AFFORDABILITY GATE
+        # ==============================================================================
+
         # Calculate score breakdown
         score_breakdown = self._calculate_scores(
             income=income,
