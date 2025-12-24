@@ -191,7 +191,7 @@ class ScoringEngine:
 
             # Log for analysis
             result.processing_notes.append(
-                f"AFFORDABILITY GATE TRIGGERED: Post-loan disposable £{post_loan_disposable:. 2f} "  # ← FIXED
+                f"AFFORDABILITY GATE TRIGGERED: Post-loan disposable £{post_loan_disposable:.2f} "  # ← FIXED
                 f"(monthly instalment:  £{monthly_instalment:.2f})"  # ← FIXED
             )
 
