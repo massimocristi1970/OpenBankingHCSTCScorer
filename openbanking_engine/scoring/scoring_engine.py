@@ -378,41 +378,33 @@ class ScoringEngine:
         # Behavioural Gate: Low income stability (blocks APPROVE)
         # Behavioural Gate 1: Income stability (two-tier)
         if income.income_stability_score is not None:
-            if income.income_stability_score < 40:
+            if income.income_stability_score < 35:
                 decline_reasons.append(
-                    f"Behavioural gate: very low income stability score ({income.income_stability_score:.1f} < 40)"
+                    f"Behavioural gate: very low income stability score ({income.income_stability_score:.1f} < 35)"
                 )
             elif income.income_stability_score < 55:
                 refer_reasons.append(
                     f"Behavioural gate: low income stability score ({income.income_stability_score:.1f} < 55)"
                 )
 
-        # Behavioural Gate 2 (Hard Decline): Persistent overdraft usage
-        # Behavioural Gate 2: Overdraft usage (two-tier)
-        if balance.days_in_overdraft is not None:
-            if balance.days_in_overdraft >= 180:
-                decline_reasons.append(
-                    f"Behavioural gate: extreme overdraft days ({balance.days_in_overdraft} >= 180)"
-                )
-            elif balance.days_in_overdraft >= 90:
-                refer_reasons.append(
-                    f"Behavioural gate: high overdraft days ({balance.days_in_overdraft} >= 90)"
-                )
+        # Behavioural Gate 2: Overdraft usage (REFER only for now)
+        if balance.days_in_overdraft is not None and balance.days_in_overdraft >= 180:
+            refer_reasons.append(
+                f"Behavioural gate: high overdraft days ({balance.days_in_overdraft} >= 180)"
+            )
 
         # Rule 3: Active HCSTC lenders
         rule = rules["max_active_hcstc_lenders"]
         if (
             debt.active_hcstc_count_90d is not None
-            and debt.active_hcstc_count_90d > rule["threshold"]
+            and debt.active_hcstc_count_90d > 10
         ):
             reason = (
                 f"Active HCSTC with {debt.active_hcstc_count_90d} lenders in last "
                 f"{rule['lookback_days']} days (maximum {rule['threshold']})"
             )
-            if rule["action"] == "DECLINE":
-                decline_reasons.append(reason)
-            else:
-                refer_reasons.append(reason)
+            refer_reasons.append(reason)
+
 
         # Rule 4: Gambling
         rule = rules["max_gambling_percentage"]
