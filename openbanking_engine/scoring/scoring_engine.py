@@ -387,10 +387,21 @@ class ScoringEngine:
                     f"Behavioural gate: low income stability score ({income.income_stability_score:.1f} < 55)"
                 )
 
-        # Behavioural Gate 2: Overdraft usage (REFER only for now)
-        if balance.days_in_overdraft is not None and balance.days_in_overdraft >= 180:
+        # Behavioural Gate 2: Overdraft usage (rate-based, per month)
+        od_pm = getattr(balance, "overdraft_days_per_month", None)
+
+        # Backward compatible fallback if old BalanceMetrics is still in play
+        if od_pm is None:
+            months_obs = max(1, int(getattr(balance, "months_observed", 0) or 1))
+            od_pm = float(getattr(balance, "days_in_overdraft", 0) or 0) / months_obs
+
+        if od_pm >= 12:
+            decline_reasons.append(
+                f"Behavioural gate: overdraft days per month ({od_pm:.2f} >= 12)"
+            )
+        elif od_pm >= 6:
             refer_reasons.append(
-                f"Behavioural gate: high overdraft days ({balance.days_in_overdraft} >= 180)"
+                f"Behavioural gate: overdraft days per month ({od_pm:.2f} >= 6)"
             )
 
         # Rule 3: Active HCSTC lenders

@@ -106,8 +106,16 @@ class BalanceMetrics:
     average_balance: float = 0.0
     minimum_balance: float = 0.0
     maximum_balance: float = 0.0
+
+    # Raw counts (over the observed window)
     days_in_overdraft: int = 0
-    overdraft_frequency: int = 0  # Number of times balance went negative
+    overdraft_frequency: int = 0  # Number of times balance went from >=0 to <0
+
+    # Normalised (per observed month)
+    months_observed: int = 0
+    overdraft_days_per_month: float = 0.0
+    overdraft_events_per_month: float = 0.0
+
     end_of_month_average: float = 0.0
 
 
@@ -1585,12 +1593,25 @@ class MetricsCalculator:
             days_negative = 0
             overdraft_count = 0
 
+            # Normalise behavioural counts to a per-month rate (prevents history-length bias)
+            months_observed = int(self.months_of_data or 1)
+            months_observed = max(1, months_observed)
+
+            overdraft_days_per_month = days_negative / months_observed
+            overdraft_events_per_month = overdraft_count / months_observed
+
         return BalanceMetrics(
             average_balance=round(avg_balance, 2),
             minimum_balance=round(min_balance, 2),
             maximum_balance=round(max_balance, 2),
+
             days_in_overdraft=days_negative,
             overdraft_frequency=overdraft_count,
+
+            months_observed=months_observed,
+            overdraft_days_per_month=round(overdraft_days_per_month, 2),
+            overdraft_events_per_month=round(overdraft_events_per_month, 2),
+
             end_of_month_average=round(avg_balance, 2),  # Simplified
         )
 
