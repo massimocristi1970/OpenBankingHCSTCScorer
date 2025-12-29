@@ -376,14 +376,28 @@ class ScoringEngine:
                 refer_reasons.append(reason)
 
         # Behavioural Gate: Low income stability (blocks APPROVE)
-        if income.income_stability_score is not None and income.income_stability_score < 70:
-            refer_reasons.append(f"Behavioural gate: low income stability score ({income.income_stability_score:.1f} < 70)")
+        # Behavioural Gate 1: Income stability (two-tier)
+        if income.income_stability_score is not None:
+            if income.income_stability_score < 40:
+                decline_reasons.append(
+                    f"Behavioural gate: very low income stability score ({income.income_stability_score:.1f} < 40)"
+                )
+            elif income.income_stability_score < 55:
+                refer_reasons.append(
+                    f"Behavioural gate: low income stability score ({income.income_stability_score:.1f} < 55)"
+                )
 
         # Behavioural Gate 2 (Hard Decline): Persistent overdraft usage
-        if balance.days_in_overdraft is not None and balance.days_in_overdraft >= 10:
-            decline_reasons.append(
-                f"Behavioural gate: overdraft days ({balance.days_in_overdraft} >= 10)"
-            )
+        # Behavioural Gate 2: Overdraft usage (two-tier)
+        if balance.days_in_overdraft is not None:
+            if balance.days_in_overdraft >= 180:
+                decline_reasons.append(
+                    f"Behavioural gate: extreme overdraft days ({balance.days_in_overdraft} >= 180)"
+                )
+            elif balance.days_in_overdraft >= 90:
+                refer_reasons.append(
+                    f"Behavioural gate: high overdraft days ({balance.days_in_overdraft} >= 90)"
+                )
 
         # Rule 3: Active HCSTC lenders
         rule = rules["max_active_hcstc_lenders"]
