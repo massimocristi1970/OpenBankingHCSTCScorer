@@ -1560,9 +1560,13 @@ class MetricsCalculator:
         return min(max_amount, self.product_config["max_loan_amount"])
 
     def calculate_balance_metrics(
-        self, transactions: List[Dict], accounts: List[Dict]
+            self, transactions: List[Dict], accounts: List[Dict]
     ) -> BalanceMetrics:
         """Calculate account balance metrics."""
+
+        # Always define months_observed up front (avoid UnboundLocalError)
+        months_observed = int(getattr(self, "months_of_data", 0) or 1)
+        months_observed = max(1, months_observed)
 
         # Try to get balance from accounts
         balances = []
@@ -1587,40 +1591,34 @@ class MetricsCalculator:
                 if daily_balances[i - 1] >= 0 and daily_balances[i] < 0:
                     overdraft_count += 1
         else:
-            avg_balance = sum(balances) / len(balances) if balances else 0
-            min_balance = min(balances) if balances else 0
-            max_balance = max(balances) if balances else 0
+            avg_balance = sum(balances) / len(balances) if balances else 0.0
+            min_balance = min(balances) if balances else 0.0
+            max_balance = max(balances) if balances else 0.0
             days_negative = 0
             overdraft_count = 0
 
-            # Normalise behavioural counts to a per-month rate (prevents history-length bias)
-            months_observed = int(self.months_of_data or 1)
-            months_observed = max(1, months_observed)
-
-            overdraft_days_per_month = days_negative / months_observed
-            overdraft_events_per_month = overdraft_count / months_observed
+        # Normalise behavioural counts to a per-month rate (prevents history-length bias)
+        overdraft_days_per_month = float(days_negative) / float(months_observed)
+        overdraft_events_per_month = float(overdraft_count) / float(months_observed)
 
         return BalanceMetrics(
             average_balance=round(avg_balance, 2),
             minimum_balance=round(min_balance, 2),
             maximum_balance=round(max_balance, 2),
-
             days_in_overdraft=days_negative,
             overdraft_frequency=overdraft_count,
-
             months_observed=months_observed,
             overdraft_days_per_month=round(overdraft_days_per_month, 2),
             overdraft_events_per_month=round(overdraft_events_per_month, 2),
-
             end_of_month_average=round(avg_balance, 2),  # Simplified
         )
 
     def _calculate_daily_balances(
-        self, transactions: List[Dict], accounts: List[Dict]
+            self, transactions: List[Dict], accounts: List[Dict]
     ) -> List[float]:
         """Calculate estimated daily balances from transactions."""
         # Get starting balance from accounts
-        starting_balance = 0
+        starting_balance = 0.0
         for account in accounts:
             balances = account.get("balances", {})
             starting_balance += balances.get("current", 0) or 0.0
@@ -1641,19 +1639,17 @@ class MetricsCalculator:
 
         for txn in sorted_txns:
             date_str = txn.get("date", "")
-            amount = txn.get("amount", 0)
+            amount = txn.get("amount", 0) or 0.0
 
             if not date_str:
                 continue
 
             daily_balances[date_str] = current_balance
+
             # Reverse the transaction to get previous balance.
-            # In PLAID: negative = credit (money in), positive = debit (money out).
-            # To reverse: subtract the effect, so add the amount back.
-            # Credit (negative): subtracting a negative adds money.
-            # Debit (positive): subtracting a positive removes money.
-            # Since we're working backwards from current, we add the amount.
-            current_balance = current_balance + amount
+            # PLAID: negative = credit (money in), positive = debit (money out).
+            # Working backwards, undo the txn by adding the amount.
+            current_balance = current_balance + float(amount)
 
         return list(daily_balances.values()) if daily_balances else [starting_balance]
 
