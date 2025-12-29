@@ -732,9 +732,10 @@ class HCSTCBatchProcessor:
                 "Post-Loan Disposable": round(result.post_loan_disposable, 2),
 
                 # --- Behavioural diagnostics (NEW) ---
-                "Months Observed": getattr(metrics.get("balance"), "months_observed", None),
-                "Overdraft Days per Month": getattr(metrics.get("balance"), "overdraft_days_per_month", None),
-                "Income Stability Score": getattr(metrics.get("income"), "income_stability_score", None),
+                "Months Observed": getattr(result, "months_observed", None),
+                "Overdraft Days per Month": getattr(result, "overdraft_days_per_month", None),
+                "Income Stability Score": getattr(result, "income_stability_score", None),
+
 
                 "Risk Flags": "; ".join(result.risk_flags) if result.risk_flags else "",
                 "Decline Reasons": "; ".join(result.decline_reasons) if result.decline_reasons else "",

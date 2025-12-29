@@ -87,6 +87,11 @@ class ScoringResult:
     monthly_disposable: float = 0.0
     post_loan_disposable: float = 0.0
 
+    # Behavioural diagnostics (for export/tuning)
+    months_observed: int = 0
+    overdraft_days_per_month: float = 0.0
+    income_stability_score: float = 0.0
+
     # Risk flags
     risk_flags: List[str] = field(default_factory=list)
     decline_reasons: List[str] = field(default_factory=list)
@@ -138,10 +143,14 @@ class ScoringEngine:
             application_ref=application_ref,
             monthly_income=income.effective_monthly_income,
             monthly_expenses=expenses.monthly_essential_total
-            + expenses.monthly_discretionary_total
-            + debt.monthly_debt_payments,
+                             + expenses.monthly_discretionary_total
+                             + debt.monthly_debt_payments,
             monthly_disposable=affordability.monthly_disposable,
             post_loan_disposable=affordability.post_loan_disposable,
+
+            months_observed=getattr(balance, "months_observed", 0) or 0,
+            overdraft_days_per_month=getattr(balance, "overdraft_days_per_month", 0.0) or 0.0,
+            income_stability_score=getattr(income, "income_stability_score", 0.0) or 0.0,
         )
 
         # Check rule violations
