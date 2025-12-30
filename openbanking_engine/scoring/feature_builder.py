@@ -1677,7 +1677,18 @@ class MetricsCalculator:
             gambling_pct = 0.0
 
         # Failed payments (all time and 45 days)
-        failed_count = risk_data.get("failed_payments", {}).get("count", 0)
+        failed_count = 0
+
+        try:
+            if categorized_transactions:
+                for txn, match in categorized_transactions:
+                    if getattr(match, "category", None) != "expense":
+                        continue
+                    if getattr(match, "subcategory", None) not in ("unpaid", "unauthorised_overdraft"):
+                        continue
+                    failed_count += 1
+        except Exception:
+            failed_count = 0
 
         # --- Calculate last-45-days failed payments from categorised transactions ---
         failed_count_45d = 0
