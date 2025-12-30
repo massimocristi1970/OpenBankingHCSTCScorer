@@ -459,21 +459,24 @@ class ScoringEngine:
         # Rule 6: Failed payments
         rule = rules["max_failed_payments"]
 
-        result_line = (
-            f"RULE6_DEBUG: failed_45d={risk.failed_payments_count_45d} "
-            f"threshold={rule['threshold']} action={rule['action']}"
-        )
-        # If you have a logger in this file, use logger.debug(result_line) instead.
-        # If not, print is fine for this test:
-        print(result_line)
+        failed_45d = int(risk.failed_payments_count_45d or 0)
+        threshold = int(rule["threshold"])
 
-        if (
-                risk.failed_payments_count_45d is not None
-                and risk.failed_payments_count_45d > rule["threshold"]
-        ):
+        triggered = failed_45d >= threshold  # use >= if "2 triggers at threshold 2"
+
+        outcome = "PASS"
+        if triggered:
+            outcome = rule["action"]
+
+        print(
+            f"RULE6_DEBUG: failed_45d={failed_45d} "
+            f"threshold={threshold} triggered={triggered} outcome={outcome}"
+        )
+
+        if triggered:
             reason = (
-                f"Failed payments ({risk.failed_payments_count_45d}) in last "
-                f"{rule['lookback_days']} days exceed maximum ({rule['threshold']})"
+                f"Failed payments ({failed_45d}) in last "
+                f"{rule['lookback_days']} days exceed maximum ({threshold})"
             )
             if rule["action"] == "DECLINE":
                 decline_reasons.append(reason)
