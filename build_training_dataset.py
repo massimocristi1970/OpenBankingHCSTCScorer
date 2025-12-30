@@ -6,6 +6,13 @@ import pandas as pd
 from openbanking_engine.categorisation.engine import TransactionCategorizer
 from openbanking_engine.scoring.feature_builder import MetricsCalculator
 
+import openbanking_engine.scoring.feature_builder as fb
+import openbanking_engine.categorisation.engine as ce
+
+print("feature_builder imported from:", fb.__file__)
+print("categorisation engine imported from:", ce.__file__)
+print("MetricsCalculator class from:", MetricsCalculator.__module__)
+print("TransactionCategorizer class from:", TransactionCategorizer.__module__)
 
 def load_json(path: str) -> dict:
     # Some exports contain non-utf8 bytes; fall back safely
