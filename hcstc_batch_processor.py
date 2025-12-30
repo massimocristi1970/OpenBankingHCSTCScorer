@@ -255,6 +255,11 @@ class HCSTCBatchProcessor:
                 )
                 
                 results.append(result)
+                logger.info(
+                    f"FINAL: {filename} | Decision={result.decision.value} | Score={result.score} | "
+                    f"DeclineReasons={'; '.join(result.decline_reasons) if result.decline_reasons else ''} | "
+                    f"RiskFlags={'; '.join(result.risk_flags) if result.risk_flags else ''}"
+                )
                 stats.processed += 1
                 stats.successful += 1
                 
