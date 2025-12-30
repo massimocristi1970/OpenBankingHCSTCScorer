@@ -476,7 +476,7 @@ class ScoringEngine:
         if triggered:
             reason = (
                 f"Failed payments ({failed_45d}) in last "
-                f"{rule['lookback_days']} days exceed maximum ({threshold})"
+                f"{rule['lookback_days']} days meet or exceed maximum ({threshold})"
             )
             if rule["action"] == "DECLINE":
                 decline_reasons.append(reason)
