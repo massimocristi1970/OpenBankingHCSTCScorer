@@ -1731,9 +1731,55 @@ class MetricsCalculator:
         except Exception:
             failed_count_45d = 0
 
-        # Bank charges (all time and 90 days)
-        bank_charges_count = risk_data.get("bank_charges", {}).get("count", 0)
-        bank_charges_count_90d = risk_data.get("bank_charges", {}).get("count_90d", 0)
+        # Bank charges (all time and 90 days) — derive from categorised txns
+        bank_charges_count = 0
+        bank_charges_count_90d = 0
+
+        try:
+            if categorized_transactions:
+                # Count all-time bank charges
+                for txn, match in categorized_transactions:
+                    if getattr(match, "category", None) != "expense":
+                        continue
+                    if getattr(match, "subcategory", None) != "bank_charges":
+                        continue
+                    bank_charges_count += 1
+
+                # Anchor to most recent txn date (stable across machines / run dates)
+                anchor_date = None
+                for txn, _m in categorized_transactions:
+                    ds = txn.get("date")
+                    if not ds:
+                        continue
+                    try:
+                        d = datetime.strptime(ds, "%Y-%m-%d")
+                    except ValueError:
+                        continue
+                    if anchor_date is None or d > anchor_date:
+                        anchor_date = d
+
+                if anchor_date is not None:
+                    cutoff = anchor_date - timedelta(days=90)
+
+                    for txn, match in categorized_transactions:
+                        if getattr(match, "category", None) != "expense":
+                            continue
+                        if getattr(match, "subcategory", None) != "bank_charges":
+                            continue
+
+                        ds = txn.get("date")
+                        if not ds:
+                            continue
+                        try:
+                            d = datetime.strptime(ds, "%Y-%m-%d")
+                        except ValueError:
+                            continue
+
+                        if d >= cutoff:
+                            bank_charges_count_90d += 1
+        except Exception:
+            bank_charges_count = 0
+            bank_charges_count_90d = 0
 
         # Debt collection
         dca_count = risk_data.get("debt_collection", {}).get("count", 0)
