@@ -1701,10 +1701,10 @@ class MetricsCalculator:
                     cutoff = anchor_date - timedelta(days=45)
 
                     for txn, match in categorized_transactions:
-                        # We only count items categorised as risk/failed_payments
-                        if getattr(match, "category", None) != "risk":
+                        # Count failed-payment signals coming from expense categories
+                        if getattr(match, "category", None) != "expense":
                             continue
-                        if getattr(match, "subcategory", None) != "failed_payments":
+                        if getattr(match, "subcategory", None) not in ("unpaid", "unauthorised_overdraft"):
                             continue
 
                         ds = txn.get("date")

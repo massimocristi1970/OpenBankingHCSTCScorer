@@ -105,7 +105,7 @@ SCORING_CONFIG = {
         },
         "max_failed_payments": {
             "threshold": 2,  # 3+ in 45 days triggers
-            "action": "REFER",  
+            "action": "REFER",
             "lookback_days": 45,
             "description": "Maximum failed payments in lookback period"
         },
