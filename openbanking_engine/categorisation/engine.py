@@ -1919,11 +1919,11 @@ class TransactionCategorizer:
                 except ValueError:
                     pass
 
-            # --- BANK CHARGES (90d) roll-up ---
-            if category == "expense" and subcategory in {"unpaid", "unauthorised_overdraft"}:
-                summary["risk"]["bank_charges"]["total"] += amount
-                summary["risk"]["bank_charges"]["count"] += 1
-                if txn_date and txn_date >= bank_charges_cutoff:
+            # --- 90d bank charges counter (risk metric only) ---
+            if txn_date and txn_date >= bank_charges_cutoff:
+                if category == "risk" and subcategory == "bank_charges":
+                    summary["risk"]["bank_charges"]["count_90d"] += 1
+                elif category == "expense" and subcategory in ("unpaid", "unauthorised_overdraft"):
                     summary["risk"]["bank_charges"]["count_90d"] += 1
 
             if category in summary and subcategory in summary.get(category, {}):
