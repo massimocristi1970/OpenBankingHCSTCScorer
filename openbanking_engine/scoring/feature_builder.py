@@ -1731,21 +1731,12 @@ class MetricsCalculator:
         except Exception:
             failed_count_45d = 0
 
-        # Bank charges (all time and 90 days) — derive from categorised txns
-        bank_charges_count = 0
-        bank_charges_count_90d = 0
+        # Bank charges (all time and 90 days) — take from category_summary risk roll-up
+        bank_charges_count = risk_data.get("bank_charges", {}).get("count", 0)
+        bank_charges_count_90d = risk_data.get("bank_charges", {}).get("count_90d", 0)
 
-        try:
-            if categorized_transactions:
-                # Count all-time bank charges
-                for txn, match in categorized_transactions:
-                    if getattr(match, "category", None) != "expense":
-                        continue
-                    if getattr(match, "subcategory", None) != "bank_charges":
-                        continue
-                    bank_charges_count += 1
 
-                # Anchor to most recent txn date (stable across machines / run dates)
+        # Anchor to most recent txn date (stable across machines / run dates)
                 anchor_date = None
                 for txn, _m in categorized_transactions:
                     ds = txn.get("date")
@@ -1764,7 +1755,7 @@ class MetricsCalculator:
                     for txn, match in categorized_transactions:
                         if getattr(match, "category", None) != "expense":
                             continue
-                        if getattr(match, "subcategory", None) != "bank_charges":
+                        if getattr(match, "subcategory", None) not in {"unpaid", "unauthorised_overdraft"}:
                             continue
 
                         ds = txn.get("date")
