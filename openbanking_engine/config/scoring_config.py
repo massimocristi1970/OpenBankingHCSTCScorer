@@ -104,8 +104,8 @@ SCORING_CONFIG = {
             "description": "Minimum disposable income after loan payment"
         },
         "max_failed_payments": {
-            "threshold": 999,  # effectively disables rule-triggered REFER
-            "action": "REFER",  # Change to "DECLINE" to be stricter
+            "threshold": 2,  # 3+ in 45 days triggers
+            "action": "REFER",  
             "lookback_days": 45,
             "description": "Maximum failed payments in lookback period"
         },
