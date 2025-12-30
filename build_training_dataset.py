@@ -166,6 +166,10 @@ def main(json_glob: str, outcomes_csv: str, out_csv: str, months_of_data: int = 
                 "bank_charges_count_90d": _safe_float(getattr(risk, "bank_charges_count_90d", None)),
                 "gambling_percentage": _safe_float(getattr(risk, "gambling_percentage", None)),
 
+                "debt_collection_activity": _safe_float(getattr(risk, "debt_collection_activity", None)),
+                "new_credit_providers_90d": _safe_float(getattr(risk, "new_credit_providers_90d", None)),
+                "savings_activity": _safe_float(getattr(risk, "savings_activity", None)),
+
                 "monthly_disposable": _safe_float(getattr(affordability, "monthly_disposable", None)),
                 "post_loan_disposable": _safe_float(getattr(affordability, "post_loan_disposable", None)),
                 "disposable_ratio": _safe_float(getattr(affordability, "disposable_ratio", None)),
