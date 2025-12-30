@@ -458,9 +458,18 @@ class ScoringEngine:
 
         # Rule 6: Failed payments
         rule = rules["max_failed_payments"]
+
+        result_line = (
+            f"RULE6_DEBUG: failed_45d={risk.failed_payments_count_45d} "
+            f"threshold={rule['threshold']} action={rule['action']}"
+        )
+        # If you have a logger in this file, use logger.debug(result_line) instead.
+        # If not, print is fine for this test:
+        print(result_line)
+
         if (
-            risk.failed_payments_count_45d is not None
-            and risk.failed_payments_count_45d > rule["threshold"]
+                risk.failed_payments_count_45d is not None
+                and risk.failed_payments_count_45d > rule["threshold"]
         ):
             reason = (
                 f"Failed payments ({risk.failed_payments_count_45d}) in last "

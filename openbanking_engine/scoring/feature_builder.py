@@ -858,7 +858,9 @@ class MetricsCalculator:
             else full_lenders_90d
         )
         balance_metrics = self.calculate_balance_metrics(transactions, accounts)
-        risk_metrics = self.calculate_risk_metrics(category_summary, income_metrics)
+        risk_metrics = self.calculate_risk_metrics(
+            category_summary, income_metrics, categorized_transactions=categorized_transactions
+        )
 
         affordability_metrics = self.calculate_affordability_metrics(
             income_metrics=income_metrics,
@@ -1654,8 +1656,12 @@ class MetricsCalculator:
         return list(daily_balances.values()) if daily_balances else [starting_balance]
 
     def calculate_risk_metrics(
-        self, category_summary: Dict, income_metrics: IncomeMetrics
+            self,
+            category_summary: Dict,
+            income_metrics: IncomeMetrics,
+            categorized_transactions: Optional[List[Tuple[Dict, "CategoryMatch"]]] = None,
     ) -> RiskMetrics:
+
         """Calculate risk indicator metrics."""
         risk_data = category_summary.get("risk", {})
         positive_data = category_summary.get("positive", {})
@@ -1672,7 +1678,47 @@ class MetricsCalculator:
 
         # Failed payments (all time and 45 days)
         failed_count = risk_data.get("failed_payments", {}).get("count", 0)
-        failed_count_45d = risk_data.get("failed_payments", {}).get("count_45d", 0)
+
+        # --- Calculate last-45-days failed payments from categorised transactions ---
+        failed_count_45d = 0
+
+        try:
+            if categorized_transactions:
+                # Anchor to most recent txn date (stable across machines / run dates)
+                anchor_date = None
+                for txn, _m in categorized_transactions:
+                    ds = txn.get("date")
+                    if not ds:
+                        continue
+                    try:
+                        d = datetime.strptime(ds, "%Y-%m-%d")
+                    except ValueError:
+                        continue
+                    if anchor_date is None or d > anchor_date:
+                        anchor_date = d
+
+                if anchor_date is not None:
+                    cutoff = anchor_date - timedelta(days=45)
+
+                    for txn, match in categorized_transactions:
+                        # We only count items categorised as risk/failed_payments
+                        if getattr(match, "category", None) != "risk":
+                            continue
+                        if getattr(match, "subcategory", None) != "failed_payments":
+                            continue
+
+                        ds = txn.get("date")
+                        if not ds:
+                            continue
+                        try:
+                            d = datetime.strptime(ds, "%Y-%m-%d")
+                        except ValueError:
+                            continue
+
+                        if d >= cutoff:
+                            failed_count_45d += 1
+        except Exception:
+            failed_count_45d = 0
 
         # Bank charges (all time and 90 days)
         bank_charges_count = risk_data.get("bank_charges", {}).get("count", 0)
@@ -1701,6 +1747,12 @@ class MetricsCalculator:
         has_new_credit_burst = (
             new_credit_providers_90d >= 5
         )  # Allow up to 4 new credit providers without referral
+
+        logger.debug(
+            "[RISK DEBUG] failed_payments_count=%s | failed_payments_count_45d=%s",
+            failed_count,
+            failed_count_45d,
+        )
 
         return RiskMetrics(
             gambling_total=round(gambling_total, 2),
