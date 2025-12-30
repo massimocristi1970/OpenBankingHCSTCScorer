@@ -79,7 +79,20 @@ def main(json_glob: str, outcomes_csv: str, out_csv: str, months_of_data: int = 
     if not invalid.empty:
         raise ValueError("outcomes.csv contains invalid outcome values (must be 0, 1, or 2)")
 
-    outcome_map = dict(zip(outcomes["application_id"], outcomes["outcome"]))
+    def _norm_app_id(s: str) -> str:
+        s = str(s).strip()
+        s_upper = s.upper()
+        # normalise common prefixes
+        if s_upper.startswith("RECORD_"):
+            return s_upper
+        # if it's just digits, add RECORD_
+        if s.isdigit():
+            return f"RECORD_{s}"
+        return s_upper
+
+    outcome_map = dict(
+        zip(outcomes["application_id"].map(_norm_app_id), outcomes["outcome"])
+    )
 
     categorizer = TransactionCategorizer()
     calc = MetricsCalculator(lookback_months=months_of_data)
@@ -94,7 +107,7 @@ def main(json_glob: str, outcomes_csv: str, out_csv: str, months_of_data: int = 
     empty_txns = 0
 
     for i, fp in enumerate(files, start=1):
-        app_id = application_id_from_path(fp)
+        app_id = _norm_app_id(application_id_from_path(fp))
         print(f"[{i}/{len(files)}] Processing {app_id}")
 
         if app_id not in outcome_map:
