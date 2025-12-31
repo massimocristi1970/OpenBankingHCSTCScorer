@@ -356,7 +356,7 @@ class ScoringEngine:
 
         outcome = "PASS"
         if triggered:
-            outcome = rule["action"]
+            outcome = "REFER"  # v1 safety
 
         print(
             f"RULE6_DEBUG: failed_45d={failed_45d} "
@@ -368,10 +368,8 @@ class ScoringEngine:
                 f"Failed payments ({failed_45d}) in last "
                 f"{rule['lookback_days']} days meet or exceed maximum ({threshold})"
             )
-            if rule["action"] == "DECLINE":
-                decline_reasons.append(reason)
-            else:
-                refer_reasons.append(reason)
+            # v1 safety: failed payments is REFER-only until validated at scale
+            refer_reasons.append(reason)
 
         # Rule 7: Debt collection
         rule = rules["max_dca_count"]
