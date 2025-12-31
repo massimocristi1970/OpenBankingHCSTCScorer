@@ -275,12 +275,11 @@ class ScoringEngine:
             else:
                 refer_reasons.append(reason)
 
-        # Behavioural Gate: Low income stability (blocks APPROVE)
-        # Behavioural Gate 1: Income stability (two-tier)
+       # Behavioural Gate 1: Income stability (two-tier)
         if income.income_stability_score is not None:
             if income.income_stability_score < 35:
                 decline_reasons.append(
-                    f"Behavioural gate: very low income stability score ({income.income_stability_score:.1f} < 35)"
+                    f"Behavioural gate: very low income stability score ({income.income_stability_score:.1f} < 30)"
                 )
             elif income.income_stability_score < 55:
                 refer_reasons.append(
