@@ -20,12 +20,12 @@ from openbanking_engine.categorisation.engine import TransactionCategorizer
 from openbanking_engine. income.income_detector import IncomeDetector
 from openbanking_engine.scoring.feature_builder import MetricsCalculator
 
-# Configure logging
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,   # ← change DEBUG → INFO
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
+
 
 
 class InvalidJsonStructureError(Exception):
