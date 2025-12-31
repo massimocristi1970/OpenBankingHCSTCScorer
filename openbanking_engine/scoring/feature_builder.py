@@ -1731,21 +1731,12 @@ class MetricsCalculator:
         except Exception:
             failed_count_45d = 0
 
-        # Bank charges (all time and 90 days) — derive from categorised txns
+        # Bank charges proxy (all time and 90 days): unpaid + unauthorised_overdraft
         bank_charges_count = 0
         bank_charges_count_90d = 0
 
         try:
             if categorized_transactions:
-                # Count all-time bank charges
-                for txn, match in categorized_transactions:
-                    if getattr(match, "category", None) != "expense":
-                        continue
-                    if getattr(match, "subcategory", None) != "bank_charges":
-                        continue
-                    bank_charges_count += 1
-
-                # Anchor to most recent txn date (stable across machines / run dates)
                 anchor_date = None
                 for txn, _m in categorized_transactions:
                     ds = txn.get("date")
@@ -1758,15 +1749,17 @@ class MetricsCalculator:
                     if anchor_date is None or d > anchor_date:
                         anchor_date = d
 
-                if anchor_date is not None:
-                    cutoff = anchor_date - timedelta(days=90)
+                cutoff = (anchor_date - timedelta(days=90)) if anchor_date else None
 
-                    for txn, match in categorized_transactions:
-                        if getattr(match, "category", None) != "expense":
-                            continue
-                        if getattr(match, "subcategory", None) != "bank_charges":
-                            continue
+                for txn, match in categorized_transactions:
+                    if getattr(match, "category", None) != "expense":
+                        continue
+                    if getattr(match, "subcategory", None) not in {"unpaid", "unauthorised_overdraft"}:
+                        continue
 
+                    bank_charges_count += 1
+
+                    if cutoff is not None:
                         ds = txn.get("date")
                         if not ds:
                             continue
@@ -1774,9 +1767,9 @@ class MetricsCalculator:
                             d = datetime.strptime(ds, "%Y-%m-%d")
                         except ValueError:
                             continue
-
                         if d >= cutoff:
                             bank_charges_count_90d += 1
+
         except Exception:
             bank_charges_count = 0
             bank_charges_count_90d = 0

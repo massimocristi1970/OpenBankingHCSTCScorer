@@ -1919,11 +1919,20 @@ class TransactionCategorizer:
                 except ValueError:
                     pass
 
-            # --- 90d bank charges counter (risk metric only) ---
-            if txn_date and txn_date >= bank_charges_cutoff:
-                if category == "risk" and subcategory == "bank_charges":
+            # --- BANK CHARGES roll-up (all-time + 90d) ---
+            # NOTE: your categoriser is using unpaid/unauthorised_overdraft as bank-charge signals
+            # (so RiskMetrics must align to that reality).
+            if category == "expense" and subcategory in ("unpaid", "unauthorised_overdraft"):
+                summary["risk"]["bank_charges"]["total"] += amount
+                summary["risk"]["bank_charges"]["count"] += 1
+                if txn_date and txn_date >= bank_charges_cutoff:
                     summary["risk"]["bank_charges"]["count_90d"] += 1
-                elif category == "expense" and subcategory in ("unpaid", "unauthorised_overdraft"):
+
+            # If you *also* ever emit explicit risk/bank_charges matches, keep this too:
+            if category == "risk" and subcategory == "bank_charges":
+                summary["risk"]["bank_charges"]["total"] += amount
+                summary["risk"]["bank_charges"]["count"] += 1
+                if txn_date and txn_date >= bank_charges_cutoff:
                     summary["risk"]["bank_charges"]["count_90d"] += 1
 
             if category in summary and subcategory in summary.get(category, {}):
@@ -1958,6 +1967,18 @@ class TransactionCategorizer:
                     summary[category][subcategory]["total"] += amount
                     summary[category][subcategory]["count"] += 1
 
+                    # Track distinct credit providers within lookback (used for new_credit_providers_90d)
+                    if category == "debt":
+                        provider_name = txn.get("name", "").strip().upper()
+                        if provider_name and txn_date and txn_date >= new_credit_cutoff:
+                            # Global 'new credit providers' set (90d) — counts any credit provider observed
+                            summary["debt"]["hcstc_payday"]["credit_providers_90d"].add(provider_name)
+
+                            # Also keep per-product provider sets where configured
+                            if isinstance(summary["debt"].get(subcategory), dict) and "providers_90d" in summary["debt"][subcategory]:
+                                summary["debt"][subcategory]["providers_90d"].add(provider_name)
+
+
                     # Track HCSTC lenders for risk assessment
                     if category == "debt" and subcategory == "hcstc_payday":
                         # Extract lender name from transaction
@@ -1969,6 +1990,14 @@ class TransactionCategorizer:
                             if txn_date and txn_date >= hcstc_cutoff:
                                 summary["debt"]["hcstc_payday"]["lenders_90d"].add(lender_name)
 
+                    # --- NEW CREDIT PROVIDERS (90d) tracking ---
+                    if category == "debt":
+                        provider_name = txn.get("name", "").strip().upper()
+                        if provider_name and txn_date and txn_date >= new_credit_cutoff:
+                            if subcategory == "hcstc_payday":
+                                summary["debt"]["hcstc_payday"]["credit_providers_90d"].add(provider_name)
+                            elif subcategory in ("other_loans", "credit_cards", "bnpl", "catalogue"):
+                                summary["debt"][subcategory]["providers_90d"].add(provider_name)
 
 
             elif category == "transfer":
@@ -1999,7 +2028,20 @@ class TransactionCategorizer:
                 summary["other"]["total"] += amount
                 summary["other"]["count"] += 1
 
-        # --- remainder of your function UNCHANGED ---
-        # (distinct lenders, providers_90d cleanup, DCAs, return summary)
+        # Derived metrics (keep both set + numeric count for downstream compatibility)
+        summary["debt"]["hcstc_payday"]["new_credit_providers_90d"] = len(
+            summary["debt"]["hcstc_payday"].get("credit_providers_90d", set())
+        )
+
+        # --- Compute new_credit_providers_90d as a single numeric metric ---
+        providers_90d_union = set()
+
+        providers_90d_union |= set(summary["debt"]["hcstc_payday"].get("credit_providers_90d", set()))
+        providers_90d_union |= set(summary["debt"]["other_loans"].get("providers_90d", set()))
+        providers_90d_union |= set(summary["debt"]["credit_cards"].get("providers_90d", set()))
+        providers_90d_union |= set(summary["debt"]["bnpl"].get("providers_90d", set()))
+        providers_90d_union |= set(summary["debt"]["catalogue"].get("providers_90d", set()))
+
+        summary["debt"]["hcstc_payday"]["new_credit_providers_90d"] = len(providers_90d_union)
 
         return summary
