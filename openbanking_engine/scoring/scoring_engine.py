@@ -346,6 +346,20 @@ class ScoringEngine:
             else:
                 refer_reasons.append(reason)
 
+        # STEP 5: Affordability gate (severity-based)
+        post_loan = getattr(affordability, "post_loan_disposable", None)
+        if post_loan is not None:
+            post_loan = float(post_loan)
+
+            if post_loan <= -700:
+                decline_reasons.append(
+                    f"Affordability gate: post-loan disposable severe ({post_loan:.2f} <= -700)"
+                )
+            elif post_loan < 0:
+                refer_reasons.append(
+                    f"Affordability gate: post-loan disposable negative ({post_loan:.2f} < 0)"
+                )
+
         # Rule 6: Failed payments
         rule = rules["max_failed_payments"]
 
