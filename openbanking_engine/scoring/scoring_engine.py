@@ -296,12 +296,12 @@ class ScoringEngine:
             od_pm = float(getattr(balance, "days_in_overdraft", 0) or 0) / months_obs
 
         if od_pm >= 12:
-            decline_reasons.append(
-                f"Behavioural gate: overdraft days per month ({od_pm:.2f} >= 12)"
+            refer_reasons.append(
+                f"Overdraft usage high: overdraft days per month ({od_pm:.2f} >= 12)"
             )
         elif od_pm >= 6:
             refer_reasons.append(
-                f"Behavioural gate: overdraft days per month ({od_pm:.2f} >= 6)"
+                f"Overdraft usage moderate: overdraft days per month ({od_pm:.2f} >= 6)"
             )
 
         # Rule 3: Active HCSTC lenders
