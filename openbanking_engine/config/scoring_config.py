@@ -8,11 +8,11 @@ Contains scoring weights, thresholds, and decision rules.
 SCORING_CONFIG = {
     # Score ranges and decisions
     "score_ranges": {
-        "approve": {"min": 40, "max": 100, "decision": "APPROVE"},
-        "refer": {"min": 26, "max": 39, "decision": "REFER"},
-        "decline": {"min": 0, "max": 25, "decision": "DECLINE"},
-    },
-    
+    "approve": {"min": 70, "max": 100, "decision": "APPROVE"},
+    "refer": {"min": 45, "max": 69, "decision": "REFER"},
+    "decline": {"min": 0, "max": 44, "decision": "DECLINE"},
+},
+
     # Scoring weights (total = 100)
     "weights": {
         "affordability": {
