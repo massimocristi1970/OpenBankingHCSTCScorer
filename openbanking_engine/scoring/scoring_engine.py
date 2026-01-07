@@ -194,14 +194,22 @@ class ScoringEngine:
         result.decision = decision
         result.risk_level = risk_level
 
-        # If there are refer reasons, force decision to REFER regardless of score
-        if refer_reasons:
+        # REFER reasons should only ever BLOCK an approval.
+        # If the score says DECLINE, we keep DECLINE (do not "upgrade" to REFER).
+        result.processing_notes = list(refer_reasons) if refer_reasons else []
+
+        if decision == Decision.APPROVE and refer_reasons:
             result.decision = Decision.REFER
-        result.processing_notes.extend(refer_reasons)
-        if result.decision == Decision.APPROVE:
-            result.processing_notes.append(
-                f"Score ({result.score:.1f}) suggests approval but manual review required"
-            )
+            # Keep risk_level as determined by score, but require manual review
+            if "Manual review required" not in result.processing_notes:
+                result.processing_notes.insert(0, "Manual review required")
+        else:
+            # Keep the score-based decision
+            result.decision = decision
+
+        # If the score-based decision is REFER and there are no specific reasons, add a generic note
+        if result.decision == Decision.REFER and not result.processing_notes:
+            result.processing_notes = ["Manual review required"]
 
         # Collect risk flags
         result.risk_flags = self._collect_risk_flags(risk, debt, affordability, balance)
