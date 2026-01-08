@@ -110,9 +110,10 @@ def main():
         
         st.markdown("### 📊 Score Ranges")
         st.markdown("""
-        - **>40**: APPROVE ✅
-        - **26-39**: REFER 📋
-        - **0-25**: DECLINE ❌
+        - **>70**: APPROVE ✅
+        - **45-69**: REFER 📋
+        - **<45**: DECLINE ❌3652+6
+        4+8967+56841
         """)
     
     # Main content area

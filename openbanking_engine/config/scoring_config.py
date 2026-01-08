@@ -60,12 +60,13 @@ SCORING_CONFIG = {
             {"min": 0, "points": 0},
         ],
         "income_stability": [
-            {"min": 90, "points": 12},  # Previously 12
-            {"min": 75, "points": 10},  # Previously 10
-            {"min": 60, "points": 7},  # Previously 7
-            {"min": 40, "points": 4},  # Previously 4
+            {"min": 90, "points": 12},
+            {"min": 78, "points": 10},
+            {"min": 66, "points": 7},
+            {"min": 50, "points": 4},
             {"min": 0, "points": 0},
         ],
+
         "gambling_percentage": [
             {"max": 0, "points": 5},  # Previously 5
             {"max": 2, "points": 3},  # Previously 3
