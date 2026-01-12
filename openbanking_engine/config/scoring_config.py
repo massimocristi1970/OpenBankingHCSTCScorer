@@ -110,6 +110,12 @@ SCORING_CONFIG = {
             "lookback_days": 45,
             "description": "Maximum failed payments in lookback period"
         },
+        "new_credit_burst": {
+            "threshold": 3,  # More than 3 new credit providers
+            "lookback_days": 90,  # Lookback window in days
+            "action": "REFER",  # Case-by-case review due to recent credit activity
+            "description": "Multiple new credit providers within recent lookback period"
+        },
         "max_dca_count": {
             "threshold":  4,  # 4+ triggers action
             "action": "REFER",  # Change to "REFER" for case-by-case review

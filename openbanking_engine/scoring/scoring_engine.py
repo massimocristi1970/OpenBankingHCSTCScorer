@@ -379,6 +379,22 @@ class ScoringEngine:
             # v1 safety: failed payments is REFER-only until validated at scale
             refer_reasons.append(reason)
 
+        # Rule X: New credit burst (recent dependency)
+        rule = rules.get("new_credit_burst")
+        if rule:
+            if (
+                    risk.new_credit_providers_90d is not None
+                    and risk.new_credit_providers_90d > rule["threshold"]
+            ):
+                reason = (
+                    f"Multiple new credit providers ({risk.new_credit_providers_90d}) "
+                    f"in last {rule['lookback_days']} days"
+                )
+                if rule["action"] == "DECLINE":
+                    decline_reasons.append(reason)
+                else:
+                    refer_reasons.append(reason)
+
         # Rule 7: Debt collection
         rule = rules["max_dca_count"]
         if (
