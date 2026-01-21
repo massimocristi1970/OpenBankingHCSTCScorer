@@ -18,11 +18,9 @@ from ..config.scoring_config import PRODUCT_CONFIG
 # Initialize logger for this module
 logger = logging.getLogger(__name__)
 
-# TEMPORARY: Enable debug logging for income validation
-# TODO: Remove in production or configure via logging config
-logging.basicConfig(
-    level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+# NOTE: Debug logging should be configured at the application level, not here
+# To enable debug logging, configure it in your application's entry point:
+#   logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
 
 @dataclass
@@ -39,6 +37,10 @@ class IncomeMetrics:
     has_verifiable_income: bool = False
     income_sources: List[str] = field(default_factory=list)
     monthly_income_breakdown: Dict = field(default_factory=dict)
+    
+    # NEW: Income trend analysis
+    income_trend: str = "stable"  # "increasing", "stable", "decreasing"
+    income_trend_pct: float = 0.0  # Percentage change
 
 
 @dataclass
@@ -139,6 +141,9 @@ class RiskMetrics:
     has_debt_collection_concern: bool = False
     has_bank_charges_concern: bool = False  # For mandatory referral
     has_new_credit_burst: bool = False  # For mandatory referral
+    
+    # NEW: Savings behavior score (positive indicator)
+    savings_behavior_score: float = 0.0  # 0-3 points for regular savers
 
 
 class MetricsCalculator:
@@ -1038,6 +1043,9 @@ class MetricsCalculator:
         # Verifiable income check
         has_verifiable = salary_total > 0 or benefits_total > 0 or pension_total > 0
 
+        # NEW: Calculate income trend
+        income_trend, income_trend_pct = self._calculate_income_trend(transactions)
+
         return IncomeMetrics(
             total_income=total_income,
             monthly_income=monthly_income,
@@ -1056,6 +1064,8 @@ class MetricsCalculator:
                 "other": monthly_other,
                 "account_transfer": account_transfer_total / actual_months,
             },
+            income_trend=income_trend,
+            income_trend_pct=income_trend_pct,
         )
 
     def _calculate_income_stability(self, transactions: List[Dict]) -> float:
@@ -1146,6 +1156,59 @@ class MetricsCalculator:
             return 40.0
         else:
             return 20.0
+
+    def _calculate_income_trend(self, transactions: List[Dict]) -> Tuple[str, float]:
+        """
+        Calculate income trend by comparing recent vs older income.
+        
+        Returns:
+            Tuple of (trend_label, trend_percentage)
+            trend_label: "increasing", "stable", or "decreasing"
+            trend_percentage: Percentage change (positive = increasing)
+        """
+        from collections import defaultdict
+        
+        # Group income by month
+        monthly_income = defaultdict(float)
+        
+        for txn in transactions:
+            amount = txn.get("amount", 0)
+            if amount >= 0:  # Not income
+                continue
+            
+            date_str = txn.get("date", "")
+            if not date_str:
+                continue
+            
+            try:
+                date = datetime.strptime(date_str, "%Y-%m-%d")
+                month_key = date.strftime("%Y-%m")
+                monthly_income[month_key] += abs(amount)
+            except (ValueError, TypeError):
+                continue
+        
+        if len(monthly_income) < 3:
+            return "stable", 0.0  # Insufficient data
+        
+        # Sort months chronologically
+        sorted_months = sorted(monthly_income.keys())
+        monthly_values = [monthly_income[m] for m in sorted_months]
+        
+        # Compare recent 2 months vs older months
+        recent_avg = sum(monthly_values[-2:]) / 2 if len(monthly_values) >= 2 else monthly_values[-1]
+        older_avg = sum(monthly_values[:-2]) / max(1, len(monthly_values) - 2)
+        
+        if older_avg == 0:
+            return "stable", 0.0
+        
+        change_pct = (recent_avg - older_avg) / older_avg * 100
+        
+        if change_pct > 10:
+            return "increasing", round(change_pct, 1)
+        elif change_pct < -10:
+            return "decreasing", round(change_pct, 1)
+        else:
+            return "stable", round(change_pct, 1)
 
     def _validate_category_summary(self, category_summary: Dict, label: str = ""):
         """
@@ -1791,6 +1854,15 @@ class MetricsCalculator:
             new_credit_providers_90d >= 5
         )  # Allow up to 4 new credit providers without referral
 
+        # NEW: Calculate savings behavior score (positive indicator)
+        # Regular savers demonstrate financial discipline
+        if savings_total > 100:
+            savings_behavior_score = 3.0  # Regular saver
+        elif savings_total > 0:
+            savings_behavior_score = 1.5  # Some savings
+        else:
+            savings_behavior_score = 0.0  # No detected savings
+
         logger.debug(
             "[RISK DEBUG] failed_payments_count=%s | failed_payments_count_45d=%s",
             failed_count,
@@ -1814,4 +1886,5 @@ class MetricsCalculator:
             has_debt_collection_concern=has_dca_concern,
             has_bank_charges_concern=has_bank_charges_concern,
             has_new_credit_burst=has_new_credit_burst,
+            savings_behavior_score=savings_behavior_score,
         )

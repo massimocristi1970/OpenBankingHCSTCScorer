@@ -466,7 +466,7 @@ class TransactionCategorizer:
                     confidence=0.98,
                     description="Account Transfer in",
                     match_method="plaid_strict",
-                    weight=0.75,
+                    weight=1.0,  # Fixed: was 0.75, should be 1.0 for consistency
                     is_stable=False
                 )
             # Generic TRANSFER_IN is a holding category for potential income promotion
@@ -476,7 +476,7 @@ class TransactionCategorizer:
                 confidence=0.98,
                 description="Plaid Transfer In",
                 match_method="plaid_strict",
-                weight=0.75,
+                weight=1.0,  # Fixed: was 0.75, should be 1.0 for consistency
                 is_stable=False
             )
 
@@ -490,7 +490,7 @@ class TransactionCategorizer:
                     confidence=0.98,
                     description="Account Transfer Out",
                     match_method="plaid_strict",
-                    weight=0.75,
+                    weight=1.0,  # Fixed: was 0.75, should be 1.0 for consistency
                     is_stable=False
                 )
             # Other TRANSFER_OUT (e.g., payments) are expenses
@@ -500,7 +500,7 @@ class TransactionCategorizer:
                 confidence=0.98,
                 description="Plaid Transfer Out",
                 match_method="plaid_strict",
-                weight=0.75,
+                weight=1.0,  # Fixed: was 0.75, should be 1.0 for consistency
                 is_stable=False
             )
 
