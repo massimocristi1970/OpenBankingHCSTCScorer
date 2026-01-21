@@ -315,13 +315,16 @@ class ScoringEngine:
         rule = rules["max_active_hcstc_lenders"]
         if (
             debt.active_hcstc_count_90d is not None
-            and debt.active_hcstc_count_90d > 10
+            and debt.active_hcstc_count_90d > rule["threshold"]
         ):
             reason = (
                 f"Active HCSTC with {debt.active_hcstc_count_90d} lenders in last "
                 f"{rule['lookback_days']} days (maximum {rule['threshold']})"
             )
-            refer_reasons.append(reason)
+            if rule["action"] == "DECLINE":
+                decline_reasons.append(reason)
+            else:
+                refer_reasons.append(reason)
 
 
         # Rule 4: Gambling
