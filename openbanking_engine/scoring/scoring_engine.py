@@ -283,15 +283,18 @@ class ScoringEngine:
             else:
                 refer_reasons.append(reason)
 
-       # Behavioural Gate 1: Income stability (two-tier)
+        # Behavioural Gate 1: Income stability (two-tier)
+        # CALIBRATED: Based on outcome data - never paid median: 58.65, fully repaid median: 71.70
         if income.income_stability_score is not None:
-            if income.income_stability_score < 35:
+            if income.income_stability_score < 45:
+                # Very low stability - strong decline signal
                 decline_reasons.append(
-                    f"Behavioural gate: very low income stability score ({income.income_stability_score:.1f} < 30)"
+                    f"Behavioural gate: very low income stability score ({income.income_stability_score:.1f} < 45)"
                 )
-            elif income.income_stability_score < 55:
+            elif income.income_stability_score < 60:
+                # Below typical default median - needs review
                 refer_reasons.append(
-                    f"Behavioural gate: low income stability score ({income.income_stability_score:.1f} < 55)"
+                    f"Behavioural gate: low income stability score ({income.income_stability_score:.1f} < 60)"
                 )
 
         # Behavioural Gate 2: Overdraft usage (rate-based, per month)
@@ -302,13 +305,14 @@ class ScoringEngine:
             months_obs = max(1, int(getattr(balance, "months_observed", 0) or 1))
             od_pm = float(getattr(balance, "days_in_overdraft", 0) or 0) / months_obs
 
-        if od_pm >= 12:
+        # CALIBRATED: More granular overdraft thresholds
+        if od_pm >= 15:
             refer_reasons.append(
-                f"Overdraft usage high: overdraft days per month ({od_pm:.2f} >= 12)"
+                f"Overdraft usage very high: {od_pm:.1f} days/month (≥15)"
             )
-        elif od_pm >= 6:
+        elif od_pm >= 8:
             refer_reasons.append(
-                f"Overdraft usage moderate: overdraft days per month ({od_pm:.2f} >= 6)"
+                f"Overdraft usage high: {od_pm:.1f} days/month (≥8)"
             )
 
         # Rule 3: Active HCSTC lenders
@@ -578,7 +582,7 @@ class ScoringEngine:
             "balance_management": round(balance_points, 1),
         }
 
-        # 4. Risk Indicators Score (10 points) - unchanged
+        # 4. Risk Indicators Score (10 points + bonuses)
         risk_weights = self.weights["risk_indicators"]
 
         # Gambling Activity (5 points)
@@ -600,11 +604,28 @@ class ScoringEngine:
         else:
             hcstc_points = 0
 
-        risk_score = gambling_points + hcstc_points
+        # NEW: Savings Behavior Bonus (up to 3 points)
+        # Regular savers demonstrate financial discipline - positive indicator
+        savings_bonus = getattr(risk, 'savings_behavior_score', 0.0) or 0.0
+
+        # NEW: Income Trend Adjustment
+        # Increasing income is a positive signal, decreasing is a risk
+        income_trend = getattr(income, 'income_trend', 'stable')
+        if income_trend == "increasing":
+            trend_bonus = 2.0  # Bonus for improving financial situation
+        elif income_trend == "decreasing":
+            trend_bonus = -2.0  # Penalty for declining income
+            penalties.append(f"Declining income trend")
+        else:
+            trend_bonus = 0.0
+
+        risk_score = gambling_points + hcstc_points + savings_bonus + trend_bonus
         breakdown.risk_indicators_score = risk_score
         breakdown.risk_breakdown = {
             "gambling_activity": round(gambling_points, 1),
             "hcstc_history": round(hcstc_points, 1),
+            "savings_bonus": round(savings_bonus, 1),
+            "income_trend_adjustment": round(trend_bonus, 1),
         }
 
         # Apply penalties

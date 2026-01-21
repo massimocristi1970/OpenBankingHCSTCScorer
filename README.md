@@ -151,7 +151,7 @@ Files must follow the PLAID Open Banking format:
 
 ## Scoring System Overview
 
-The scoring system operates on a **0-175 point scale** (rescaled from the original 0-100 to maintain stricter standards). The passing threshold is set at 70 points, ensuring only creditworthy applicants are approved automatically.
+The scoring system operates on a **0-100 point scale**. The passing threshold is set at 70 points, ensuring only creditworthy applicants are approved automatically.
 
 ### Decision Thresholds
 
@@ -161,81 +161,85 @@ The scoring system operates on a **0-175 point scale** (rescaled from the origin
 | **45-69**   | **REFER**   | Manual review required - borderline case                          |
 | **<45**     | **DECLINE** | Automatically declined - does not meet minimum standards          |
 
-### Scoring Components (175 points total)
+### Scoring Components (100 points total)
 
 The scoring system evaluates four key areas, with each contributing to the total score:
 
-#### 1. Affordability Score (78.75 points)
+#### 1. Income Quality Score (35 points) - RECALIBRATED
+
+Assesses the stability and reliability of income (highest predictor of repayment):
+
+- **Income Stability** (20 points): Based on coefficient of variation of monthly income
+  - ≥80%: 20 points
+  - 70-79%: 16 points
+  - 60-69%: 12 points
+  - 50-59%: 6 points
+  - <50%: 0 points
+- **Income Regularity** (8 points): Consistency of income payments
+  - Calculated as: regularity_score / 100 × 8
+- **Income Verification** (5 points): Presence of identifiable income sources
+  - Verifiable income: 5 points
+  - Unverifiable: 2.5 points
+- **Credit History Bonus** (2 points): Rewards customers who manage existing debt
+  - £200+/month debt payments: 2 points
+  - £100-199/month: 1.5 points
+  - £50-99/month: 1 point
+  - <£50/month: 0 points
+
+#### 2. Affordability Score (30 points)
 
 Measures the applicant's ability to afford loan repayments:
 
-- **Debt-to-Income Ratio** (31.5 points): Lower DTI = higher score
-  - ≤15%: 31.5 points
-  - 15-25%: 26.25 points
-  - 25-35%: 21 points
-  - 35-45%: 14 points
-  - 45-55%: 7 points
-  - > 55%: 0 points
-- **Disposable Income** (26.25 points): Monthly income minus essential expenses and debt
-  - ≥£400: 26.25 points
-  - £300-399: 22.75 points
-  - £200-299: 17.5 points
-  - £100-199: 10.5 points
-  - £50-99: 5.25 points
+- **Debt-to-Income Ratio** (12 points): Lower DTI = higher score
+  - ≤30%: 12 points
+  - 31-40%: 10 points
+  - 41-50%: 8 points
+  - 51-60%: 5 points
+  - 61-70%: 2 points
+  - >70%: 0 points
+- **Disposable Income** (8 points): Monthly income minus essential expenses and debt
+  - ≥£300: 8 points
+  - £200-299: 6 points
+  - £100-199: 4 points
+  - £50-99: 2 points
   - <£50: 0 points
-- **Post-Loan Affordability** (21 points): Disposable income remaining after loan repayment
-  - Calculated as: min(21, disposable_after_loan / 50 \* 21)
+- **Post-Loan Affordability** (10 points): Disposable income remaining after loan repayment
+  - Calculated as: min(10, disposable_after_loan / 50 × 10)
 
-#### 2. Income Quality Score (43.75 points)
-
-Assesses the stability and reliability of income:
-
-- **Income Stability** (21 points): Percentage of income from stable sources (salary, benefits, pension)
-  - ≥90%: 21 points
-  - 75-89%: 17.5 points
-  - 60-74%: 12.25 points
-  - 40-59%: 7 points
-  - <40%: 0 points
-- **Income Regularity** (14 points): Consistency of income payments
-  - Calculated as: regularity_score / 100 \* 14
-- **Income Verification** (8.75 points): Presence of identifiable income sources
-  - Verifiable income: 8.75 points
-  - Unverifiable: 3.5 points
-
-#### 3. Account Conduct Score (35 points)
+#### 3. Account Conduct Score (25 points)
 
 Evaluates how responsibly the applicant manages their finances:
 
-- **Failed Payments** (14 points): Deducted 3.5 points per failed payment
-  - 0 failed payments: 14 points
-  - 1 failed payment: 10.5 points
-  - 2 failed payments: 7 points
-  - 3+ failed payments: 0-3.5 points
-- **Overdraft Usage** (12.25 points): Days spent in overdraft
-  - 0 days: 12.25 points
-  - 1-5 days: 8.75 points
-  - 6-15 days: 5.25 points
-  - > 15 days: 0 points
-- **Balance Management** (8.75 points): Average account balance
-  - ≥£500: 8.75 points
-  - £200-499: 5.25 points
-  - £0-199: 1.75 points
+- **Failed Payments** (10 points): Deducted 2 points per failed payment
+  - 0 failed payments: 10 points
+  - 1 failed payment: 8 points
+  - 2 failed payments: 6 points
+  - 3+ failed payments: 0-4 points
+- **Overdraft Usage** (8 points): Days spent in overdraft
+  - 0 days: 8 points
+  - 1-5 days: 6 points
+  - 6-15 days: 4 points (declining)
+  - >15 days: 0 points
+- **Balance Management** (7 points): Average account balance
+  - ≥£500: 7 points
+  - £200-499: 4.9 points
+  - £0-199: 2.45 points
   - Negative: 0 points
 
-#### 4. Risk Indicators Score (17.5 points)
+#### 4. Risk Indicators Score (10 points)
 
 Identifies negative risk factors:
 
-- **Gambling Activity** (8.75 points): Percentage of income spent on gambling
-  - 0%: 8.75 points
-  - <2%: 5.25 points
+- **Gambling Activity** (5 points): Percentage of income spent on gambling
+  - 0%: 5 points
+  - <2%: 3 points
   - 2-5%: 0 points
-  - 5-10%: -5.25 points (penalty)
-  - > 10%: -8.75 points (penalty)
-- **HCSTC History** (8.75 points): Active HCSTC lenders
-  - 0 lenders: 8.75 points
+  - 5-10%: -3 points (penalty)
+  - >10%: -5 points (penalty)
+- **HCSTC History** (5 points): Active HCSTC lenders
+  - 0 lenders: 5 points
   - 1 lender: 3.5 points
-  - 2+ lenders: 0 points + -17.5 penalty
+  - 2+ lenders: 0 points + -10 penalty
 
 ### Hard Decline Rules (Automatic Rejection)
 
@@ -258,12 +262,12 @@ Once an application passes the hard decline checks and achieves a score ≥70, t
 
 | Minimum Score | Maximum Amount | Maximum Term | Risk Profile      |
 | ------------- | -------------- | ------------ | ----------------- |
-| **149+**      | £1,500         | 6 months     | Excellent         |
-| **123-148**   | £1,200         | 6 months     | Very Good         |
-| **105-122**   | £800           | 5 months     | Good              |
-| **88-104**    | £500           | 4 months     | Fair              |
-| **70-87**     | £300           | 3 months     | Acceptable        |
-| **<70**       | £0             | 0 months     | Declined/Referred |
+| **75+**       | £1,500         | 6 months     | Excellent         |
+| **65-74**     | £1,200         | 6 months     | Very Good         |
+| **55-64**     | £800           | 5 months     | Good              |
+| **45-54**     | £500           | 4 months     | Fair              |
+| **35-44**     | £300           | 3 months     | Acceptable        |
+| **<35**       | £0             | 0 months     | Declined/Referred |
 
 The final approved amount is the **minimum** of:
 
@@ -490,7 +494,7 @@ This ensures customers can afford the loan even if essential expenses (rent, uti
 
 ```python
 "score_ranges": {
-    "approve": {"min": 70, "max": 175},      # Auto-approve threshold
+    "approve": {"min": 70, "max": 100},      # Auto-approve threshold
     "refer": {"min": 45, "max": 69},         # Manual review range
     "decline": {"min": 0, "max": 44},        # Auto-decline threshold
 }

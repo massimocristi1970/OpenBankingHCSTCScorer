@@ -150,7 +150,7 @@ result = run_open_banking_scoring(
 )
 
 print(result["decision"])  # "APPROVE", "REFER", or "DECLINE"
-print(result["score"])     # Numerical score (0-175)
+print(result["score"])     # Numerical score (0-100)
 print(result["max_approved_amount"])  # Maximum approvable amount
 ```
 
@@ -373,120 +373,121 @@ python -m unittest test_plaid_categorization_preservation
 
 ## Scoring System Documentation
 
-### Overview - 175 Point Scale
+### Overview - 100 Point Scale
 
-The HCSTC scoring system evaluates loan applications on a **175-point scale** (previously 100 points, rescaled by 1.75x). The system balances affordability, income quality, account conduct, and risk indicators to make responsible lending decisions.
+The HCSTC scoring system evaluates loan applications on a **100-point scale**. The system balances income quality, affordability, account conduct, and risk indicators to make responsible lending decisions.
 
 **Decision Thresholds:**
 
-- **APPROVE**: 70-175 points - Auto-approved for requested amount/term
+- **APPROVE**: 70-100 points - Auto-approved for requested amount/term
 - **REFER**: 45-69 points - Manual underwriter review required
 - **DECLINE**: 0-44 points - Automatic rejection
 
-### Score Breakdown (175 Points Maximum)
+### Score Breakdown (100 Points Maximum)
 
-**Component Weights:**
+**Component Weights (Recalibrated based on outcome data):**
 
-- Affordability: 78.75 points (45%)
-- Income Quality: 43.75 points (25%)
-- Account Conduct: 35 points (20%)
-- Risk Indicators: 17.5 points (10%)
+- Income Quality: 35 points (35%) - Strongest predictor of repayment
+- Affordability: 30 points (30%)
+- Account Conduct: 25 points (25%)
+- Risk Indicators: 10 points (10%)
 
-#### 1. Income Quality (43.75 points max)
+#### 1. Income Quality (35 points max) - HIGHEST PREDICTOR
 
-Evaluates the stability and reliability of income sources.
+Evaluates the stability and reliability of income sources. Recalibrated based on outcome data showing income stability has +0.62 effect on repayment.
 
-**Income Stability (0-21 points):**
+**Income Stability (0-20 points):**
 
-- 90%+ stability score: 21 points
-- 75-89% stability: 17.5 points
-- 60-74% stability: 12.25 points
-- 40-59% stability: 7 points
-- < 40% stability: 0 points
-- Stability based on: income type weights, consistency, verification
+- 80%+ stability score: 20 points
+- 70-79% stability: 16 points
+- 60-69% stability: 12 points
+- 50-59% stability: 6 points
+- < 50% stability: 0 points
 
-**Income Regularity (0-14 points):**
+**Income Regularity (0-8 points):**
 
 - Measures consistency of income timing and amounts
-- Calculated from income regularity score (0-100%)
-- Points = (regularity_score / 100) × 14
-- Maximum: 14 points
+- Points = (regularity_score / 100) × 8
+- Maximum: 8 points
 
-**Income Verification (0-8.75 points):**
+**Income Verification (0-5 points):**
 
-- Verifiable income (salary, benefits, pension): 8.75 points
-- Unverifiable income (other sources): 3.5 points
-- Based on income source identification and PLAID categories
+- Verifiable income (salary, benefits, pension): 5 points
+- Unverifiable income (other sources): 2.5 points
 
-#### 2. Affordability (78.75 points max)
+**Credit History Bonus (0-2 points):**
 
-Assesses ability to repay the loan without financial hardship.
+- £200+/month debt payments: 2 points (demonstrates debt management ability)
+- £100-199/month: 1.5 points
+- £50-99/month: 1 point
+- < £50/month: 0 points
 
-**DTI Ratio Score (0-31.5 points):**
+#### 2. Affordability (30 points max)
 
-- < 15% DTI: 31.5 points
-- 15-25% DTI: 26.25 points
-- 25-35% DTI: 21 points
-- 35-45% DTI: 14 points
-- 45-55% DTI: 7 points
-- > 55% DTI: 0 points
+Assesses ability to repay the loan without financial hardship. Weight reduced from 45 based on outcome analysis showing disposable income has near-zero predictive power.
 
-**Disposable Income Score (0-26.25 points):**
-Based on monthly disposable income (after expenses, before loan):
+**DTI Ratio Score (0-12 points):**
 
-- £400+ disposable: 26.25 points
-- £300-400 disposable: 22.75 points
-- £200-300 disposable: 17.5 points
-- £100-200 disposable: 10.5 points
-- £50-100 disposable: 5.25 points
+- ≤30% DTI: 12 points
+- 31-40% DTI: 10 points
+- 41-50% DTI: 8 points
+- 51-60% DTI: 5 points
+- 61-70% DTI: 2 points
+- > 70% DTI: 0 points
+
+**Disposable Income Score (0-8 points):**
+
+- £300+ disposable: 8 points
+- £200-299 disposable: 6 points
+- £100-199 disposable: 4 points
+- £50-99 disposable: 2 points
 - < £50 disposable: 0 points
 
-**Post-Loan Affordability (0-21 points):**
+**Post-Loan Affordability (0-10 points):**
 
-- Calculated as: (post_loan_disposable / 50) × 21
-- Maximum: 21 points (£50+ post-loan disposable)
-- Ensures adequate buffer after loan repayment
+- Calculated as: (post_loan_disposable / 50) × 10
+- Maximum: 10 points (£50+ post-loan disposable)
 
-#### 3. Account Conduct (35 points max)
+#### 3. Account Conduct (25 points max)
 
 Evaluates banking behavior and financial management.
 
-**Failed Payments (0-14 points):**
+**Failed Payments (0-10 points):**
 
-- No failed payments: 14 points
-- Each failed payment: -3.5 points
+- No failed payments: 10 points
+- Each failed payment: -2 points
 - Minimum: 0 points
 
-**Overdraft Usage (0-12.25 points):**
+**Overdraft Usage (0-8 points):**
 
-- No overdraft days: 12.25 points
-- 1-5 days in overdraft: 8.75 points
-- 6-15 days in overdraft: 5.25 points
+- No overdraft days: 8 points
+- 1-5 days in overdraft: 6 points
+- 6-15 days in overdraft: 4 points (declining)
 - 16+ days in overdraft: 0 points
 
-**Balance Management (0-8.75 points):**
+**Balance Management (0-7 points):**
 
-- Average balance ≥ £500: 8.75 points
-- Average balance £200-£500: 5.25 points
-- Average balance £0-£200: 1.75 points
+- Average balance ≥ £500: 7 points
+- Average balance £200-£500: 4.9 points
+- Average balance £0-£200: 2.45 points
 - Average balance < £0: 0 points
 
-#### 4. Risk Indicators (17.5 points max)
+#### 4. Risk Indicators (10 points max)
 
 Evaluates high-risk financial behaviors.
 
-**Gambling Activity (0-8.75 points):**
+**Gambling Activity (0-5 points):**
 
-- 0% gambling: 8.75 points
-- 0-2% gambling: 5.25 points
+- 0% gambling: 5 points
+- 0-2% gambling: 3 points
 - 2-5% gambling: 0 points
-- 5-10% gambling: -5.25 points (penalty)
-- > 10% gambling: -8.75 points (penalty)
+- 5-10% gambling: -3 points (penalty)
+- > 10% gambling: -5 points (penalty)
 - > 15% gambling: Hard decline
 
-**HCSTC History (0-8.75 points):**
+**HCSTC History (0-5 points):**
 
-- No HCSTC lenders: 8.75 points
+- No HCSTC lenders: 5 points
 - 1 HCSTC lender: 3.5 points
 - 2+ HCSTC lenders: 0 points
 - 7+ HCSTC lenders: Hard decline
@@ -632,11 +633,11 @@ DTI Ratio = (Total Debt Payments / Gross Income) × 100 Projected DTI = ((Total 
 
 **Score-Based Loan Limits:**
 
-- Score 149+: Max £1,500 over 6 months
-- Score 123-148: Max £1,200 over 6 months
-- Score 105-122: Max £800 over 5 months
-- Score 88-104: Max £500 over 4 months
-- Score 70-87: Max £300 over 3 months
+- Score 75+: Max £1,500 over 6 months
+- Score 65-74: Max £1,200 over 6 months
+- Score 55-64: Max £800 over 5 months
+- Score 45-54: Max £500 over 4 months
+- Score 35-44: Max £300 over 3 months
 
 **Example Calculations:**
 
@@ -711,12 +712,12 @@ Average Balance: £600
 No overdraft usage
 
 Scoring:
-- Affordability: 70 points (31.5 DTI + 26.25 disposable + 12 post-loan)
-- Income Quality: 40 points (21 stability + 12 regularity + 8.75 verification)
-- Account Conduct: 35 points (14 no failed + 12.25 no overdraft + 8.75 balance)
-- Risk Indicators: 17.5 points (8.75 no gambling + 8.75 no HCSTC)
+- Income Quality: 33 points (20 stability + 6 regularity + 5 verification + 2 credit bonus)
+- Affordability: 26 points (10 DTI + 8 disposable + 8 post-loan)
+- Account Conduct: 25 points (10 no failed + 8 no overdraft + 7 balance)
+- Risk Indicators: 10 points (5 no gambling + 5 no HCSTC)
 
-Total Score: 162.5 points
+Total Score: 94 points
 Decision: APPROVE
 Max Approved: £1,500 over 6 months
 Post-Loan Disposable: £617/month
@@ -733,13 +734,13 @@ Failed Payments: 2 in last 90 days
 Average Balance: £150
 
 Scoring:
-- Affordability: 50 points (21 DTI + 22.75 disposable + 6 post-loan)
-- Income Quality: 32 points (17.5 stability + 10 regularity + 8.75 verification)
-- Account Conduct: 21 points (7 failed penalty + 12.25 no overdraft + 1.75 balance)
-- Risk Indicators: 12.25 points (8.75 no gambling + 3.5 one HCSTC)
+- Income Quality: 27 points (16 stability + 6 regularity + 5 verification)
+- Affordability: 16 points (8 DTI + 4 disposable + 4 post-loan)
+- Account Conduct: 14 points (6 failed penalty + 6 no overdraft + 2 balance)
+- Risk Indicators: 8.5 points (5 no gambling + 3.5 one HCSTC)
 
-Total Score: 115.25 points → REFER due to failed payments
-Decision: REFER (manual review for failed payments and bank charges)
+Total Score: 65.5 points
+Decision: REFER (manual review for failed payments)
 Recommendation: Review banking behavior, consider lower amount (£300)
 ```
 
@@ -759,12 +760,12 @@ Hard Decline Triggers:
 ✗ 3 HCSTC lenders (borderline - threshold: 6)
 
 Scoring (for reference only):
-- Affordability: 12 points (low DTI score, minimal disposable)
-- Income Quality: 15 points (low stability, no verification)
-- Account Conduct: 0 points (14-point penalty for failed payments)
-- Risk Indicators: -3.5 points (0 HCSTC + negative gambling penalty)
+- Income Quality: 10 points (low stability, no verification)
+- Affordability: 8 points (low DTI score, minimal disposable)
+- Account Conduct: 2 points (8-point penalty for failed payments)
+- Risk Indicators: -3 points (0 HCSTC + negative gambling penalty)
 
-Total Score: 23.5 points
+Total Score: 17 points
 Decision: DECLINE (hard decline for income < £1,000)
 Reasons: Insufficient income, multiple failed payments, high HCSTC exposure
 ```
