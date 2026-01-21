@@ -820,13 +820,6 @@ class MetricsCalculator:
             mtd_transactions=mtd_transactions,
         )
 
-        expense_metrics = self.calculate_expense_metrics(
-            filtered_category_summary_expense,
-            expense_transactions,
-            mtd_category_summary=mtd_category_summary,
-            mtd_transactions=mtd_transactions,
-        )
-
         # Calculate debt metrics using the same filtered period as expenses
         # This ensures consistent time basis for affordability calculations
         # (Monthly debt must be calculated over the same period as monthly expenses)
