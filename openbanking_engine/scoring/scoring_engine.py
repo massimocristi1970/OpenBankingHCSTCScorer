@@ -447,47 +447,23 @@ class ScoringEngine:
         risk: RiskMetrics,
         debt: DebtMetrics,
     ) -> ScoreBreakdown:
-        """Calculate detailed score breakdown."""
+        """
+        Calculate detailed score breakdown.
+        
+        RECALIBRATED based on outcome data analysis - see EFFECTIVENESS_IMPROVEMENTS.md
+        Key changes:
+        - Income stability weight increased (strongest predictor +0.62 effect)
+        - Disposable income weight decreased (near-zero predictive power)
+        - Credit history bonus added (managed debt = positive signal)
+        """
         breakdown = ScoreBreakdown()
         penalties = []
 
-        # TO: "# 1. Affordability Score (45 points)"
-        aff_weights = self.weights["affordability"]
-
-        # DTI Ratio (18 points)
-        dti_points = self._score_threshold(
-            affordability.debt_to_income_ratio,
-            self.thresholds["dti_ratio"],
-            is_lower_better=True,
-        )
-
-        # Disposable Income (15 points)
-        disp_points = self._score_threshold(
-            affordability.monthly_disposable,
-            self.thresholds["disposable_income"],
-            is_lower_better=False,
-        )
-
-        # Post-loan Affordability (12 points)
-        if affordability.post_loan_disposable is not None:
-            post_loan_points = min(
-                12, max(0, affordability.post_loan_disposable / 50 * 12)
-            )
-        else:
-            post_loan_points = 0
-
-        affordability_score = dti_points + disp_points + post_loan_points
-        breakdown.affordability_score = min(affordability_score, aff_weights["total"])
-        breakdown.affordability_breakdown = {
-            "dti_ratio": round(dti_points, 1),
-            "disposable_income": round(disp_points, 1),
-            "post_loan_affordability": round(post_loan_points, 1),
-        }
-
-        # 2. Income Quality Score (25 points)
+        # 1. Income Quality Score (35 points) - INCREASED from 25
+        # Income stability is the strongest predictor of repayment (+0.62 effect)
         inc_weights = self.weights["income_quality"]
 
-        # Income Stability (12 points)
+        # Income Stability (20 points) - INCREASED from 12
         stability_points = self._score_threshold(
             income.income_stability_score,
             self.thresholds["income_stability"],
@@ -503,44 +479,92 @@ class ScoringEngine:
         # Income Verification (5 points)
         verification_points = 5 if income.has_verifiable_income else 2.5
 
-        income_score = stability_points + regularity_points + verification_points
+        # Credit History Bonus (2 points) - NEW
+        # Rewards customers who demonstrate ability to manage existing debt
+        # Data shows monthly_debt_payments has +0.58 effect on good outcomes
+        credit_history_points = self._score_threshold(
+            debt.monthly_debt_payments,
+            self.thresholds.get("credit_history_bonus", [{"min": 0, "points": 0}]),
+            is_lower_better=False,
+        )
+
+        income_score = stability_points + regularity_points + verification_points + credit_history_points
         breakdown.income_quality_score = min(income_score, inc_weights["total"])
         breakdown.income_breakdown = {
             "income_stability": round(stability_points, 1),
             "income_regularity": round(regularity_points, 1),
             "income_verification": round(verification_points, 1),
+            "credit_history_bonus": round(credit_history_points, 1),
         }
 
-        # 3. Account Conduct Score (20 points)
+        # 2. Affordability Score (30 points) - DECREASED from 45
+        # Disposable income has near-zero predictive power in outcome data
+        aff_weights = self.weights["affordability"]
+
+        # DTI Ratio (12 points) - DECREASED from 18
+        dti_points = self._score_threshold(
+            affordability.debt_to_income_ratio,
+            self.thresholds["dti_ratio"],
+            is_lower_better=True,
+        )
+
+        # Disposable Income (8 points) - DECREASED from 15
+        disp_points = self._score_threshold(
+            affordability.monthly_disposable,
+            self.thresholds["disposable_income"],
+            is_lower_better=False,
+        )
+
+        # Post-loan Affordability (10 points) - DECREASED from 12
+        post_loan_max = aff_weights.get("post_loan_affordability", 10)
+        if affordability.post_loan_disposable is not None:
+            post_loan_points = min(
+                post_loan_max, max(0, affordability.post_loan_disposable / 50 * post_loan_max)
+            )
+        else:
+            post_loan_points = 0
+
+        affordability_score = dti_points + disp_points + post_loan_points
+        breakdown.affordability_score = min(affordability_score, aff_weights["total"])
+        breakdown.affordability_breakdown = {
+            "dti_ratio": round(dti_points, 1),
+            "disposable_income": round(disp_points, 1),
+            "post_loan_affordability": round(post_loan_points, 1),
+        }
+
+        # 3. Account Conduct Score (25 points) - INCREASED from 20
         conduct_weights = self.weights["account_conduct"]
 
-        # Failed Payments (8 points)
+        # Failed Payments (10 points) - INCREASED from 8
+        failed_max = conduct_weights.get("failed_payments", 10)
         if risk.failed_payments_count is not None:
-            failed_points = max(0, 8 - risk.failed_payments_count * 1.5)
+            failed_points = max(0, failed_max - risk.failed_payments_count * 2)
         else:
             failed_points = 0
 
-        # Overdraft Usage (7 points)
+        # Overdraft Usage (8 points) - INCREASED from 7
+        overdraft_max = conduct_weights.get("overdraft_usage", 8)
         if balance.days_in_overdraft is not None:
             if balance.days_in_overdraft == 0:
-                overdraft_points = 7
+                overdraft_points = overdraft_max
             elif balance.days_in_overdraft <= 5:
-                overdraft_points = 5
+                overdraft_points = overdraft_max * 0.75
             elif balance.days_in_overdraft <= 15:
-                overdraft_points = 5 - ((balance.days_in_overdraft - 5) * 0.5)
+                overdraft_points = overdraft_max * 0.5 - ((balance.days_in_overdraft - 5) * 0.3)
             else:
                 overdraft_points = 0
         else:
             overdraft_points = 0
 
-        # Balance Management (5 points)
+        # Balance Management (7 points) - INCREASED from 5
+        balance_max = conduct_weights.get("balance_management", 7)
         if balance.average_balance is not None:
             if balance.average_balance >= 500:
-                balance_points = 5
+                balance_points = balance_max
             elif balance.average_balance >= 200:
-                balance_points = 3.5
+                balance_points = balance_max * 0.7
             elif balance.average_balance >= 0:
-                balance_points = 1.75
+                balance_points = balance_max * 0.35
             else:
                 balance_points = 0
         else:
@@ -554,7 +578,7 @@ class ScoringEngine:
             "balance_management": round(balance_points, 1),
         }
 
-        # 4. Risk Indicators Score (10 points)
+        # 4. Risk Indicators Score (10 points) - unchanged
         risk_weights = self.weights["risk_indicators"]
 
         # Gambling Activity (5 points)
@@ -583,7 +607,7 @@ class ScoringEngine:
             "hcstc_history": round(hcstc_points, 1),
         }
 
-        # Apply penalties (scaled by 1.75x)
+        # Apply penalties
         if risk.gambling_percentage is not None and risk.gambling_percentage > 5:
             penalty = -5
             penalties.append(f"Gambling penalty: {penalty}")

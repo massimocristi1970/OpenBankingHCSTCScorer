@@ -14,65 +14,79 @@ SCORING_CONFIG = {
 },
 
     # Scoring weights (total = 100)
+    # RECALIBRATED based on outcome data analysis - see EFFECTIVENESS_IMPROVEMENTS.md
     "weights": {
-        "affordability": {
-            "total": 45,  
-            "dti_ratio": 18,  
-            "disposable_income": 15,  
-            "post_loan_affordability": 12,  
-        },
         "income_quality": {
-            "total": 25,  
-            "income_stability": 12,  
-            "income_regularity": 8,    
-            "income_verification": 5,  
+            "total": 35,  # INCREASED from 25 - income stability is strongest predictor
+            "income_stability": 20,  # INCREASED from 12 - highest outcome correlation (+0.62)
+            "income_regularity": 8,
+            "income_verification": 5,
+            "credit_history_bonus": 2,  # NEW - reward for managed existing debt
+        },
+        "affordability": {
+            "total": 30,  # DECREASED from 45 - disposable income has low predictive power
+            "dti_ratio": 12,  # DECREASED from 18
+            "disposable_income": 8,  # DECREASED from 15 - near-zero outcome correlation
+            "post_loan_affordability": 10,  # DECREASED from 12
         },
         "account_conduct": {
-            "total": 20,  
-            "failed_payments": 8,  
-            "overdraft_usage": 7,  
-            "balance_management": 5,  
+            "total": 25,  # INCREASED from 20
+            "failed_payments": 10,  # INCREASED from 8
+            "overdraft_usage": 8,  # INCREASED from 7
+            "balance_management": 7,  # INCREASED from 5
         },
         "risk_indicators": {
-            "total": 10,  
-            "gambling_activity": 5,  
-            "hcstc_history": 5,  
+            "total": 10,
+            "gambling_activity": 5,
+            "hcstc_history": 5,
         },
     },
     
-    # Thresholds for scoring 
+    # Thresholds for scoring
+    # RECALIBRATED based on outcome data analysis - see EFFECTIVENESS_IMPROVEMENTS.md
     "thresholds": {
         "dti_ratio": [
-            {"max": 30, "points": 18},
-            {"max": 40, "points": 15},
-            {"max": 50, "points": 12},
-            {"max": 60, "points": 8},
-            {"max": 70, "points": 4},
+            {"max": 30, "points": 12},  # Reduced from 18 - max now 12
+            {"max": 40, "points": 10},
+            {"max": 50, "points": 8},
+            {"max": 60, "points": 5},
+            {"max": 70, "points": 2},
             {"max": 100, "points": 0},
         ],
 
         "disposable_income": [
-            {"min": 200, "points": 15},  
-            {"min": 150, "points": 13},  
-            {"min": 100, "points": 10},  # Previously 10
-            {"min": 50, "points": 6},  # Previously 6
-            {"min": 25, "points": 3},  # Previously 3
-            {"min": 0, "points": 0},
-        ],
-        "income_stability": [
-            {"min": 90, "points": 12},
-            {"min": 78, "points": 10},
-            {"min": 66, "points": 7},
-            {"min": 50, "points": 4},
+            {"min": 300, "points": 8},  # Reduced from 15 - max now 8 (low predictor)
+            {"min": 200, "points": 6},
+            {"min": 100, "points": 4},
+            {"min": 50, "points": 2},
             {"min": 0, "points": 0},
         ],
 
+        "income_stability": [
+            # INCREASED points - strongest predictor (+0.62 effect)
+            # Thresholds aligned with outcome medians (never paid: 58.65, fully repaid: 71.70)
+            {"min": 80, "points": 20},  # Excellent stability (max increased from 12 to 20)
+            {"min": 70, "points": 16},  # Good (above median for fully repaid)
+            {"min": 60, "points": 12},  # Average (between outcome medians)
+            {"min": 50, "points": 6},   # Below average
+            {"min": 0, "points": 0},    # Poor
+        ],
+
         "gambling_percentage": [
-            {"max": 0, "points": 5},  # Previously 5
-            {"max": 2, "points": 3},  # Previously 3
+            {"max": 0, "points": 5},
+            {"max": 2, "points": 3},
             {"max": 5, "points": 0},
-            {"max": 10, "points": -3},  # Previously -3
-            {"max": 100, "points": -5},  # Previously -5
+            {"max": 10, "points": -3},
+            {"max": 100, "points": -5},
+        ],
+
+        # NEW: Credit history bonus thresholds
+        # Rewards customers who demonstrate ability to manage existing debt
+        "credit_history_bonus": [
+            {"min": 200, "points": 2},   # Manages substantial monthly debt payments
+            {"min": 100, "points": 1.5}, # Manages moderate debt
+            {"min": 50, "points": 1},    # Some credit history
+            {"min": 0, "points": 0},     # Thin file - unknown risk
         ],
     },
     
@@ -111,10 +125,10 @@ SCORING_CONFIG = {
             "description": "Maximum failed payments in lookback period"
         },
         "new_credit_burst": {
-            "threshold": 3,  # More than 3 new credit providers
-            "lookback_days": 90,  # Lookback window in days
-            "action": "REFER",  # Case-by-case review due to recent credit activity
-            "description": "Multiple new credit providers within recent lookback period"
+            "threshold": 10,  # RAISED from 3 - data shows more credit providers = better outcomes
+            "lookback_days": 90,
+            "action": "REFER",  # Only extreme cases (10+) need review
+            "description": "Excessive new credit providers within recent lookback period"
         },
         "max_dca_count": {
             "threshold":  4,  # 4+ triggers action
