@@ -112,8 +112,7 @@ def main():
         st.markdown("""
         - **>70**: APPROVE ✅
         - **45-69**: REFER 📋
-        - **<45**: DECLINE ❌3652+6
-        4+8967+56841
+        - **<45**: DECLINE ❌
         """)
     
     # Main content area
