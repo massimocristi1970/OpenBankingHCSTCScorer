@@ -7,11 +7,13 @@ Contains scoring weights, thresholds, and decision rules.
 # Maximum possible score is 100
 SCORING_CONFIG = {
     # Score ranges and decisions
+    # RECALIBRATED: Lowered approval threshold from 70 to 60 based on backtest
+    # At threshold 60: 64.8% approval, 4.17% default rate, 87.1% full repayment
     "score_ranges": {
-    "approve": {"min": 70, "max": 100, "decision": "APPROVE"},
-    "refer": {"min": 45, "max": 69, "decision": "REFER"},
-    "decline": {"min": 0, "max": 44, "decision": "DECLINE"},
-},
+        "approve": {"min": 60, "max": 100, "decision": "APPROVE"},
+        "refer": {"min": 40, "max": 59, "decision": "REFER"},
+        "decline": {"min": 0, "max": 39, "decision": "DECLINE"},
+    },
 
     # Scoring weights (total = 100)
     # RECALIBRATED based on outcome data analysis - see EFFECTIVENESS_IMPROVEMENTS.md

@@ -127,27 +127,24 @@ def calculate_score_from_metrics(row: pd.Series) -> Tuple[float, str, Dict]:
     failed_points = max(0, 10 - failed * 2)
     
     # Overdraft Usage (8 points max)
+    # NOTE: Reduced penalty - overdraft not predictive in CRA-approved populations
     overdraft_days = row.get('days_in_overdraft', 0) or 0
     if overdraft_days == 0:
         overdraft_points = 8
-    elif overdraft_days <= 5:
-        overdraft_points = 6
-    elif overdraft_days <= 15:
-        overdraft_points = 4 - (overdraft_days - 5) * 0.3
+    elif overdraft_days <= 30:
+        overdraft_points = 6  # Gentle decline
+    elif overdraft_days <= 60:
+        overdraft_points = 4
     else:
-        overdraft_points = 0
-    overdraft_points = max(0, overdraft_points)
+        overdraft_points = 2  # Only penalize extreme overdraft
     
     # Balance Management (7 points max)
-    avg_balance = row.get('average_balance', 0) or 0
-    if avg_balance >= 500:
-        balance_points = 7
-    elif avg_balance >= 200:
-        balance_points = 4.9
-    elif avg_balance >= 0:
-        balance_points = 2.45
+    # NOTE: Flat points - balance not predictive in CRA-approved populations
+    avg_balance = row.get('average_balance', 0)
+    if avg_balance is not None:
+        balance_points = 3.5  # Flat points - balance not predictive
     else:
-        balance_points = 0
+        balance_points = 2.45
     
     conduct_score = min(25, failed_points + overdraft_points + balance_points)
     breakdown['account_conduct'] = {
@@ -206,10 +203,10 @@ def calculate_score_from_metrics(row: pd.Series) -> Tuple[float, str, Dict]:
     # Total Score
     total_score = max(0, min(100, income_score + affordability_score + conduct_score + risk_score))
     
-    # Determine decision
-    if total_score >= 70:
+    # Determine decision (using recalibrated thresholds)
+    if total_score >= 60:  # LOWERED from 70 based on backtest analysis
         decision = "APPROVE"
-    elif total_score >= 45:
+    elif total_score >= 40:  # LOWERED from 45
         decision = "REFER"
     else:
         decision = "DECLINE"

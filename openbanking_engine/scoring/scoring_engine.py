@@ -547,32 +547,33 @@ class ScoringEngine:
             failed_points = 0
 
         # Overdraft Usage (8 points) - INCREASED from 7
+        # Overdraft Usage (8 points)
+        # NOTE: Data analysis shows overdraft days are NOT predictive in CRA-approved populations
+        # (good payers actually had MORE overdraft days). Reduced penalty gradient.
         overdraft_max = conduct_weights.get("overdraft_usage", 8)
         if balance.days_in_overdraft is not None:
             if balance.days_in_overdraft == 0:
                 overdraft_points = overdraft_max
-            elif balance.days_in_overdraft <= 5:
+            elif balance.days_in_overdraft <= 30:
+                # Gentle decline - overdraft usage not penalized heavily
                 overdraft_points = overdraft_max * 0.75
-            elif balance.days_in_overdraft <= 15:
-                overdraft_points = overdraft_max * 0.5 - ((balance.days_in_overdraft - 5) * 0.3)
+            elif balance.days_in_overdraft <= 60:
+                overdraft_points = overdraft_max * 0.5
             else:
-                overdraft_points = 0
+                # Only penalize extreme overdraft (60+ days)
+                overdraft_points = overdraft_max * 0.25
         else:
-            overdraft_points = 0
+            overdraft_points = overdraft_max * 0.5  # Unknown = moderate points
 
-        # Balance Management (7 points) - INCREASED from 5
+        # Balance Management (7 points)
+        # NOTE: Data analysis shows balance is NOT predictive in CRA-approved populations
+        # (defaulters actually had HIGHER balances). Giving flat points to neutralize.
         balance_max = conduct_weights.get("balance_management", 7)
         if balance.average_balance is not None:
-            if balance.average_balance >= 500:
-                balance_points = balance_max
-            elif balance.average_balance >= 200:
-                balance_points = balance_max * 0.7
-            elif balance.average_balance >= 0:
-                balance_points = balance_max * 0.35
-            else:
-                balance_points = 0
+            # Give moderate points regardless of balance level - not a strong predictor
+            balance_points = balance_max * 0.5  # Flat 3.5 points
         else:
-            balance_points = 0
+            balance_points = balance_max * 0.35  # Small penalty for missing data
 
         conduct_score = failed_points + overdraft_points + balance_points
         breakdown.account_conduct_score = min(conduct_score, conduct_weights["total"])
