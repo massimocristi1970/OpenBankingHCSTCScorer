@@ -195,10 +195,18 @@ def main(json_glob: str, outcomes_csv: str, out_csv: str, months_of_data: int = 
                 "savings_activity": _safe_float(getattr(risk, "savings_activity", None)),
                 # Savings behavior score (used in recalibrated scoring)
                 "savings_behavior_score": _safe_float(getattr(risk, "savings_behavior_score", None)),
-                # Risk flags
+                # Original risk flags
                 "has_gambling_concern": int(bool(getattr(risk, "has_gambling_concern", False))),
                 "has_failed_payment_concern": int(bool(getattr(risk, "has_failed_payment_concern", False))),
                 "has_new_credit_burst": int(bool(getattr(risk, "has_new_credit_burst", False))),
+                
+                # Combined risk signals (for tiered approval system)
+                "flag_low_income_stability": int(bool(getattr(risk, "flag_low_income_stability", False))),
+                "flag_low_debt_management": int(bool(getattr(risk, "flag_low_debt_management", False))),
+                "flag_low_credit_activity": int(bool(getattr(risk, "flag_low_credit_activity", False))),
+                "flag_no_savings": int(bool(getattr(risk, "flag_no_savings", False))),
+                "risk_flag_count": int(getattr(risk, "risk_flag_count", 0) or 0),
+                "risk_tier": getattr(risk, "risk_tier", "CLEAN"),
 
                 # Affordability metrics
                 "debt_to_income_ratio": _safe_float(getattr(affordability, "debt_to_income_ratio", None)),

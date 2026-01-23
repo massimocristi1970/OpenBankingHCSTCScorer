@@ -25,6 +25,45 @@ import sys
 OUTCOME_LABELS = {0: "Never paid", 1: "Partially repaid", 2: "Fully repaid"}
 
 
+def calculate_risk_flags(row: pd.Series) -> Tuple[int, str, Dict]:
+    """
+    Calculate combined risk flags for tiered approval system.
+    
+    Returns:
+        Tuple of (flag_count, risk_tier, flags_dict)
+    """
+    flags = {}
+    
+    # Flag 1: Low income stability
+    stability = row.get('income_stability_score', 50) or 50
+    flags['low_income_stability'] = stability < 50
+    
+    # Flag 2: Low debt management
+    debt_payments = row.get('monthly_debt_payments', 200) or 200
+    flags['low_debt_management'] = debt_payments < 200
+    
+    # Flag 3: Low credit activity
+    credit_providers = row.get('new_credit_providers_90d', 10) or 10
+    flags['low_credit_activity'] = credit_providers < 10
+    
+    # Flag 4: No savings
+    savings = row.get('savings_activity', 5) or 5
+    flags['no_savings'] = savings < 5
+    
+    # Count flags
+    flag_count = sum(flags.values())
+    
+    # Determine tier
+    if flag_count >= 3:
+        risk_tier = "FLAG"
+    elif flag_count == 2:
+        risk_tier = "WATCH"
+    else:
+        risk_tier = "CLEAN"
+    
+    return flag_count, risk_tier, flags
+
+
 def calculate_score_from_metrics(row: pd.Series) -> Tuple[float, str, Dict]:
     """
     Calculate score using the NEW recalibrated weights.
@@ -33,6 +72,14 @@ def calculate_score_from_metrics(row: pd.Series) -> Tuple[float, str, Dict]:
         Tuple of (score, decision, breakdown)
     """
     breakdown = {}
+    
+    # Calculate risk flags first
+    flag_count, risk_tier, flags = calculate_risk_flags(row)
+    breakdown['risk_flags'] = {
+        'flag_count': flag_count,
+        'risk_tier': risk_tier,
+        'flags': flags
+    }
     
     # 1. Income Quality Score (35 points max)
     # Income Stability (20 points max) - using recalibrated thresholds
@@ -351,7 +398,7 @@ def run_backtest(df: pd.DataFrame) -> Dict:
         Dictionary with comparison metrics
     """
     results = {
-        'new_model': {'scores': [], 'decisions': []},
+        'new_model': {'scores': [], 'decisions': [], 'risk_tiers': [], 'flag_counts': []},
         'old_model': {'scores': [], 'decisions': []},
         'outcomes': []
     }
@@ -359,12 +406,19 @@ def run_backtest(df: pd.DataFrame) -> Dict:
     print("Running backtest on {} applications...".format(len(df)))
     
     for idx, row in df.iterrows():
-        new_score, new_decision, _ = calculate_score_from_metrics(row)
+        new_score, new_decision, breakdown = calculate_score_from_metrics(row)
         old_score, old_decision = calculate_old_score_from_metrics(row)
         outcome = row.get('outcome', 2)
         
+        # Extract risk tier info from breakdown
+        risk_info = breakdown.get('risk_flags', {})
+        risk_tier = risk_info.get('risk_tier', 'CLEAN')
+        flag_count = risk_info.get('flag_count', 0)
+        
         results['new_model']['scores'].append(new_score)
         results['new_model']['decisions'].append(new_decision)
+        results['new_model']['risk_tiers'].append(risk_tier)
+        results['new_model']['flag_counts'].append(flag_count)
         results['old_model']['scores'].append(old_score)
         results['old_model']['decisions'].append(old_decision)
         results['outcomes'].append(outcome)
@@ -378,6 +432,8 @@ def analyze_results(results: Dict) -> None:
     df = pd.DataFrame({
         'new_score': results['new_model']['scores'],
         'new_decision': results['new_model']['decisions'],
+        'risk_tier': results['new_model']['risk_tiers'],
+        'flag_count': results['new_model']['flag_counts'],
         'old_score': results['old_model']['scores'],
         'old_decision': results['old_model']['decisions'],
         'outcome': results['outcomes'],
@@ -490,7 +546,44 @@ def analyze_results(results: Dict) -> None:
             print(f"  NEW: Mean={subset['new_score'].mean():.1f}, Median={subset['new_score'].median():.1f}")
             print(f"  OLD: Mean={subset['old_score'].mean():.1f}, Median={subset['old_score'].median():.1f}")
     
-    # 8. Summary
+    # 8. TIERED APPROVAL ANALYSIS (NEW)
+    print("\n" + "="*70)
+    print("8. TIERED APPROVAL ANALYSIS")
+    print("="*70)
+    
+    print("\nRisk Tier Distribution:")
+    print(f"{'Tier':<10} {'Total':>8} {'Defaults':>10} {'Default%':>10} {'FullRepay%':>12}")
+    print("-"*55)
+    
+    for tier in ['CLEAN', 'WATCH', 'FLAG']:
+        tier_df = df[df['risk_tier'] == tier]
+        if len(tier_df) > 0:
+            defaults = len(tier_df[tier_df['outcome'] == 0])
+            full_repay = len(tier_df[tier_df['outcome'] == 2])
+            default_rate = defaults / len(tier_df) * 100
+            full_rate = full_repay / len(tier_df) * 100
+            print(f"{tier:<10} {len(tier_df):>8} {defaults:>10} {default_rate:>9.1f}% {full_rate:>11.1f}%")
+    
+    # Tier effectiveness for approved applications
+    print("\nTier Analysis for APPROVED Applications:")
+    approved = df[df['new_decision'] == 'APPROVE']
+    if len(approved) > 0:
+        print(f"{'Tier':<10} {'Approved':>10} {'Defaults':>10} {'Default%':>10} {'Action':>20}")
+        print("-"*65)
+        
+        for tier in ['CLEAN', 'WATCH', 'FLAG']:
+            tier_approved = approved[approved['risk_tier'] == tier]
+            if len(tier_approved) > 0:
+                defaults = len(tier_approved[tier_approved['outcome'] == 0])
+                default_rate = defaults / len(tier_approved) * 100
+                action = {
+                    'CLEAN': 'Standard terms',
+                    'WATCH': 'Monitor closely',
+                    'FLAG': 'Reduced amount/term'
+                }.get(tier, '')
+                print(f"{tier:<10} {len(tier_approved):>10} {defaults:>10} {default_rate:>9.1f}% {action:>20}")
+    
+    # 9. Summary
     print("\n" + "="*70)
     print("SUMMARY")
     print("="*70)
@@ -505,11 +598,22 @@ def analyze_results(results: Dict) -> None:
     new_approval_rate = len(new_approved) / len(df) * 100
     old_approval_rate = len(old_approved) / len(df) * 100
     
+    # Calculate tier breakdown
+    flag_approved = len(approved[approved['risk_tier'] == 'FLAG']) if len(approved) > 0 else 0
+    watch_approved = len(approved[approved['risk_tier'] == 'WATCH']) if len(approved) > 0 else 0
+    clean_approved = len(approved[approved['risk_tier'] == 'CLEAN']) if len(approved) > 0 else 0
+    
     print(f"""
     Metric                    NEW MODEL    OLD MODEL    CHANGE
     ----------------------------------------------------------------
     Approval Rate             {new_approval_rate:6.1f}%      {old_approval_rate:6.1f}%      {new_approval_rate - old_approval_rate:+5.1f}%
     Default Rate (Approved)   {new_default_rate:6.2f}%      {old_default_rate:6.2f}%      {new_default_rate - old_default_rate:+5.2f}%
+    
+    TIERED APPROVAL BREAKDOWN (NEW MODEL):
+    ----------------------------------------------------------------
+    CLEAN tier approvals:     {clean_approved:6d} ({clean_approved/len(approved)*100 if len(approved) > 0 else 0:5.1f}%)  - Standard terms
+    WATCH tier approvals:     {watch_approved:6d} ({watch_approved/len(approved)*100 if len(approved) > 0 else 0:5.1f}%)  - Monitor closely  
+    FLAG tier approvals:      {flag_approved:6d} ({flag_approved/len(approved)*100 if len(approved) > 0 else 0:5.1f}%)  - Reduced amount/term
     """)
     
     if new_default_rate < old_default_rate:
