@@ -162,32 +162,41 @@ def main(json_glob: str, outcomes_csv: str, out_csv: str, months_of_data: int = 
                 "application_id": app_id,
                 "outcome": outcome_map[app_id],
 
+                # Income metrics
                 "monthly_income": _safe_float(getattr(income, "monthly_income", None)),
                 "effective_monthly_income": _safe_float(getattr(income, "effective_monthly_income", None)),
                 "income_stability_score": _safe_float(getattr(income, "income_stability_score", None)),
                 "income_regularity_score": _safe_float(getattr(income, "income_regularity_score", None)),
                 "has_verifiable_income": int(bool(getattr(income, "has_verifiable_income", False))),
                 "income_sources_count": len(getattr(income, "income_sources", []) or []),
+                # NEW: Income trend metrics (added for recalibrated scoring)
+                "income_trend": getattr(income, "income_trend", "stable"),
+                "income_trend_pct": _safe_float(getattr(income, "income_trend_pct", None)),
 
+                # Balance metrics
                 "average_balance": _safe_float(getattr(balance, "average_balance", None)),
                 "minimum_balance": _safe_float(getattr(balance, "minimum_balance", None)),
                 "days_in_overdraft": _safe_float(getattr(balance, "days_in_overdraft", None)),
                 "overdraft_frequency": _safe_float(getattr(balance, "overdraft_frequency", None)),
 
+                # Risk metrics
                 "failed_payments_count": _safe_float(getattr(risk, "failed_payments_count", None)),
                 "failed_payments_count_45d": _safe_float(getattr(risk, "failed_payments_count_45d", None)),
                 "bank_charges_count_90d": _safe_float(getattr(risk, "bank_charges_count_90d", None)),
                 "gambling_percentage": _safe_float(getattr(risk, "gambling_percentage", None)),
-
                 "debt_collection_activity": _safe_float(getattr(risk, "debt_collection_activity", None)),
                 "new_credit_providers_90d": _safe_float(getattr(risk, "new_credit_providers_90d", None)),
                 "savings_activity": _safe_float(getattr(risk, "savings_activity", None)),
+                # NEW: Savings behavior score (added for recalibrated scoring)
+                "savings_behavior_score": _safe_float(getattr(risk, "savings_behavior_score", None)),
 
+                # Affordability metrics
                 "monthly_disposable": _safe_float(getattr(affordability, "monthly_disposable", None)),
                 "post_loan_disposable": _safe_float(getattr(affordability, "post_loan_disposable", None)),
                 "disposable_ratio": _safe_float(getattr(affordability, "disposable_ratio", None)),
                 "max_affordable_amount": _safe_float(getattr(affordability, "max_affordable_amount", None)),
 
+                # Expense/Debt metrics
                 "monthly_essential_total": _safe_float(getattr(expenses, "monthly_essential_total", None)),
                 "monthly_debt_payments": _safe_float(getattr(debt, "monthly_debt_payments", None)),
             })
