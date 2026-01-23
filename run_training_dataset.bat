@@ -35,14 +35,36 @@ set "OUTCOMES=outcomes.csv"
 set "OUTPUT=training_dataset.csv"
 set "MONTHS=6"
 
+echo.
+echo Step 1: Building training dataset from JSON files...
+echo Source: %JSON_ROOT%
+echo.
+
 python build_training_dataset.py ^
   "%JSON_GLOB%" ^
   "%OUTCOMES%" ^
   "%OUTPUT%" ^
   %MONTHS%
 
+if %ERRORLEVEL% NEQ 0 (
+  echo.
+  echo ERROR: Training dataset build failed!
+  pause
+  exit /b 1
+)
+
 echo.
 echo ============================================
-echo Finished. Press any key to close.
+echo Step 2: Running Backtest Analysis
+echo ============================================
+echo.
+
+python backtest_scoring.py "%OUTPUT%"
+
+echo.
+echo ============================================
+echo Complete! 
+echo   - Training dataset: %OUTPUT%
+echo   - Backtest results shown above
 echo ============================================
 pause

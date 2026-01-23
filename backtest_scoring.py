@@ -181,10 +181,25 @@ def calculate_score_from_metrics(row: pd.Series) -> Tuple[float, str, Dict]:
     else:
         hcstc_points = 0
     
-    risk_score = gambling_points + hcstc_points
+    # NEW: Savings Behavior Bonus (up to 3 points)
+    savings_score = row.get('savings_behavior_score', 0) or 0
+    savings_bonus = min(3, savings_score)  # Already calculated in metrics
+    
+    # NEW: Income Trend Adjustment
+    income_trend = row.get('income_trend', 'stable')
+    if income_trend == 'increasing':
+        trend_bonus = 2.0
+    elif income_trend == 'decreasing':
+        trend_bonus = -2.0
+    else:
+        trend_bonus = 0.0
+    
+    risk_score = gambling_points + hcstc_points + savings_bonus + trend_bonus
     breakdown['risk_indicators'] = {
         'gambling': gambling_points,
         'hcstc': hcstc_points,
+        'savings_bonus': savings_bonus,
+        'income_trend': trend_bonus,
         'total': risk_score
     }
     
