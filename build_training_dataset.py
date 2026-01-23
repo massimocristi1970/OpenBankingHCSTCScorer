@@ -165,40 +165,58 @@ def main(json_glob: str, outcomes_csv: str, out_csv: str, months_of_data: int = 
                 # Income metrics
                 "monthly_income": _safe_float(getattr(income, "monthly_income", None)),
                 "effective_monthly_income": _safe_float(getattr(income, "effective_monthly_income", None)),
+                "monthly_stable_income": _safe_float(getattr(income, "monthly_stable_income", None)),
+                "monthly_gig_income": _safe_float(getattr(income, "monthly_gig_income", None)),
                 "income_stability_score": _safe_float(getattr(income, "income_stability_score", None)),
                 "income_regularity_score": _safe_float(getattr(income, "income_regularity_score", None)),
                 "has_verifiable_income": int(bool(getattr(income, "has_verifiable_income", False))),
                 "income_sources_count": len(getattr(income, "income_sources", []) or []),
-                # NEW: Income trend metrics (added for recalibrated scoring)
+                # Income trend metrics (used in recalibrated scoring)
                 "income_trend": getattr(income, "income_trend", "stable"),
                 "income_trend_pct": _safe_float(getattr(income, "income_trend_pct", None)),
 
                 # Balance metrics
                 "average_balance": _safe_float(getattr(balance, "average_balance", None)),
                 "minimum_balance": _safe_float(getattr(balance, "minimum_balance", None)),
+                "maximum_balance": _safe_float(getattr(balance, "maximum_balance", None)),
                 "days_in_overdraft": _safe_float(getattr(balance, "days_in_overdraft", None)),
                 "overdraft_frequency": _safe_float(getattr(balance, "overdraft_frequency", None)),
+                "overdraft_days_per_month": _safe_float(getattr(balance, "overdraft_days_per_month", None)),
+                "end_of_month_average": _safe_float(getattr(balance, "end_of_month_average", None)),
 
                 # Risk metrics
                 "failed_payments_count": _safe_float(getattr(risk, "failed_payments_count", None)),
                 "failed_payments_count_45d": _safe_float(getattr(risk, "failed_payments_count_45d", None)),
                 "bank_charges_count_90d": _safe_float(getattr(risk, "bank_charges_count_90d", None)),
                 "gambling_percentage": _safe_float(getattr(risk, "gambling_percentage", None)),
+                "gambling_frequency": _safe_float(getattr(risk, "gambling_frequency", None)),
                 "debt_collection_activity": _safe_float(getattr(risk, "debt_collection_activity", None)),
                 "new_credit_providers_90d": _safe_float(getattr(risk, "new_credit_providers_90d", None)),
                 "savings_activity": _safe_float(getattr(risk, "savings_activity", None)),
-                # NEW: Savings behavior score (added for recalibrated scoring)
+                # Savings behavior score (used in recalibrated scoring)
                 "savings_behavior_score": _safe_float(getattr(risk, "savings_behavior_score", None)),
+                # Risk flags
+                "has_gambling_concern": int(bool(getattr(risk, "has_gambling_concern", False))),
+                "has_failed_payment_concern": int(bool(getattr(risk, "has_failed_payment_concern", False))),
+                "has_new_credit_burst": int(bool(getattr(risk, "has_new_credit_burst", False))),
 
                 # Affordability metrics
+                "debt_to_income_ratio": _safe_float(getattr(affordability, "debt_to_income_ratio", None)),
+                "essential_ratio": _safe_float(getattr(affordability, "essential_ratio", None)),
                 "monthly_disposable": _safe_float(getattr(affordability, "monthly_disposable", None)),
                 "post_loan_disposable": _safe_float(getattr(affordability, "post_loan_disposable", None)),
                 "disposable_ratio": _safe_float(getattr(affordability, "disposable_ratio", None)),
                 "max_affordable_amount": _safe_float(getattr(affordability, "max_affordable_amount", None)),
 
-                # Expense/Debt metrics
-                "monthly_essential_total": _safe_float(getattr(expenses, "monthly_essential_total", None)),
+                # Debt metrics
                 "monthly_debt_payments": _safe_float(getattr(debt, "monthly_debt_payments", None)),
+                "monthly_hcstc_payments": _safe_float(getattr(debt, "monthly_hcstc_payments", None)),
+                "active_hcstc_count": _safe_float(getattr(debt, "active_hcstc_count", None)),
+                "active_hcstc_count_90d": _safe_float(getattr(debt, "active_hcstc_count_90d", None)),
+
+                # Expense metrics
+                "monthly_essential_total": _safe_float(getattr(expenses, "monthly_essential_total", None)),
+                "monthly_discretionary_total": _safe_float(getattr(expenses, "monthly_discretionary_total", None)),
             })
 
             processed += 1
