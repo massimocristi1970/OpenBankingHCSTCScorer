@@ -142,8 +142,19 @@ class RiskMetrics:
     has_bank_charges_concern: bool = False  # For mandatory referral
     has_new_credit_burst: bool = False  # For mandatory referral
     
-    # NEW: Savings behavior score (positive indicator)
+    # Savings behavior score (positive indicator)
     savings_behavior_score: float = 0.0  # 0-3 points for regular savers
+    
+    # Combined Risk Signals (for tiered approval system)
+    # Individual flags
+    flag_low_income_stability: bool = False  # income_stability_score < 50
+    flag_low_debt_management: bool = False   # monthly_debt_payments < 200
+    flag_low_credit_activity: bool = False   # new_credit_providers_90d < 10
+    flag_no_savings: bool = False            # savings_activity < 5
+    
+    # Combined signal
+    risk_flag_count: int = 0  # Count of flags (0-4)
+    risk_tier: str = "CLEAN"  # CLEAN (0-1 flags), WATCH (2 flags), FLAG (3+ flags)
 
 
 class MetricsCalculator:
@@ -867,6 +878,49 @@ class MetricsCalculator:
             loan_amount=loan_amount,
             loan_term=loan_term,
         )
+
+        # Calculate combined risk flags for tiered approval system
+        # These flags are based on analysis showing combined weak signals create strong signals
+        flag_low_income_stability = (
+            income_metrics.income_stability_score is not None 
+            and income_metrics.income_stability_score < 50
+        )
+        flag_low_debt_management = (
+            debt_metrics.monthly_debt_payments is not None
+            and debt_metrics.monthly_debt_payments < 200
+        )
+        flag_low_credit_activity = (
+            risk_metrics.new_credit_providers_90d is not None
+            and risk_metrics.new_credit_providers_90d < 10
+        )
+        flag_no_savings = (
+            risk_metrics.savings_activity is not None
+            and risk_metrics.savings_activity < 5
+        )
+        
+        # Count total flags
+        risk_flag_count = sum([
+            flag_low_income_stability,
+            flag_low_debt_management,
+            flag_low_credit_activity,
+            flag_no_savings
+        ])
+        
+        # Determine risk tier
+        if risk_flag_count >= 3:
+            risk_tier = "FLAG"  # High risk - approve with conditions
+        elif risk_flag_count == 2:
+            risk_tier = "WATCH"  # Elevated risk - monitor closely
+        else:
+            risk_tier = "CLEAN"  # Normal risk - standard approval
+        
+        # Update risk_metrics with the flag information
+        risk_metrics.flag_low_income_stability = flag_low_income_stability
+        risk_metrics.flag_low_debt_management = flag_low_debt_management
+        risk_metrics.flag_low_credit_activity = flag_low_credit_activity
+        risk_metrics.flag_no_savings = flag_no_savings
+        risk_metrics.risk_flag_count = risk_flag_count
+        risk_metrics.risk_tier = risk_tier
 
         return {
             "income": income_metrics,

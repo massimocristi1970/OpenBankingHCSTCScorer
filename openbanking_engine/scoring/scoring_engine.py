@@ -95,6 +95,11 @@ class ScoringResult:
     # Risk flags
     risk_flags: List[str] = field(default_factory=list)
     decline_reasons: List[str] = field(default_factory=list)
+    
+    # Tiered approval system (based on combined risk signals)
+    risk_tier: str = "CLEAN"  # CLEAN, WATCH, or FLAG
+    risk_flag_count: int = 0
+    tier_adjustments: List[str] = field(default_factory=list)  # Actions taken based on tier
 
     # Processing info
     processing_notes: List[str] = field(default_factory=list)
@@ -138,6 +143,10 @@ class ScoringEngine:
         balance = metrics.get("balance", BalanceMetrics())
         risk = metrics.get("risk", RiskMetrics())
 
+        # Get risk tier information from risk metrics
+        risk_tier = getattr(risk, "risk_tier", "CLEAN") or "CLEAN"
+        risk_flag_count = getattr(risk, "risk_flag_count", 0) or 0
+        
         # Initialize result
         result = ScoringResult(
             application_ref=application_ref,
@@ -151,6 +160,10 @@ class ScoringEngine:
             months_observed=getattr(balance, "months_observed", 0) or 0,
             overdraft_days_per_month=getattr(balance, "overdraft_days_per_month", 0.0) or 0.0,
             income_stability_score=getattr(income, "income_stability_score", 0.0) or 0.0,
+            
+            # Tiered approval information
+            risk_tier=risk_tier,
+            risk_flag_count=risk_flag_count,
         )
 
         # Check rule violations
@@ -221,13 +234,32 @@ class ScoringEngine:
                 affordability=affordability,
                 requested_amount=requested_amount,
                 requested_term=requested_term,
+                risk_tier=risk_tier,
             )
             result.loan_offer = loan_offer
             result.post_loan_disposable = (
                 affordability.monthly_disposable - loan_offer.monthly_repayment
             )
+            
+            # Add tier-based adjustments and notes
+            if risk_tier == "FLAG":
+                result.tier_adjustments.append("Loan amount capped due to elevated risk signals")
+                result.tier_adjustments.append("Recommend direct debit setup")
+                result.tier_adjustments.append("Flag for proactive collections monitoring")
+                result.processing_notes.append(f"RISK_TIER: FLAG ({risk_flag_count} risk signals)")
+            elif risk_tier == "WATCH":
+                result.tier_adjustments.append("Monitor account closely")
+                result.processing_notes.append(f"RISK_TIER: WATCH ({risk_flag_count} risk signals)")
+            else:
+                result.processing_notes.append(f"RISK_TIER: CLEAN ({risk_flag_count} risk signals)")
+                
         elif result.decision == Decision.REFER:
             result.processing_notes.append("Manual review required")
+            # Add tier context for manual reviewers
+            if risk_tier == "FLAG":
+                result.processing_notes.append(f"RISK_TIER: FLAG ({risk_flag_count} risk signals) - consider declining")
+            elif risk_tier == "WATCH":
+                result.processing_notes.append(f"RISK_TIER: WATCH ({risk_flag_count} risk signals) - lean toward approval")
 
         # DEBUG: confirm nothing overrides after the gate
         result.processing_notes.append(f"FINAL_DECISION: {result.decision.value}")
@@ -735,8 +767,9 @@ class ScoringEngine:
         affordability: AffordabilityMetrics,
         requested_amount: float,
         requested_term: int,
+        risk_tier: str = "CLEAN",
     ) -> LoanOffer:
-        """Determine the loan offer based on score and affordability."""
+        """Determine the loan offer based on score, affordability, and risk tier."""
 
         # Get score-based limits
         score_limit = 0
@@ -746,6 +779,15 @@ class ScoringEngine:
                 score_limit = limit["max_amount"]
                 max_term = limit["max_term"]
                 break
+        
+        # Apply tier-based adjustments to loan limits
+        # FLAG tier: Reduce max amount by 40% and max term by 1 month
+        # WATCH tier: Reduce max amount by 20%
+        if risk_tier == "FLAG":
+            score_limit = int(score_limit * 0.6)  # 40% reduction
+            max_term = max(3, max_term - 1)  # Reduce term, minimum 3 months
+        elif risk_tier == "WATCH":
+            score_limit = int(score_limit * 0.8)  # 20% reduction
 
         # Calculate affordability-based maximum
         aff_max = (
