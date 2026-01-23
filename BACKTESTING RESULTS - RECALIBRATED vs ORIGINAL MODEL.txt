@@ -1,0 +1,106 @@
+======================================================================
+BACKTESTING RESULTS - RECALIBRATED vs ORIGINAL MODEL
+======================================================================
+
+1. DECISION DISTRIBUTION
+----------------------------------------
+
+NEW MODEL (Recalibrated):
+  APPROVE   :  2613 ( 85.1%)
+  REFER     :   431 ( 14.0%)
+  DECLINE   :    28 (  0.9%)
+
+OLD MODEL (Original):
+  APPROVE   :  2000 ( 65.1%)
+  REFER     :   893 ( 29.1%)
+  DECLINE   :   179 (  5.8%)
+
+2. SCORE STATISTICS
+----------------------------------------
+
+NEW MODEL:  Mean=71.8, Median=73.5, Std=11.5
+OLD MODEL:  Mean=70.4, Median=73.7, Std=12.7
+
+3. OUTCOME ANALYSIS FOR APPROVED APPLICATIONS
+----------------------------------------
+
+NEW MODEL:
+  Approved: 2613
+  Default rate (never paid): 4.52%
+  Full repayment rate: 86.15%
+  Breakdown: 118 never paid, 244 partial, 2251 full
+
+OLD MODEL:
+  Approved: 2000
+  Default rate (never paid): 4.75%
+  Full repayment rate: 85.70%
+  Breakdown: 95 never paid, 191 partial, 1714 full
+
+4. DEFAULT CATCH RATE
+----------------------------------------
+
+Defaults in data: 140
+NEW MODEL caught (declined): 0 (0.0%)
+OLD MODEL caught (declined): 4 (2.9%)
+
+5. GOOD CUSTOMER MISS RATE
+----------------------------------------
+
+Good customers (fully repaid): 2651
+NEW MODEL missed (declined): 27 (1.0%)
+OLD MODEL missed (declined): 163 (6.1%)
+
+6. DECISION CHANGES (NEW vs OLD)
+----------------------------------------
+
+Total decisions changed: 768 (25.0%)
+
+Changes breakdown:
+  APPROVE -> REFER: 5
+  DECLINE -> APPROVE: 6
+  DECLINE -> REFER: 145
+  REFER -> APPROVE: 612
+
+Outcomes of changed decisions:
+
+  Never paid (27 applications):
+    DECLINE -> REFER: 4
+    REFER -> APPROVE: 23
+
+  Partially repaid (64 applications):
+    APPROVE -> REFER: 1
+    DECLINE -> APPROVE: 2
+    DECLINE -> REFER: 9
+    REFER -> APPROVE: 52
+
+  Fully repaid (677 applications):
+    APPROVE -> REFER: 4
+    DECLINE -> APPROVE: 4
+    DECLINE -> REFER: 132
+    REFER -> APPROVE: 537
+
+7. SCORE DISTRIBUTION BY OUTCOME
+----------------------------------------
+
+Never paid (n=140):
+  NEW: Mean=70.6, Median=71.3
+  OLD: Mean=71.5, Median=73.5
+
+Partially repaid (n=281):
+  NEW: Mean=71.8, Median=72.8
+  OLD: Mean=71.5, Median=74.5
+
+Fully repaid (n=2651):
+  NEW: Mean=71.9, Median=73.8
+  OLD: Mean=70.2, Median=73.7
+
+======================================================================
+SUMMARY
+======================================================================
+
+    Metric                    NEW MODEL    OLD MODEL    CHANGE
+    ----------------------------------------------------------------
+    Approval Rate               85.1%        65.1%      +20.0%
+    Default Rate (Approved)     4.52%        4.75%      -0.23%
+
+    IMPROVEMENT: New model has LOWER default rate among approved applications
