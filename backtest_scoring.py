@@ -168,15 +168,17 @@ def calculate_score_from_metrics(row: pd.Series) -> Tuple[float, str, Dict]:
     else:
         gambling_points = -5
     
-    # HCSTC History (5 points) - from new_credit_providers_90d as proxy
-    # Note: We don't have active_hcstc_count in training data, use proxy
-    new_credit = row.get('new_credit_providers_90d', 0) or 0
-    if new_credit <= 2:
+    # HCSTC History (5 points)
+    # Use active_hcstc_count_90d if available, otherwise proxy from new_credit_providers
+    hcstc_count = row.get('active_hcstc_count_90d') or row.get('new_credit_providers_90d', 0) or 0
+    if hcstc_count == 0:
         hcstc_points = 5
-    elif new_credit <= 5:
-        hcstc_points = 3.5
+    elif hcstc_count <= 2:
+        hcstc_points = 4  # 1-2 is normal
+    elif hcstc_count == 3:
+        hcstc_points = 2.5  # 3 - some concern
     else:
-        hcstc_points = 0
+        hcstc_points = 0  # 4+ - significant concern
     
     # NEW: Savings Behavior Bonus (up to 3 points)
     savings_score = row.get('savings_behavior_score', 0) or 0

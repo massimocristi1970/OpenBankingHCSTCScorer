@@ -105,8 +105,8 @@ SCORING_CONFIG = {
             "description": "No verifiable income source and income below threshold"
         },
         "max_active_hcstc_lenders": {
-            "threshold": 6,  # 7+ triggers action
-            "action": "DECLINE",  # Change to "REFER" for manual review instead
+            "threshold": 3,  # 4+ triggers action (lowered from 6)
+            "action": "REFER",  # Manual review for 4+ active HCSTC lenders
             "lookback_days": 90,
             "description": "Maximum active HCSTC lenders in lookback period"
         },

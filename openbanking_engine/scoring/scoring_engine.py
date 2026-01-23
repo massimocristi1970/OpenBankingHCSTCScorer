@@ -594,16 +594,19 @@ class ScoringEngine:
         )
 
         # HCSTC History (5 points)
+        # Adjusted: Only penalize at 4+ active HCSTC lenders (was penalizing at 2+)
         if debt.active_hcstc_count is not None:
             if debt.active_hcstc_count == 0:
                 hcstc_points = 5
-            elif debt.active_hcstc_count == 1:
-                hcstc_points = 3.5
+            elif debt.active_hcstc_count <= 2:
+                hcstc_points = 4  # 1-2 HCSTC is normal, minimal reduction
+            elif debt.active_hcstc_count == 3:
+                hcstc_points = 2.5  # 3 HCSTC - some concern
             else:
-                hcstc_points = 0
+                hcstc_points = 0  # 4+ HCSTC - significant concern
                 penalties.append(f"Multiple HCSTC lenders ({debt.active_hcstc_count})")
         else:
-            hcstc_points = 0
+            hcstc_points = 2.5  # Unknown - moderate points
 
         # NEW: Savings Behavior Bonus (up to 3 points)
         # Regular savers demonstrate financial discipline - positive indicator
@@ -635,9 +638,10 @@ class ScoringEngine:
             penalties.append(f"Gambling penalty: {penalty}")
             risk_score += penalty
 
-        if debt.active_hcstc_count is not None and debt.active_hcstc_count >= 2:
-            penalty = -10
-            penalties.append(f"Multiple HCSTC penalty: {penalty}")
+        # HCSTC penalty only for 4+ active lenders (was 2+, too strict)
+        if debt.active_hcstc_count is not None and debt.active_hcstc_count >= 4:
+            penalty = -5  # Reduced from -10
+            penalties.append(f"High HCSTC count penalty ({debt.active_hcstc_count} lenders): {penalty}")
             risk_score += penalty
 
         breakdown.penalties_applied = penalties
