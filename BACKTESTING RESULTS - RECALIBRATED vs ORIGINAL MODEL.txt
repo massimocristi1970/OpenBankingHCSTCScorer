@@ -95,6 +95,24 @@ Fully repaid (n=2651):
   OLD: Mean=70.2, Median=73.7
 
 ======================================================================
+8. TIERED APPROVAL ANALYSIS
+======================================================================
+
+Risk Tier Distribution:
+Tier          Total   Defaults   Default%   FullRepay%
+-------------------------------------------------------
+CLEAN          2502         89       3.6%        87.6%
+WATCH           495         41       8.3%        82.2%
+FLAG             75         10      13.3%        68.0%
+
+Tier Analysis for APPROVED Applications:
+Tier         Approved   Defaults   Default%               Action
+-----------------------------------------------------------------
+CLEAN            2128         76       3.6%       Standard terms
+WATCH             427         35       8.2%      Monitor closely
+FLAG               58          7      12.1%  Reduced amount/term
+
+======================================================================
 SUMMARY
 ======================================================================
 
@@ -102,5 +120,11 @@ SUMMARY
     ----------------------------------------------------------------
     Approval Rate               85.1%        65.1%      +20.0%
     Default Rate (Approved)     4.52%        4.75%      -0.23%
+
+    TIERED APPROVAL BREAKDOWN (NEW MODEL):
+    ----------------------------------------------------------------
+    CLEAN tier approvals:       2128 ( 81.4%)  - Standard terms
+    WATCH tier approvals:        427 ( 16.3%)  - Monitor closely
+    FLAG tier approvals:          58 (  2.2%)  - Reduced amount/term
 
     IMPROVEMENT: New model has LOWER default rate among approved applications
