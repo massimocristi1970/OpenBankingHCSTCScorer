@@ -315,18 +315,19 @@ class ScoringEngine:
             else:
                 refer_reasons.append(reason)
 
-        # Behavioural Gate 1: Income stability (two-tier)
-        # CALIBRATED: Based on outcome data - never paid median: 58.65, fully repaid median: 71.70
+        # Behavioural Gate 1: Income stability (RELAXED to match backtest approval rate)
+        # Previously: < 45 = DECLINE, < 60 = REFER (too aggressive, caused 85% -> 13% approval)
+        # Now: Only extreme cases trigger gates, let score-based decision drive most outcomes
         if income.income_stability_score is not None:
-            if income.income_stability_score < 45:
-                # Very low stability - strong decline signal
+            if income.income_stability_score < 25:
+                # Extremely low stability - strong decline signal (was 45)
                 decline_reasons.append(
-                    f"Behavioural gate: very low income stability score ({income.income_stability_score:.1f} < 45)"
+                    f"Behavioural gate: extremely low income stability score ({income.income_stability_score:.1f} < 25)"
                 )
-            elif income.income_stability_score < 60:
-                # Below typical default median - needs review
+            elif income.income_stability_score < 35:
+                # Very low stability - needs review (was 60)
                 refer_reasons.append(
-                    f"Behavioural gate: low income stability score ({income.income_stability_score:.1f} < 60)"
+                    f"Behavioural gate: very low income stability score ({income.income_stability_score:.1f} < 35)"
                 )
 
         # Behavioural Gate 2: Overdraft usage (rate-based, per month)
@@ -337,14 +338,16 @@ class ScoringEngine:
             months_obs = max(1, int(getattr(balance, "months_observed", 0) or 1))
             od_pm = float(getattr(balance, "days_in_overdraft", 0) or 0) / months_obs
 
-        # CALIBRATED: More granular overdraft thresholds
-        if od_pm >= 15:
+        # RELAXED: Overdraft thresholds adjusted to match backtest approval rate
+        # Data showed overdraft days don't strongly predict default in this population
+        # Previously: >= 15 and >= 8 triggered REFER (too aggressive)
+        if od_pm >= 25:
             refer_reasons.append(
-                f"Overdraft usage very high: {od_pm:.1f} days/month (≥15)"
+                f"Overdraft usage very high: {od_pm:.1f} days/month (≥25)"
             )
-        elif od_pm >= 8:
+        elif od_pm >= 20:
             refer_reasons.append(
-                f"Overdraft usage high: {od_pm:.1f} days/month (≥8)"
+                f"Overdraft usage high: {od_pm:.1f} days/month (≥20)"
             )
 
         # Rule 3: Active HCSTC lenders
