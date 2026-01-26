@@ -166,31 +166,7 @@ class ScoringEngine:
             risk_flag_count=risk_flag_count,
         )
 
-        # Check rule violations
-        decline_reasons, refer_reasons = self._check_rule_violations(
-            income=income,
-            debt=debt,
-            affordability=affordability,
-            risk=risk,
-            balance=balance,
-            requested_amount=requested_amount,
-            requested_term=requested_term,
-        )
-
-        # Handle hard declines first
-        if decline_reasons:
-            result.decision = Decision.DECLINE
-            result.decline_reasons = decline_reasons
-            result.score = 0.0
-            result.risk_level = RiskLevel.VERY_HIGH
-            # Include refer reasons in processing notes
-            if refer_reasons:
-                result.processing_notes = [
-                    f"Additional concerns: {', '.join(refer_reasons)}"
-                ]
-            return result
-
-        # Calculate score breakdown
+        # Calculate score breakdown FIRST
         score_breakdown = self._calculate_scores(
             income=income,
             affordability=affordability,
@@ -202,27 +178,44 @@ class ScoringEngine:
         result.score_breakdown = score_breakdown
         result.score = score_breakdown.total_score
 
-        # Determine decision based on score
+        # Check for critical decline-only rules (hard gates)
+        # These are absolute requirements that override score-based decisions
+        decline_reasons = self._check_critical_decline_rules(income)
+        
+        if decline_reasons:
+            result.decision = Decision.DECLINE
+            result.decline_reasons = decline_reasons
+            result.score = 0.0
+            result.risk_level = RiskLevel.VERY_HIGH
+            return result
+
+        # =======================================================================
+        # SCORE-BASED DECISION ONLY (matching backtest logic)
+        # =======================================================================
+        # Decision is determined purely by score thresholds:
+        #   >= 60: APPROVE
+        #   >= 40: REFER  
+        #   < 40:  DECLINE
+        # No rule-based overrides - the score already incorporates all risk factors
+        # =======================================================================
         decision, risk_level = self._determine_decision(score_breakdown.total_score)
         result.decision = decision
         result.risk_level = risk_level
 
-        # REFER reasons should only ever BLOCK an approval.
-        # If the score says DECLINE, we keep DECLINE (do not "upgrade" to REFER).
-        result.processing_notes = list(refer_reasons) if refer_reasons else []
+        # Collect informational notes (for manual review context, NOT decision-changing)
+        informational_notes = self._collect_informational_notes(
+            income=income,
+            debt=debt,
+            affordability=affordability,
+            risk=risk,
+            balance=balance,
+        )
+        result.processing_notes = informational_notes
 
-        if decision == Decision.APPROVE and refer_reasons:
-            result.decision = Decision.REFER
-            # Keep risk_level as determined by score, but require manual review
+        # If REFER, add generic note
+        if result.decision == Decision.REFER:
             if "Manual review required" not in result.processing_notes:
                 result.processing_notes.insert(0, "Manual review required")
-        else:
-            # Keep the score-based decision
-            result.decision = decision
-
-        # If the score-based decision is REFER and there are no specific reasons, add a generic note
-        if result.decision == Decision.REFER and not result.processing_notes:
-            result.processing_notes = ["Manual review required"]
 
         # Collect risk flags
         result.risk_flags = self._collect_risk_flags(risk, debt, affordability, balance)
@@ -455,6 +448,67 @@ class ScoringEngine:
                     refer_reasons.append(reason)
 
         return decline_reasons, refer_reasons
+
+    def _check_critical_decline_rules(
+        self,
+        income: IncomeMetrics,
+    ) -> List[str]:
+        """
+        Check only critical rules that require hard decline.
+        
+        DESIGN DECISION: No hard decline rules are applied.
+        
+        The score already incorporates all risk factors (income stability, 
+        affordability, conduct, etc.). Even applications with very low income
+        stability can have compensating factors that result in acceptable scores.
+        
+        This matches the backtest behavior where decisions are purely score-based:
+          - Score >= 60: APPROVE
+          - Score >= 40: REFER
+          - Score < 40:  DECLINE
+        
+        Returns:
+            Empty list (no hard declines - let score decide)
+        """
+        # No hard decline rules - score handles all risk assessment
+        return []
+
+    def _collect_informational_notes(
+        self,
+        income: IncomeMetrics,
+        debt: DebtMetrics,
+        affordability: AffordabilityMetrics,
+        risk: RiskMetrics,
+        balance: BalanceMetrics,
+    ) -> List[str]:
+        """
+        Collect informational notes for manual review context.
+        
+        These notes are for INFORMATION ONLY - they do NOT affect the decision.
+        The decision is made purely based on score thresholds.
+        
+        Returns:
+            List of informational notes
+        """
+        notes = []
+        
+        # Note any factors that might be of interest for manual review
+        if income.income_stability_score is not None and income.income_stability_score < 50:
+            notes.append(f"Note: income stability below average ({income.income_stability_score:.1f})")
+        
+        if debt.active_hcstc_count_90d is not None and debt.active_hcstc_count_90d > 5:
+            notes.append(f"Note: {debt.active_hcstc_count_90d} active HCSTC lenders (90d)")
+        
+        if risk.failed_payments_count_45d is not None and risk.failed_payments_count_45d > 0:
+            notes.append(f"Note: {risk.failed_payments_count_45d} failed payments (45d)")
+        
+        if affordability.post_loan_disposable is not None and affordability.post_loan_disposable < 0:
+            notes.append(f"Note: negative post-loan disposable (£{affordability.post_loan_disposable:.0f})")
+        
+        if risk.gambling_percentage is not None and risk.gambling_percentage > 5:
+            notes.append(f"Note: gambling at {risk.gambling_percentage:.1f}% of income")
+        
+        return notes
 
     def _calculate_scores(
         self,
