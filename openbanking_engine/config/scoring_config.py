@@ -127,9 +127,9 @@ SCORING_CONFIG = {
             "description": "Maximum failed payments in lookback period"
         },
         "new_credit_burst": {
-            "threshold": 10,  # RAISED from 3 - data shows more credit providers = better outcomes
+            "threshold": 30,  # RAISED from 10 - data shows median full repayers have 13 providers
             "lookback_days": 90,
-            "action": "REFER",  # Only extreme cases (10+) need review
+            "action": "REFER",  # Only extreme cases (30+) need review
             "description": "Excessive new credit providers within recent lookback period"
         },
         "max_dca_count": {
