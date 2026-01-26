@@ -744,6 +744,7 @@ class HCSTCBatchProcessor:
 
                 "Risk Flags": "; ".join(result.risk_flags) if result.risk_flags else "",
                 "Decline Reasons": "; ".join(result.decline_reasons) if result.decline_reasons else "",
+                "Refer Reasons": "; ".join(result.processing_notes) if result.processing_notes else "",
             }
 
             # Add score breakdown if available
