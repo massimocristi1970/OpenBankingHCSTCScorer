@@ -15,7 +15,7 @@
 3. [Data Analysis & Key Findings](#3-data-analysis--key-findings)
 4. [Scoring Model Architecture](#4-scoring-model-architecture)
 5. [Score Component Breakdown](#5-score-component-breakdown)
-6. [Decision Thresholds & Rules](#6-decision-thresholds--rules)
+6. [Decision Framework](#6-decision-framework)
 7. [Tiered Approval System](#7-tiered-approval-system)
 8. [Model Validation & Backtesting](#8-model-validation--backtesting)
 9. [Risk Management](#9-risk-management)
@@ -171,18 +171,26 @@ The scoring model operates on a **100-point scale** with four main components:
 
 ### 4.2 Decision Framework
 
+Decisions are determined **solely by score thresholds**:
+
 | Score Range | Decision | Action |
 |-------------|----------|--------|
-| 60-100 | **APPROVE** | Proceed with loan offer |
+| 60-100 | **APPROVE** | Proceed with loan offer (tier-adjusted) |
 | 40-59 | **REFER** | Manual underwriter review |
 | 0-39 | **DECLINE** | Application rejected |
+
+**Key Principle:** The score incorporates all risk factors. No additional rules override the score-based decision. This ensures:
+- Consistent, predictable outcomes
+- Full benefit of compensating factors
+- Decisions aligned with validated outcome data
 
 ### 4.3 Design Principles
 
 1. **Data-Driven Weights:** Component weights derived from outcome correlation analysis
-2. **Regulatory Compliance:** Affordability assessment meets FCA requirements
-3. **Transparency:** Clear rationale for each scoring component
-4. **Flexibility:** Configurable thresholds for market adaptation
+2. **Score-Based Decisions:** All risk factors flow through the unified score
+3. **Regulatory Compliance:** Affordability assessment meets FCA requirements
+4. **Transparency:** Clear rationale for each scoring component
+5. **Flexibility:** Configurable thresholds for market adaptation
 
 ---
 
@@ -360,45 +368,69 @@ Disposable income remaining after proposed loan repayment.
 
 ---
 
-## 6. Decision Thresholds & Rules
+## 6. Decision Framework
 
-### 6.1 Score-Based Decisions
+### 6.1 Score-Based Decision Model
 
-| Score | Decision | Loan Limits |
-|-------|----------|-------------|
-| 75+ | APPROVE | Up to £1,500, 6 months |
-| 65-74 | APPROVE | Up to £1,200, 6 months |
-| 60-64 | APPROVE | Up to £800, 5 months |
-| 55-59 | REFER | Up to £500, 4 months |
-| 45-54 | REFER | Up to £300, 3 months |
-| < 45 | DECLINE | N/A |
+The model uses a **pure score-based decision approach**. All risk factors are incorporated into the score calculation, and the final decision is determined solely by score thresholds:
 
-### 6.2 Behavioral Gates
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    DECISION FLOW                             │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│   Transaction Data → Feature Extraction → Score Calculation  │
+│                                                              │
+│                           ↓                                  │
+│                                                              │
+│              Score >= 60  ──→  APPROVE                       │
+│              Score 40-59  ──→  REFER                         │
+│              Score < 40   ──→  DECLINE                       │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
 
-These gates override score-based decisions for extreme cases only:
+**Design Rationale:** 
+- The score already incorporates all relevant risk factors (income stability, affordability, conduct, etc.)
+- Each factor is weighted according to its predictive power from outcome data analysis
+- A unified score provides transparent, consistent decisioning
+- Avoids double-counting risk factors through separate rules
 
-| Gate | Threshold | Action | Rationale |
-|------|-----------|--------|-----------|
-| Income Stability | < 25 | DECLINE | Extremely unstable income |
-| Income Stability | < 35 | REFER | Very low stability |
-| Overdraft Usage | ≥ 25 days/month | REFER | Persistent overdraft |
-| Overdraft Usage | ≥ 20 days/month | REFER | High overdraft |
+### 6.2 Score Thresholds and Loan Limits
 
-**Note:** These thresholds were calibrated to allow score-based decisions to drive most outcomes, with gates only catching extreme outliers.
+| Score Range | Decision | Maximum Amount | Maximum Term |
+|-------------|----------|----------------|--------------|
+| 75-100 | **APPROVE** | £1,500 | 6 months |
+| 65-74 | **APPROVE** | £1,200 | 6 months |
+| 60-64 | **APPROVE** | £800 | 5 months |
+| 55-59 | **REFER** | £500 | 4 months |
+| 45-54 | **REFER** | £300 | 3 months |
+| 40-44 | **REFER** | Manual assessment | Manual assessment |
+| 0-39 | **DECLINE** | N/A | N/A |
 
-### 6.3 Configurable Rules
+### 6.3 Informational Flags
 
-| Rule | Threshold | Action | Configurable |
-|------|-----------|--------|--------------|
-| Minimum Monthly Income | £1,500 | REFER | Yes |
-| No Verifiable Income | £300 | REFER | Yes |
-| Active HCSTC Lenders | 4+ | REFER | Yes |
-| Gambling Percentage | 15%+ | REFER | Yes |
-| Post-Loan Disposable | < £50 | REFER | Yes |
-| Failed Payments (45d) | 3+ | REFER | Yes |
-| New Credit Providers | 10+ | REFER | Yes |
-| Debt Collection Agencies | 4+ | REFER | Yes |
-| Projected DTI | > 85% | REFER | Yes |
+The system generates informational flags for manual review context. These flags **do not affect the automated decision** but provide useful context for underwriters reviewing REFER cases:
+
+| Flag Category | Example Conditions | Purpose |
+|---------------|-------------------|---------|
+| Income Notes | Stability below average | Context for income assessment |
+| Affordability Notes | Negative post-loan disposable | Highlight affordability concerns |
+| Conduct Notes | Failed payments present | Account behaviour context |
+| Risk Notes | Gambling activity detected | Risk awareness for reviewer |
+| Credit Activity | Multiple HCSTC lenders | Credit usage context |
+
+### 6.4 Why Score-Based Decisions Work
+
+| Advantage | Explanation |
+|-----------|-------------|
+| **Consistency** | Same inputs always produce same decision |
+| **Transparency** | Decision rationale is clear (score breakdown) |
+| **Accuracy** | Weights calibrated from actual outcome data |
+| **Flexibility** | Compensating factors can offset weaknesses |
+| **Auditability** | Complete decision trail for compliance |
+
+**Example:** An applicant with below-average income stability but excellent affordability and conduct scores may still achieve an APPROVE decision. The score reflects the overall risk profile, not individual factor thresholds.
 
 ---
 
@@ -517,10 +549,11 @@ An A/B testing framework is available to:
 
 | Requirement | Implementation |
 |-------------|----------------|
-| FCA Affordability | Post-loan disposable assessment (£50 minimum) |
-| Responsible Lending | DTI ratio checks, debt-to-income limits |
+| FCA Affordability | Post-loan disposable assessment via Affordability Score component |
+| Responsible Lending | DTI ratio incorporated into score; tier-based amount limits |
 | Transparency | All decision factors logged and explainable |
 | Right to Explanation | Score breakdown available for each decision |
+| Consistent Treatment | Score-based decisions ensure equal treatment |
 
 ---
 
@@ -605,7 +638,7 @@ SCORING_CONFIG = {
 | Jan 2026 | 1.0 | Initial model development | Data Science Team |
 | Jan 2026 | 1.1 | Weight recalibration based on outcome analysis | Data Science Team |
 | Jan 2026 | 1.2 | Tiered approval system implementation | Data Science Team |
-| Jan 2026 | 1.3 | Behavioral gate relaxation | Data Science Team |
+| Jan 2026 | 1.3 | Score-based decision framework finalization | Data Science Team |
 
 ---
 
