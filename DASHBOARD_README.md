@@ -1,5 +1,21 @@
 # Transaction Categorization Review Dashboard
 
+## Quick Start (30 seconds)
+
+```bash
+# 1. Install dependencies (if not already installed)
+pip install flask
+
+# 2. Start the dashboard
+python dashboard.py
+
+# 3. Open browser to http://localhost:5001
+
+# 4. Upload JSON files, click "Analyze Transactions", review results
+```
+
+---
+
 ## Overview
 
 The Transaction Categorization Review Dashboard is a non-intrusive, read-only Flask-based web application designed to help analyze and review how transactions are being categorized by the OpenBanking HCSTC Scorer system. This tool is ideal for:
