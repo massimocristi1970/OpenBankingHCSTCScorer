@@ -1,0 +1,185 @@
+==========================================================================================
+COMPLETE MEDIAN SCORES BY OUTCOME - ALL MODEL METRICS
+Generated: 2026-01-26 12:09:41
+==========================================================================================
+
+Dataset: 3072 applications
+  - Never Paid (Outcome 0): 140 (4.6%)
+  - Partially Repaid (Outcome 1): 281 (9.1%)
+  - Fully Repaid (Outcome 2): 2651 (86.3%)
+
+==========================================================================================
+INCOME METRICS
+==========================================================================================
+Metric                                        Never Paid         Partial      Full Repay
+------------------------------------------------------------------------------------------
+Monthly Stable Income (£)                         344.69         1262.50         1535.50
+Monthly Gig Income (£)                                 0               0               0
+Effective Monthly Income (£)                     3669.37         3797.91         4013.20
+Income Stability Score                             58.65           66.40           71.70
+Income Regularity Score                               60              60              60
+Income Trend (%)                                    8.85            1.50               0
+
+==========================================================================================
+BALANCE METRICS
+==========================================================================================
+Metric                                        Never Paid         Partial      Full Repay
+------------------------------------------------------------------------------------------
+Average Balance (£)                               117.02          127.59          132.01
+Minimum Balance (£)                              -685.40         -746.58         -898.38
+Maximum Balance (£)                              2021.78         2138.04         2263.74
+Days in Overdraft                                     40              38              51
+Overdraft Days/Month                               13.33           12.67              17
+End of Month Average (£)                          117.02          127.59          132.01
+
+==========================================================================================
+DEBT METRICS
+==========================================================================================
+Metric                                        Never Paid         Partial      Full Repay
+------------------------------------------------------------------------------------------
+Monthly Debt Payments (£)                         182.83          542.16          676.33
+Monthly HCSTC Payments (£)                          9.77           86.75          163.18
+Active HCSTC Count                                     1               3               5
+Active HCSTC Count (90d)                               1               2               3
+
+==========================================================================================
+CREDIT ACTIVITY METRICS
+==========================================================================================
+Metric                                        Never Paid         Partial      Full Repay
+------------------------------------------------------------------------------------------
+New Credit Providers (90d)                             7              12              13
+
+==========================================================================================
+AFFORDABILITY METRICS
+==========================================================================================
+Metric                                        Never Paid         Partial      Full Repay
+------------------------------------------------------------------------------------------
+Monthly Disposable (£)                           1427.74         1188.97         1225.29
+Post-Loan Disposable (£)                         1181.14          942.37          978.69
+Debt-to-Income Ratio (%)                            4.45              13           16.20
+Essential Ratio (%)                                49.95           52.30           49.70
+
+==========================================================================================
+EXPENSE METRICS
+==========================================================================================
+Metric                                        Never Paid         Partial      Full Repay
+------------------------------------------------------------------------------------------
+Monthly Essential Total (£)                      1159.09         1504.59         1470.16
+Monthly Discretionary (£)                         175.08          190.02          194.94
+
+==========================================================================================
+RISK METRICS
+==========================================================================================
+Metric                                        Never Paid         Partial      Full Repay
+------------------------------------------------------------------------------------------
+Gambling (% of Income)                                 0               0               0
+Gambling Frequency                                     0               0               0
+Failed Payments Count                                  0               0               0
+Failed Payments (45d)                                  0               0               0
+Savings Activity (£)                                   0               0               0
+Savings Behavior Score                                 0               0               0
+
+==========================================================================================
+RISK FLAGS (Tiered System)
+==========================================================================================
+Metric                                        Never Paid         Partial      Full Repay
+------------------------------------------------------------------------------------------
+Flag: Low Income Stability                             0               0               0
+Flag: Low Debt Management                              1               0               0
+Flag: Low Credit Activity                              1               0               0
+Flag: No Savings                                       1               1               1
+Risk Flag Count                                        3               2               1
+
+==========================================================================================
+BOOLEAN RISK INDICATORS
+==========================================================================================
+Metric                                        Never Paid         Partial      Full Repay
+------------------------------------------------------------------------------------------
+Has Gambling Concern                                   0               0               0
+Has Failed Payment Concern                             0               0               0
+Has New Credit Burst                                   1               1               1
+
+==========================================================================================
+INCOME TREND (Categorical)
+==========================================================================================
+Trend                Never Paid         Partial      Full Repay
+-----------------------------------------------------------------
+increasing                48.6%           40.9%           34.6%
+stable                    27.1%           33.1%           36.5%
+decreasing                24.3%           26.0%           28.9%
+
+==========================================================================================
+RISK TIER DISTRIBUTION
+==========================================================================================
+Tier                 Never Paid         Partial      Full Repay      Total
+----------------------------------------------------------------------
+CLEAN                        32             133            1366       1531
+WATCH                        35              71             736        842
+FLAG                         73              77             549        699
+
+==========================================================================================
+SEPARATION STRENGTH RANKING (Full Repay vs Default)
+==========================================================================================
+Rank   Metric                                          Separation Direction      
+-------------------------------------------------------------------------------------
+1      Monthly HCSTC Payments (£)                        +1570.1% Higher=Better  
+2      Active HCSTC Count                                 +400.0% Higher=Better  
+3      Monthly Stable Income (£)                          +345.5% Higher=Better  
+4      Monthly Debt Payments (£)                          +269.9% Higher=Better  
+5      Debt-to-Income Ratio (%)                           +264.0% Higher=Better  
+6      Active HCSTC Count (90d)                           +200.0% Higher=Better  
+7      Income Trend (%)                                   -100.0% Lower=Better   
+8      Flag: Low Debt Management                          -100.0% Lower=Better   
+9      Flag: Low Credit Activity                          -100.0% Lower=Better   
+10     New Credit Providers (90d)                          +85.7% Higher=Better  
+11     Risk Flag Count                                     -66.7% Lower=Better   
+12     Minimum Balance (£)                                 -31.1% Lower=Better   
+13     Overdraft Days/Month                                +27.5% Higher=Better  
+14     Days in Overdraft                                   +27.5% Higher=Better  
+15     Monthly Essential Total (£)                         +26.8% Higher=Better  
+16     Income Stability Score                              +22.3% Higher=Better  
+17     Post-Loan Disposable (£)                            -17.1% Lower=Better   
+18     Monthly Disposable (£)                              -14.2% Lower=Better   
+19     Average Balance (£)                                 +12.8% Higher=Better  
+20     End of Month Average (£)                            +12.8% Higher=Better  
+21     Maximum Balance (£)                                 +12.0% Higher=Better  
+22     Monthly Discretionary (£)                           +11.3% Higher=Better  
+23     Effective Monthly Income (£)                         +9.4% Higher=Better  
+24     Essential Ratio (%)                                  -0.5% Lower=Better   
+25     Income Regularity Score                              +0.0% Lower=Better   
+26     Flag: No Savings                                     +0.0% Lower=Better   
+27     Has New Credit Burst                                 +0.0% Lower=Better   
+
+==========================================================================================
+KEY INSIGHTS
+==========================================================================================
+
+1. STRONGEST POSITIVE SIGNALS (Higher = Better Outcomes):
+   - Monthly HCSTC Payments: Defaulters £9.77 vs Full Repayers £163.18 (+1,570%)
+   - Active HCSTC Count: Defaulters 1 vs Full Repayers 5 (+400%)
+   - Monthly Stable Income: Defaulters £344.69 vs Full Repayers £1,535.50 (+346%)
+   - Monthly Debt Payments: Defaulters £182.83 vs Full Repayers £676.33 (+270%)
+   - New Credit Providers: Defaulters 7 vs Full Repayers 13 (+86%)
+
+2. INTERPRETATION:
+   - Customers who actively manage debt and have established credit
+     relationships are MORE likely to repay
+   - This is counterintuitive but valid for a CRA-pre-approved population
+   - "Thin file" customers (low debt, few providers) are actually riskier
+
+3. RISK FLAGS THAT WORK:
+   - Low Debt Management (<£200/month): 51% of defaults have this flag vs 21% of full repayers
+   - Low Credit Activity (<10 providers): 65% of defaults vs 38% of full repayers
+   - Risk Flag Count: Defaults median 3 flags vs Full Repayers median 1 flag
+   - FLAG tier captures 52% of defaults but only 21% of full repayers
+
+4. COUNTERINTUITIVE FINDINGS:
+   - Higher overdraft usage correlates with BETTER outcomes (+27.5%)
+   - Higher debt-to-income ratio correlates with BETTER outcomes (+264%)
+   - Higher disposable income correlates with WORSE outcomes (-14.2%)
+   - These patterns are specific to this CRA-pre-approved population
+
+
+==========================================================================================
+END OF REPORT
+==========================================================================================
