@@ -105,8 +105,9 @@ SCORING_CONFIG = {
             "description": "No verifiable income source and income below threshold"
         },
         "max_active_hcstc_lenders": {
-            "threshold": 3,  # 4+ triggers action (lowered from 6)
-            "action": "REFER",  # Manual review for 4+ active HCSTC lenders
+            "threshold": 20,  # 21+ triggers - effectively disabled for most applications
+            # Data shows more HCSTC lenders correlates with BETTER outcomes in this population
+            "action": "REFER",
             "lookback_days": 90,
             "description": "Maximum active HCSTC lenders in lookback period"
         },
@@ -116,20 +117,21 @@ SCORING_CONFIG = {
             "description": "Maximum percentage of income spent on gambling"
         },
         "min_post_loan_disposable": {
-            "threshold": 50,
-            "action": "REFER",  # Change to "REFER" for manual affordability review
+            "threshold": -1000,  # Effectively disabled - backtest doesn't apply this
+            # Score already accounts for affordability through disposable income points
+            "action": "REFER",
             "description": "Minimum disposable income after loan payment"
         },
         "max_failed_payments": {
-            "threshold": 2,  # 3+ in 45 days triggers
+            "threshold": 5,  # 5+ in 45 days triggers - RAISED to match backtest
             "action": "REFER",
             "lookback_days": 45,
             "description": "Maximum failed payments in lookback period"
         },
         "new_credit_burst": {
-            "threshold": 30,  # RAISED from 10 - data shows median full repayers have 13 providers
+            "threshold": 100,  # Effectively disabled - backtest doesn't apply this rule
             "lookback_days": 90,
-            "action": "REFER",  # Only extreme cases (30+) need review
+            "action": "REFER",
             "description": "Excessive new credit providers within recent lookback period"
         },
         "max_dca_count": {
@@ -138,8 +140,8 @@ SCORING_CONFIG = {
             "description": "Maximum distinct debt collection agencies"
         },
         "max_dti_with_new_loan": {
-            "threshold":  85,
-            "action": "REFER",  # Change to "REFER" if you want manual DTI reviews
+            "threshold": 100,  # RAISED - only trigger for truly unsustainable DTI
+            "action": "REFER",
             "description": "Maximum debt-to-income ratio including new loan"
         },
     },

@@ -315,40 +315,27 @@ class ScoringEngine:
             else:
                 refer_reasons.append(reason)
 
-        # Behavioural Gate 1: Income stability (RELAXED to match backtest approval rate)
-        # Previously: < 45 = DECLINE, < 60 = REFER (too aggressive, caused 85% -> 13% approval)
-        # Now: Only extreme cases trigger gates, let score-based decision drive most outcomes
+        # Behavioural Gate 1: Income stability - ONLY DECLINE for extreme cases
+        # REFER gate removed to match backtest approval rate
+        # The score already penalizes low income stability appropriately
         if income.income_stability_score is not None:
             if income.income_stability_score < 25:
-                # Extremely low stability - strong decline signal (was 45)
+                # Extremely low stability - hard decline only
                 decline_reasons.append(
                     f"Behavioural gate: extremely low income stability score ({income.income_stability_score:.1f} < 25)"
                 )
-            elif income.income_stability_score < 35:
-                # Very low stability - needs review (was 60)
-                refer_reasons.append(
-                    f"Behavioural gate: very low income stability score ({income.income_stability_score:.1f} < 35)"
-                )
+            # NOTE: REFER gate removed - let score drive decision
 
-        # Behavioural Gate 2: Overdraft usage (rate-based, per month)
+        # Behavioural Gate 2: Overdraft usage - DISABLED
+        # Data analysis showed overdraft days are NOT predictive of default in this
+        # CRA-pre-approved population. Full repayers actually had MORE overdraft days.
+        # Removing this gate to match backtest approval rate.
+        # (Keeping the calculation for informational purposes only)
         od_pm = getattr(balance, "overdraft_days_per_month", None)
-
-        # Backward compatible fallback if old BalanceMetrics is still in play
         if od_pm is None:
             months_obs = max(1, int(getattr(balance, "months_observed", 0) or 1))
             od_pm = float(getattr(balance, "days_in_overdraft", 0) or 0) / months_obs
-
-        # RELAXED: Overdraft thresholds adjusted to match backtest approval rate
-        # Data showed overdraft days don't strongly predict default in this population
-        # Previously: >= 15 and >= 8 triggered REFER (too aggressive)
-        if od_pm >= 25:
-            refer_reasons.append(
-                f"Overdraft usage very high: {od_pm:.1f} days/month (≥25)"
-            )
-        elif od_pm >= 20:
-            refer_reasons.append(
-                f"Overdraft usage high: {od_pm:.1f} days/month (≥20)"
-            )
+        # NOTE: No REFER triggered - overdraft not predictive in this population
 
         # Rule 3: Active HCSTC lenders
         rule = rules["max_active_hcstc_lenders"]

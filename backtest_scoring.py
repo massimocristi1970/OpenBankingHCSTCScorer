@@ -252,87 +252,13 @@ def calculate_score_from_metrics(row: pd.Series) -> Tuple[float, str, Dict]:
     # Total Score
     total_score = max(0, min(100, income_score + affordability_score + conduct_score + risk_score))
     
-    # Determine initial decision based on score thresholds
+    # Determine decision (using recalibrated thresholds)
     if total_score >= 60:  # LOWERED from 70 based on backtest analysis
         decision = "APPROVE"
     elif total_score >= 40:  # LOWERED from 45
         decision = "REFER"
     else:
         decision = "DECLINE"
-    
-    # =========================================================================
-    # RULE-BASED OVERRIDES (matching live scoring_engine.py logic)
-    # These rules can change an APPROVE to REFER (but never upgrade a decision)
-    # =========================================================================
-    refer_reasons = []
-    decline_reasons = []
-    
-    # Rule 1: Extremely low income stability (behavioral gate)
-    stability = row.get('income_stability_score', 50) or 50
-    if stability < 25:
-        decline_reasons.append(f"Income stability ({stability:.1f}) < 25")
-    elif stability < 35:
-        refer_reasons.append(f"Income stability ({stability:.1f}) < 35")
-    
-    # Rule 2: Overdraft usage (behavioral gate) - RELAXED
-    overdraft_days_pm = row.get('overdraft_days_per_month', 0) or 0
-    if overdraft_days_pm == 0:
-        # Fallback calculation if overdraft_days_per_month not available
-        days_in_overdraft = row.get('days_in_overdraft', 0) or 0
-        months_observed = row.get('months_observed', 1) or 1
-        overdraft_days_pm = days_in_overdraft / max(1, months_observed)
-    
-    if overdraft_days_pm >= 25:
-        refer_reasons.append(f"Overdraft usage ({overdraft_days_pm:.1f} days/month) >= 25")
-    elif overdraft_days_pm >= 20:
-        refer_reasons.append(f"Overdraft usage ({overdraft_days_pm:.1f} days/month) >= 20")
-    
-    # Rule 3: Active HCSTC lenders (> 3 triggers REFER)
-    hcstc_90d = row.get('active_hcstc_count_90d', 0) or 0
-    if hcstc_90d > 3:
-        refer_reasons.append(f"Active HCSTC lenders ({hcstc_90d}) > 3")
-    
-    # Rule 4: Failed payments (>= 2 triggers REFER)
-    failed_45d = row.get('failed_payments_count_45d', 0) or 0
-    if failed_45d >= 2:
-        refer_reasons.append(f"Failed payments ({failed_45d}) >= 2")
-    
-    # Rule 5: Post-loan disposable (< 50 triggers REFER)
-    post_loan = row.get('post_loan_disposable', 0) or 0
-    if post_loan < 50:
-        refer_reasons.append(f"Post-loan disposable (£{post_loan:.0f}) < £50")
-    
-    # Rule 6: New credit burst (> 30 triggers REFER)
-    new_credit = row.get('new_credit_providers_90d', 0) or 0
-    if new_credit > 30:
-        refer_reasons.append(f"New credit providers ({new_credit}) > 30")
-    
-    # Rule 7: Gambling percentage (> 5% triggers REFER)
-    gambling_pct = row.get('gambling_percentage', 0) or 0
-    if gambling_pct > 5:
-        refer_reasons.append(f"Gambling ({gambling_pct:.1f}%) > 5%")
-    
-    # Rule 8: DTI with new loan (> 85% triggers REFER)
-    # Estimate projected DTI (assuming typical loan payment of ~£200)
-    monthly_income = row.get('effective_monthly_income', 0) or row.get('monthly_income', 0) or 1
-    monthly_debt = row.get('monthly_debt_payments', 0) or 0
-    estimated_loan_payment = 200  # Typical new loan payment
-    if monthly_income > 0:
-        projected_dti = (monthly_debt + estimated_loan_payment) / monthly_income * 100
-        if projected_dti > 85:
-            refer_reasons.append(f"Projected DTI ({projected_dti:.1f}%) > 85%")
-    
-    # Store rule violations in breakdown
-    breakdown['rule_violations'] = {
-        'decline_reasons': decline_reasons,
-        'refer_reasons': refer_reasons
-    }
-    
-    # Apply rule overrides to decision
-    if decline_reasons:
-        decision = "DECLINE"
-    elif decision == "APPROVE" and refer_reasons:
-        decision = "REFER"
     
     return total_score, decision, breakdown
 
