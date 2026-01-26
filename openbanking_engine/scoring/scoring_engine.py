@@ -404,15 +404,6 @@ class ScoringEngine:
 
         triggered = failed_45d >= threshold  # use >= if "2 triggers at threshold 2"
 
-        outcome = "PASS"
-        if triggered:
-            outcome = "REFER"  # v1 safety
-
-        print(
-            f"RULE6_DEBUG: failed_45d={failed_45d} "
-            f"threshold={threshold} triggered={triggered} outcome={outcome}"
-        )
-
         if triggered:
             reason = (
                 f"Failed payments ({failed_45d}) in last "
